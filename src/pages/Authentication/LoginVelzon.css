@@ -1,27 +1,6 @@
 /* Premium Dark Minimalist Overrides for Velzon Auth Layout */
 
-.auth-page-wrapper.auth-bg-cover {
-    background: linear-gradient(135deg, #020617 0%, #09090b 50%, #0a0a0a 100%) !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
 
-.auth-page-wrapper.auth-bg-cover .bg-overlay {
-    background: rgba(9, 9, 11, 0.45) !important;
-    opacity: 1 !important;
-}
-
-/* Mesh gradient for auth-one-bg left panel */
-.auth-one-bg {
-    background-image: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%) !important;
-    background-color: transparent !important;
-    position: relative;
-}
-
-.auth-one-bg .bg-overlay {
-    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 70%),
-                radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.18), transparent 70%) !important;
-    opacity: 1 !important;
-}
 
 /* Card glassmorphism overrides */
 .auth-page-wrapper .card {
