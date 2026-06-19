@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SimpleBar from "simplebar-react";
 //import logo
@@ -14,6 +14,35 @@ import { Container,  DropdownMenu, DropdownToggle, UncontrolledDropdown } from "
 import HorizontalLayout from "./HorizontalLayout";
 
 const Sidebar = ({ layoutType }: any) => {
+  const [userName, setUserName] = useState("Usuario");
+  const [avatarSrc, setAvatarSrc] = useState(avatar1);
+
+  useEffect(() => {
+    const authUser: any = sessionStorage.getItem("authUser");
+    if (authUser) {
+      const obj: any = JSON.parse(authUser);
+      setUserName(obj.nombre_completo || obj.email || "Usuario");
+      if (obj.avatar_url) {
+        setAvatarSrc(obj.avatar_url);
+      }
+    }
+  }, []);
+
+  // Listen for avatar updates
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const authUser: any = sessionStorage.getItem("authUser");
+      if (authUser) {
+        const obj = JSON.parse(authUser);
+        if (obj.avatar_url) {
+          setAvatarSrc(obj.avatar_url);
+        }
+        setUserName(obj.nombre_completo || obj.email || "Usuario");
+      }
+    };
+    window.addEventListener("avatarUpdated", handleStorageChange);
+    return () => window.removeEventListener("avatarUpdated", handleStorageChange);
+  }, []);
 
   useEffect(() => {
     var verticalOverlay = document.getElementsByClassName("vertical-overlay");
@@ -67,26 +96,20 @@ const Sidebar = ({ layoutType }: any) => {
         </div>
 
         <UncontrolledDropdown className="sidebar-user m-1 rounded">
-          <DropdownToggle tag="button" type="button" className="btn material-shadow-none" id="page-header-user-dropdown">
+          <DropdownToggle tag="button" type="button" className="btn d-flex w-100 align-items-center border-0 bg-transparent shadow-none" id="page-header-user-dropdown" style={{ padding: "8px 12px" }}>
             <span className="d-flex align-items-center gap-2">
-              <img className="rounded header-profile-user" src={avatar1} alt="Header Avatar" />
+              <img className="rounded-circle header-profile-user" src={avatarSrc} alt="Header Avatar" style={{ objectFit: "cover", width: "40px", height: "40px" }} />
                 <span className="text-start">
-                  <span className="d-block fw-medium sidebar-user-name-text">Anna Adame</span>
+                  <span className="d-block fw-medium sidebar-user-name-text">{userName}</span>
                   <span className="d-block fs-14 sidebar-user-name-sub-text"><i className="ri ri-circle-fill fs-10 text-success align-baseline"></i> <span className="align-middle">Online</span></span>
                 </span>
             </span>
           </DropdownToggle>
           <DropdownMenu className="dropdown-menu-end">
-            <h6 className="dropdown-header">Welcome Anna!</h6>
-            <a className="dropdown-item" href="/profile"><i className="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Profile</span></a>
-            <a className="dropdown-item" href="/apps-chat"><i className="mdi mdi-message-text-outline text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Messages</span></a>
-            <a className="dropdown-item" href="/apps-tasks-kanban"><i className="mdi mdi-calendar-check-outline text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Taskboard</span></a>
-            <a className="dropdown-item" href="/pages-faqs"><i className="mdi mdi-lifebuoy text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Help</span></a>
+            <h6 className="dropdown-header">¡Hola, <span>{userName}</span>!</h6>
+            <Link className="dropdown-item" to="/profile"><i className="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Mi Perfil</span></Link>
             <div className="dropdown-divider"></div>
-            <a className="dropdown-item" href="/pages-profile"><i className="mdi mdi-wallet text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Balance : <b>$5971.67</b></span></a>
-            <a className="dropdown-item" href="/pages-profile-settings"><span className="badge bg-success-subtle text-success mt-1 float-end">New</span><i className="mdi mdi-cog-outline text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Settings</span></a>
-            <a className="dropdown-item" href="/auth-lockscreen-basic"><i className="mdi mdi-lock text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Lock screen</span></a>
-            <a className="dropdown-item" href="/auth-logout-basic"><i className="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> <span className="align-middle" data-key="t-logout">Logout</span></a>
+            <Link className="dropdown-item" to="/logout"><i className="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> <span className="align-middle" data-key="t-logout">Cerrar Sesión</span></Link>
           </DropdownMenu>
         </UncontrolledDropdown>
         {layoutType === "horizontal" ? (
