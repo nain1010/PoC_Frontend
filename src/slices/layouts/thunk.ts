@@ -1,4 +1,4 @@
-import { changeHTMLAttribute, updateLocalStorage } from './utils';
+import { changeHTMLAttribute, updateLocalStorage, applyCustomThemeColor } from './utils';
 import {
     changeLayoutAction,
     changeLayoutThemeAction,
@@ -78,7 +78,7 @@ export const changeLayoutTheme = (layoutTheme: any) => async (dispatch: any) => 
  */
 export const changeLayoutThemeColor = (layoutThemeColor: any) => async (dispatch: any) => {
     try {
-        changeHTMLAttribute("data-theme-colors", layoutThemeColor);
+        applyCustomThemeColor(layoutThemeColor);
         updateLocalStorage("layout-config", { layoutThemeColorType: layoutThemeColor });
         dispatch(changeLayoutThemeColorAction(layoutThemeColor));
     } catch (error) { }

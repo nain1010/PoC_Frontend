@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     Offcanvas,
     OffcanvasHeader,
@@ -57,6 +57,7 @@ import { createSelector } from 'reselect';
 
 const RightSidebar = (props: any) => {
     const dispatch: any = useDispatch();
+    const colorInputRef = useRef<HTMLInputElement>(null);
 
     const [show, setShow] = useState<boolean>(false);
 
@@ -279,31 +280,23 @@ const RightSidebar = (props: any) => {
                                 <h6 className="mt-4 mb-0 fw-semibold text-uppercase">Theme</h6>
                                 <p className="text-muted">Choose your suitable Theme.</p>
 
-                                <div className="row">
-                                    <div className="col-6">
-                                        <div className="form-check card-radio">
-                                            <input
-                                                id="customizer-theme01"
-                                                name="data-theme"
-                                                type="radio"
-                                                className="form-check-input"
-                                                value={LAYOUT_THEME.DEFAULT}
-                                                checked={layoutThemeType === LAYOUT_THEME.DEFAULT}
-                                                onChange={e => {
-                                                    if (e.target.checked) {
-                                                        dispatch(changeLayoutTheme(e.target.value));
-                                                    }
-                                                }}
-                                            />
-                                            <label className="form-check-label p-0" htmlFor="customizer-theme01">
-                                                <div className="bg-light d-flex align-items-center justify-content-center p-3" style={{ height: "100px" }}>
-                                                    <span className="text-muted fw-medium">Luma Theme</span>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <h5 className="fs-13 text-center fw-medium mt-2">Default</h5>
-                                    </div>
-                                </div>
+                                <select 
+                                    className="form-select mb-3"
+                                    value={layoutThemeType}
+                                    onChange={(e) => dispatch(changeLayoutTheme(e.target.value))}
+                                >
+                                    <option value={LAYOUT_THEME.DEFAULT}>Default (Luma)</option>
+                                    <option value={LAYOUT_THEME.SAAS}>SaaS</option>
+                                    <option value={LAYOUT_THEME.CORPORATE}>Corporate</option>
+                                    <option value={LAYOUT_THEME.MODERN}>Modern</option>
+                                    <option value={LAYOUT_THEME.CREATIVE}>Creative</option>
+                                    <option value={LAYOUT_THEME.MINIMAL}>Minimal</option>
+                                    <option value={LAYOUT_THEME.VINTAGE}>Vintage</option>
+                                    <option value={LAYOUT_THEME.GALAXY}>Galaxy (Dark)</option>
+                                    <option value={LAYOUT_THEME.INTERACTIVE}>Interactive</option>
+                                    <option value={LAYOUT_THEME.CLASSIC}>Classic</option>
+                                    <option value={LAYOUT_THEME.MATERIAL}>Material</option>
+                                </select>
 
                                 <h6 className="mt-4 mb-0 fw-semibold text-uppercase">Color Scheme</h6>
                                 <p className="text-muted">Choose Light or Dark Scheme.</p>
@@ -1123,6 +1116,7 @@ const RightSidebar = (props: any) => {
                                     <h6 className="mt-4 mb-0 fw-semibold text-uppercase">Primary Color</h6>
                                     <p className="text-muted">Choose a color of Primary.</p>
                                     <div className="d-flex flex-wrap gap-2">
+                                        {/* Default (Indigo) */}
                                         <div className="form-check sidebar-setting card-radio">
                                             <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-01"
                                                 value={LAYOUT_THEME_COLOR.DEFAULT}
@@ -1132,8 +1126,21 @@ const RightSidebar = (props: any) => {
                                                         dispatch(changeLayoutThemeColor(e.target.value));
                                                     }
                                                 }} />
-                                            <label className="form-check-label avatar-xs p-0" htmlFor="themeColor-01"></label>
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" htmlFor="themeColor-01" title="Azul Predeterminado"></label>
                                         </div>
+                                        {/* Green */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-02"
+                                                value={LAYOUT_THEME_COLOR.GREEN}
+                                                checked={layoutThemeColorType === LAYOUT_THEME_COLOR.GREEN}
+                                                onChange={e => {
+                                                    if (e.target.checked) {
+                                                        dispatch(changeLayoutThemeColor(e.target.value));
+                                                    }
+                                                }} />
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" htmlFor="themeColor-02" title="Verde Esmeralda"></label>
+                                        </div>
+                                        {/* Purple */}
                                         <div className="form-check sidebar-setting card-radio">
                                             <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-03"
                                                 value={LAYOUT_THEME_COLOR.PURPLE}
@@ -1143,7 +1150,127 @@ const RightSidebar = (props: any) => {
                                                         dispatch(changeLayoutThemeColor(e.target.value));
                                                     }
                                                 }} />
-                                            <label className="form-check-label avatar-xs p-0" htmlFor="themeColor-03"></label>
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" htmlFor="themeColor-03" title="Morado"></label>
+                                        </div>
+                                        {/* Blue */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-04"
+                                                value={LAYOUT_THEME_COLOR.BLUE}
+                                                checked={layoutThemeColorType === LAYOUT_THEME_COLOR.BLUE}
+                                                onChange={e => {
+                                                    if (e.target.checked) {
+                                                        dispatch(changeLayoutThemeColor(e.target.value));
+                                                    }
+                                                }} />
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" htmlFor="themeColor-04" title="Azul"></label>
+                                        </div>
+                                        {/* Red */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-red"
+                                                value={LAYOUT_THEME_COLOR.RED}
+                                                checked={layoutThemeColorType === LAYOUT_THEME_COLOR.RED}
+                                                onChange={e => {
+                                                    if (e.target.checked) {
+                                                        dispatch(changeLayoutThemeColor(e.target.value));
+                                                    }
+                                                }} />
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#ee6352' }} htmlFor="themeColor-red" title="Rojo Carmesí"></label>
+                                        </div>
+                                        {/* Orange */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-orange"
+                                                value={LAYOUT_THEME_COLOR.ORANGE}
+                                                checked={layoutThemeColorType === LAYOUT_THEME_COLOR.ORANGE}
+                                                onChange={e => {
+                                                    if (e.target.checked) {
+                                                        dispatch(changeLayoutThemeColor(e.target.value));
+                                                    }
+                                                }} />
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#ff7043' }} htmlFor="themeColor-orange" title="Naranja Atardecer"></label>
+                                        </div>
+                                        {/* Cyan */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-cyan"
+                                                value={LAYOUT_THEME_COLOR.CYAN}
+                                                checked={layoutThemeColorType === LAYOUT_THEME_COLOR.CYAN}
+                                                onChange={e => {
+                                                    if (e.target.checked) {
+                                                        dispatch(changeLayoutThemeColor(e.target.value));
+                                                    }
+                                                }} />
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#06b6d4' }} htmlFor="themeColor-cyan" title="Azul Turquesa"></label>
+                                        </div>
+                                        {/* Pink */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-pink"
+                                                value={LAYOUT_THEME_COLOR.PINK}
+                                                checked={layoutThemeColorType === LAYOUT_THEME_COLOR.PINK}
+                                                onChange={e => {
+                                                    if (e.target.checked) {
+                                                        dispatch(changeLayoutThemeColor(e.target.value));
+                                                    }
+                                                }} />
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#ec4899' }} htmlFor="themeColor-pink" title="Rosa"></label>
+                                        </div>
+                                        {/* Yellow */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-yellow"
+                                                value={LAYOUT_THEME_COLOR.YELLOW}
+                                                checked={layoutThemeColorType === LAYOUT_THEME_COLOR.YELLOW}
+                                                onChange={e => {
+                                                    if (e.target.checked) {
+                                                        dispatch(changeLayoutThemeColor(e.target.value));
+                                                    }
+                                                }} />
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#f59e0b' }} htmlFor="themeColor-yellow" title="Amarillo Oro"></label>
+                                        </div>
+                                        {/* Dark */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-dark"
+                                                value={LAYOUT_THEME_COLOR.DARK}
+                                                checked={layoutThemeColorType === LAYOUT_THEME_COLOR.DARK}
+                                                onChange={e => {
+                                                    if (e.target.checked) {
+                                                        dispatch(changeLayoutThemeColor(e.target.value));
+                                                    }
+                                                }} />
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#374151' }} htmlFor="themeColor-dark" title="Gris Oscuro / Pizarra"></label>
+                                        </div>
+                                        {/* Custom Picker */}
+                                        <div className="form-check sidebar-setting card-radio">
+                                            <input className="form-check-input" type="radio" name="data-theme-colors" id="themeColor-custom"
+                                                value={layoutThemeColorType && layoutThemeColorType.startsWith('#') ? layoutThemeColorType : '#4f46e5'}
+                                                checked={layoutThemeColorType !== null && layoutThemeColorType.startsWith('#')}
+                                                onChange={e => {
+                                                    dispatch(changeLayoutThemeColor(e.target.value));
+                                                }} />
+                                            <label 
+                                                className="form-check-label avatar-xs p-0 rounded-circle d-flex align-items-center justify-content-center" 
+                                                htmlFor="themeColor-custom" 
+                                                title="Color Personalizado"
+                                                style={{
+                                                    background: layoutThemeColorType && layoutThemeColorType.startsWith('#') 
+                                                        ? layoutThemeColorType 
+                                                        : 'linear-gradient(135deg, #ff0055, #00ffcc, #9900ff)',
+                                                    border: '1px solid rgba(0,0,0,0.1)',
+                                                    cursor: 'pointer',
+                                                    position: 'relative'
+                                                }}
+                                                onClick={() => {
+                                                    colorInputRef.current?.click();
+                                                }}
+                                            >
+                                                <i className="ri-palette-line text-white fs-12" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}></i>
+                                            </label>
+                                            <input 
+                                                type="color" 
+                                                ref={colorInputRef} 
+                                                style={{ display: 'none' }} 
+                                                value={layoutThemeColorType && layoutThemeColorType.startsWith('#') ? layoutThemeColorType : '#4f46e5'}
+                                                onChange={e => {
+                                                    dispatch(changeLayoutThemeColor(e.target.value));
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 </div>

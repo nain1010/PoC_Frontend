@@ -5,12 +5,29 @@ enum LAYOUT_TYPES {
 
 enum LAYOUT_THEME {
   DEFAULT = "default",
+  SAAS = "saas",
+  CORPORATE = "corporate",
   MODERN = "modern",
+  CREATIVE = "creative",
+  MINIMAL = "minimal",
+  VINTAGE = "vintage",
+  GALAXY = "galaxy",
+  INTERACTIVE = "interactive",
+  CLASSIC = "classic",
+  MATERIAL = "material"
 };
 
 enum LAYOUT_THEME_COLOR {
   DEFAULT = "default",
+  GREEN = "green",
   PURPLE = "purple",
+  BLUE = "blue",
+  RED = "red",
+  ORANGE = "orange",
+  CYAN = "cyan",
+  PINK = "pink",
+  YELLOW = "yellow",
+  DARK = "dark",
 };
 
 enum LAYOUT_MODE_TYPES {
