@@ -38,9 +38,19 @@ const Login = (props: any) => {
 
     const [userLogin, setUserLogin] = useState<any>([]);
     const [passwordShow, setPasswordShow] = useState<boolean>(false);
-
     const [loader, setLoader] = useState<boolean>(false);
+    const [rememberMe, setRememberMe] = useState<boolean>(false);
 
+    useEffect(() => {
+        const savedEmail = localStorage.getItem("rememberedEmail");
+        if (savedEmail) {
+            setRememberMe(true);
+            setUserLogin({
+                email: savedEmail,
+                password: ""
+            });
+        }
+    }, []);
 
     useEffect(() => {
         if (user && user) {
@@ -58,14 +68,19 @@ const Login = (props: any) => {
         enableReinitialize: true,
 
         initialValues: {
-            email: userLogin.email || "testuser@example.com" || '',
-            password: userLogin.password || "1234567" || '',
+            email: userLogin.email || localStorage.getItem("rememberedEmail") || "testuser@example.com" || '',
+            password: userLogin.password || (localStorage.getItem("rememberedEmail") ? "" : "1234567") || '',
         },
         validationSchema: Yup.object({
             email: Yup.string().required("Por favor ingresa tu correo electrónico"),
             password: Yup.string().required("Por favor ingresa tu contraseña"),
         }),
         onSubmit: (values) => {
+            if (rememberMe) {
+                localStorage.setItem("rememberedEmail", values.email);
+            } else {
+                localStorage.removeItem("rememberedEmail");
+            }
             dispatch(loginUser(values, props.router.navigate));
             setLoader(true)
         }
@@ -150,7 +165,13 @@ const Login = (props: any) => {
                         </div>
 
                         <div className="form-check">
-                            <Input className="form-check-input" type="checkbox" value="" id="auth-remember-check" />
+                            <Input 
+                                className="form-check-input" 
+                                type="checkbox" 
+                                checked={rememberMe} 
+                                id="auth-remember-check" 
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
                             <Label className="form-check-label" htmlFor="auth-remember-check">Recordarme</Label>
                         </div>
 
