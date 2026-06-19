@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Input, Label, Button, Form, FormFeedback, Alert, Spinner } from 'reactstrap';
 import CoverAuth from "../AuthenticationInner/CoverAuth";
+import "./LoginVelzon.css";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -154,9 +155,9 @@ const Login = (props: any) => {
                         </div>
 
                         <div className="mt-4">
-                            <Button color="success"
+                            <Button
                                 disabled={loader}
-                                className="btn btn-success w-100" type="submit">
+                                className="btn-submit-premium w-100" type="submit">
                                 {loader ? (
                                     <span className="d-flex align-items-center justify-content-center">
                                         <Spinner size="sm" className='me-2'> Cargando... </Spinner>

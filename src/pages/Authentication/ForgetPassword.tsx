@@ -101,7 +101,7 @@ const ForgetPasswordPage = (props : any) => {
           </div>
 
           <div className="text-center mt-4">
-            <button className="btn btn-success w-100" type="submit">Enviar enlace de restablecimiento</button>
+            <button className="btn-submit-premium w-100" type="submit">Enviar enlace de restablecimiento</button>
           </div>
         </Form>
       </div>

@@ -3,6 +3,7 @@ import { Card, Col, Container, Row } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import withRouter from '../../Components/Common/withRouter';
 import logoLight from "../../assets/images/logo-light.png";
+import "../Authentication/LoginVelzon.css";
 
 const CoverAuth = ({ children, title, subtitle }: any) => {
     return (

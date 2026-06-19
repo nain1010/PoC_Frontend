@@ -1,0 +1,157 @@
+/* Premium Dark Minimalist Overrides for Velzon Auth Layout */
+
+.auth-page-wrapper.auth-bg-cover {
+    background: linear-gradient(135deg, #020617 0%, #09090b 50%, #0a0a0a 100%) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.auth-page-wrapper.auth-bg-cover .bg-overlay {
+    background: rgba(9, 9, 11, 0.45) !important;
+    opacity: 1 !important;
+}
+
+/* Mesh gradient for auth-one-bg left panel */
+.auth-one-bg {
+    background-image: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%) !important;
+    background-color: transparent !important;
+    position: relative;
+}
+
+.auth-one-bg .bg-overlay {
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 70%),
+                radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.18), transparent 70%) !important;
+    opacity: 1 !important;
+}
+
+/* Card glassmorphism overrides */
+.auth-page-wrapper .card {
+    background-color: rgba(24, 24, 27, 0.6) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-top: 2px solid rgba(59, 130, 246, 0.8) !important;
+    border-left: 1px solid rgba(63, 63, 70, 0.3) !important;
+    border-right: 1px solid rgba(63, 63, 70, 0.3) !important;
+    border-bottom: 1px solid rgba(63, 63, 70, 0.3) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 50px rgba(37, 99, 235, 0.08) !important;
+}
+
+/* Forms styling */
+.auth-page-wrapper label {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: #a1a1aa !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 0.4rem !important;
+}
+
+.auth-page-wrapper .form-control {
+    background-color: rgba(9, 9, 11, 0.8) !important;
+    border: 1px solid #27272a !important;
+    color: #f4f4f5 !important;
+    border-radius: 0.75rem !important;
+    padding: 0.7rem 1rem !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.auth-page-wrapper .form-control::placeholder {
+    color: #52525b !important;
+}
+
+.auth-page-wrapper .form-control:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+.auth-page-wrapper .form-control.is-invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* CTA submit button styling */
+.auth-page-wrapper .btn-submit-premium {
+    background: linear-gradient(to right, #2563eb, #4f46e5) !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.025em !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -4px rgba(59, 130, 246, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.auth-page-wrapper .btn-submit-premium:hover:not(:disabled) {
+    background: linear-gradient(to right, #3b82f6, #6366f1) !important;
+    transform: scale(1.01) !important;
+    box-shadow: 0 10px 20px -3px rgba(59, 130, 246, 0.3), 0 4px 6px -4px rgba(59, 130, 246, 0.3) !important;
+}
+
+.auth-page-wrapper .btn-submit-premium:active:not(:disabled) {
+    transform: scale(0.99) !important;
+}
+
+.auth-page-wrapper .btn-submit-premium:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Text and Links overrides */
+.auth-page-wrapper .text-muted,
+.auth-page-wrapper .text-white-50 {
+    color: #a1a1aa !important;
+}
+
+.auth-page-wrapper .text-primary {
+    color: #60a5fa !important;
+}
+
+.auth-page-wrapper a {
+    color: #3b82f6 !important;
+    text-decoration: none !important;
+    transition: color 0.2s !important;
+}
+
+.auth-page-wrapper a:hover {
+    color: #60a5fa !important;
+    text-decoration: underline !important;
+}
+
+/* Password Eye Icon Button styling */
+.auth-page-wrapper .btn-link {
+    color: #71717a !important;
+    transition: color 0.2s !important;
+}
+.auth-page-wrapper .btn-link:hover {
+    color: #f4f4f5 !important;
+}
+
+/* Social Buttons */
+.auth-page-wrapper .btn-icon,
+.auth-page-wrapper .btn-dark,
+.auth-page-wrapper .btn-info,
+.auth-page-wrapper .btn-danger,
+.auth-page-wrapper .btn-primary:not(.btn-submit-premium) {
+    background-color: #09090b !important;
+    border: 1px solid #27272a !important;
+    color: #a1a1aa !important;
+    transition: all 0.2s !important;
+}
+
+.auth-page-wrapper .btn-icon:hover,
+.auth-page-wrapper .btn-dark:hover,
+.auth-page-wrapper .btn-info:hover,
+.auth-page-wrapper .btn-danger:hover,
+.auth-page-wrapper .btn-primary:not(.btn-submit-premium):hover {
+    background-color: #18181b !important;
+    color: #f4f4f5 !important;
+    border-color: #3f3f46 !important;
+}
+
+/* Header adjustment for title */
+.auth-page-wrapper h4.text-primary {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}

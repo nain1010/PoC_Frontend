@@ -191,7 +191,7 @@ const Register = () => {
                         </div>
 
                         <div className="mt-4">
-                            <Button color="success" className="w-100" type="submit" disabled={loader && true}>
+                            <Button className="btn-submit-premium w-100" type="submit" disabled={loader && true}>
                                 {loader && <Spinner size="sm" className='me-2'> Cargando... </Spinner>}
                                 Registrarse
                             </Button>
