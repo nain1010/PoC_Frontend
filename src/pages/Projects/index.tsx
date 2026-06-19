@@ -101,7 +101,7 @@ const Projects = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <div className="d-flex align-items-center justify-content-between mb-4">
+                    <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3">
                         <BreadCrumb title="Proyectos" pageTitle=" " />
                         <Button color="success" className="btn btn-success" onClick={toggleModal}>
                             <i className="ri-add-line align-bottom me-1"></i> Nuevo Proyecto

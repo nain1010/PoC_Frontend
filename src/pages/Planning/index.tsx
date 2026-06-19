@@ -331,7 +331,7 @@ const Planning = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <div className="d-flex align-items-center justify-content-between mb-4">
+                    <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3">
                         <BreadCrumb title={`Planificación - ${activeProjectName}`} pageTitle="Proyectos" />
                         <div>
                             <Button color="soft-primary" className="me-2" onClick={toggleMemberModal}>

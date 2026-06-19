@@ -227,7 +227,7 @@ const Kanban = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <div className="d-flex align-items-center justify-content-between mb-4">
+                    <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3">
                         <BreadCrumb title={`Sprint Activo - ${activeProjectName}`} pageTitle="Kanban" />
                         {activeSprint && (
                             <div className="d-flex align-items-center gap-2">
