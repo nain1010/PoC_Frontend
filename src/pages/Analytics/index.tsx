@@ -121,18 +121,18 @@ const Analytics = () => {
                             <Row className="mb-4">
                                 {/* Velocity widget */}
                                 <Col xl={4} md={6} className="mb-4">
-                                    <Card className="card-animate border-0 shadow-sm bg-white h-100">
+                                    <Card className="card-animate border-0 shadow-sm h-100">
                                         <CardBody className="p-4 d-flex flex-column justify-content-between">
                                             <div className="d-flex align-items-center justify-content-between mb-3">
                                                 <h6 className="text-muted text-uppercase fw-semibold mb-0 fs-12">Velocidad Promedio</h6>
                                                 <div className="avatar-xs">
-                                                    <span className="avatar-title bg-blue-400    bg-opacity-10 text-blue-50 rounded-2 fs-18">
+                                                    <span className="avatar-title bg-blue-400 bg-opacity-10 text-blue-50 rounded-2 fs-18">
                                                         <i className="ri-flashlight-line"></i>
                                                     </span>
                                                 </div>
                                             </div>
                                             <div>
-                                                <h2 className="fw-bold text-dark mb-2">{velocidad_promedio.toFixed(1)} <span className="fs-14 fw-normal text-muted">puntos</span></h2>
+                                                <h2 className="fw-bold mb-2">{velocidad_promedio.toFixed(1)} <span className="fs-14 fw-normal text-muted">puntos</span></h2>
                                                 <p className="mb-0 text-muted fs-12">Promedio logrado en los Sprints cerrados del proyecto.</p>
                                             </div>
                                         </CardBody>
@@ -141,7 +141,7 @@ const Analytics = () => {
 
                                 {/* Active Sprint Stories widget */}
                                 <Col xl={4} md={6} className="mb-4">
-                                    <Card className="card-animate border-0 shadow-sm bg-white h-100">
+                                    <Card className="card-animate border-0 shadow-sm h-100">
                                         <CardBody className="p-4 d-flex flex-column justify-content-between">
                                             <div className="d-flex align-items-center justify-content-between mb-3">
                                                 <h6 className="text-muted text-uppercase fw-semibold mb-0 fs-12">Historias (Sprint Activo)</h6>
@@ -153,7 +153,7 @@ const Analytics = () => {
                                             </div>
                                             {activeSprintInfo ? (
                                                 <div>
-                                                    <h2 className="fw-bold text-dark mb-2">{storiesDone} / {storiesTotal} <span className="fs-14 fw-normal text-muted">Historias</span></h2>
+                                                    <h2 className="fw-bold mb-2">{storiesDone} / {storiesTotal} <span className="fs-14 fw-normal text-muted">Historias</span></h2>
                                                     <div className="d-flex align-items-center justify-content-between mb-1 text-muted fs-11">
                                                         <span>Completadas:</span>
                                                         <span className="fw-semibold">{activeSprintStoryPercent}%</span>
@@ -171,7 +171,7 @@ const Analytics = () => {
 
                                 {/* Active Sprint Effort widget */}
                                 <Col xl={4} md={6} className="mb-4">
-                                    <Card className="card-animate border-0 shadow-sm bg-white h-100">
+                                    <Card className="card-animate border-0 shadow-sm h-100">
                                         <CardBody className="p-4 d-flex flex-column justify-content-between">
                                             <div className="d-flex align-items-center justify-content-between mb-3">
                                                 <h6 className="text-muted text-uppercase fw-semibold mb-0 fs-12">Puntos Entregados (Sprint Activo)</h6>
@@ -183,7 +183,7 @@ const Analytics = () => {
                                             </div>
                                             {activeSprintInfo ? (
                                                 <div>
-                                                    <h2 className="fw-bold text-dark mb-2">{pointsDone} / {pointsTotal} <span className="fs-14 fw-normal text-muted">Puntos</span></h2>
+                                                    <h2 className="fw-bold mb-2">{pointsDone} / {pointsTotal} <span className="fs-14 fw-normal text-muted">Puntos</span></h2>
                                                     <div className="d-flex align-items-center justify-content-between mb-1 text-muted fs-11">
                                                         <span>Completado:</span>
                                                         <span className="fw-semibold">{activeSprintPointsPercent}%</span>
@@ -205,9 +205,9 @@ const Analytics = () => {
                                 {/* Velocity History Chart Column */}
                                 <Col lg={6} className="mb-4">
                                     <Card className="border-0 shadow-sm h-100">
-                                        <div className="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
-                                            <h6 className="card-title mb-0 fw-bold text-dark">Historial de Velocidad</h6>
-                                            <Badge color="soft-dark" className="text-dark">Sprints Cerrados</Badge>
+                                        <div className="card-header border-bottom p-3 d-flex justify-content-between align-items-center">
+                                            <h6 className="card-title mb-0 fw-bold">Historial de Velocidad</h6>
+                                            <Badge color="soft-dark">Sprints Cerrados</Badge>
                                         </div>
                                         <CardBody className="p-4">
                                             {sprints.length === 0 ? (
@@ -243,8 +243,8 @@ const Analytics = () => {
                                 {/* Burndown Chart Column */}
                                 <Col lg={6} className="mb-4">
                                     <Card className="border-0 shadow-sm h-100">
-                                        <div className="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
-                                            <h6 className="card-title mb-0 fw-bold text-dark">Gráfico Burndown</h6>
+                                        <div className="card-header border-bottom p-3 d-flex justify-content-between align-items-center">
+                                            <h6 className="card-title mb-0 fw-bold">Gráfico Burndown</h6>
                                             {activeSprintInfo && (
                                                 <Badge color="danger">{activeSprintInfo.nombre}</Badge>
                                             )}
@@ -284,8 +284,8 @@ const Analytics = () => {
                                 {/* Workload Capacity Column */}
                                 <Col lg={6} className="mb-4">
                                     <Card className="border-0 shadow-sm h-100">
-                                        <div className="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
-                                            <h6 className="card-title mb-0 fw-bold text-dark">Carga por Desarrollador</h6>
+                                        <div className="card-header border-bottom p-3 d-flex justify-content-between align-items-center">
+                                            <h6 className="card-title mb-0 fw-bold">Carga por Desarrollador</h6>
                                             {activeSprintInfo && (
                                                 <Badge color="success">{activeSprintInfo.nombre}</Badge>
                                             )}
@@ -308,10 +308,10 @@ const Analytics = () => {
                                                         const finished = member.tareas?.filter((t: any) => t.estado === 'Terminada').length || 0;
 
                                                         return (
-                                                            <div className="p-3 border rounded-3 mb-3 bg-light" key={member.usuario_id}>
+                                                            <div className="p-3 border rounded-3 mb-3 bg-light-subtle" key={member.usuario_id}>
                                                                 <div className="d-flex justify-content-between align-items-start mb-2">
                                                                     <div>
-                                                                        <h6 className="fw-semibold text-dark mb-0.5">{member.nombre_completo}</h6>
+                                                                        <h6 className="fw-semibold mb-0.5">{member.nombre_completo}</h6>
                                                                         <span className="badge bg-soft-primary text-primary fs-11">{member.rol}</span>
                                                                     </div>
                                                                     <div className="text-end">
@@ -341,8 +341,8 @@ const Analytics = () => {
                                 {/* Unassigned Tasks Column */}
                                 <Col lg={6} className="mb-4">
                                     <Card className="border-0 shadow-sm h-100">
-                                        <div className="card-header bg-white border-bottom p-3">
-                                            <h6 className="card-title mb-0 fw-bold text-dark">
+                                        <div className="card-header border-bottom p-3">
+                                            <h6 className="card-title mb-0 fw-bold">
                                                 <i className="ri-alert-line align-middle text-warning me-2 fs-15"></i>
                                                 Tareas Técnicas Sin Asignar
                                             </h6>
@@ -375,7 +375,7 @@ const Analytics = () => {
                                                                         <span className="badge bg-soft-info text-info fs-11">{task.historia_correlativo}</span>
                                                                     </td>
                                                                     <td>
-                                                                        <span className="fw-medium text-dark text-truncate d-inline-block" style={{ maxWidth: "150px" }} title={task.titulo}>{task.titulo}</span>
+                                                                        <span className="fw-medium text-truncate d-inline-block" style={{ maxWidth: "150px" }} title={task.titulo}>{task.titulo}</span>
                                                                     </td>
                                                                     <td>
                                                                         <span className={`badge bg-soft-${task.estado === 'Pendiente' ? 'secondary' :
