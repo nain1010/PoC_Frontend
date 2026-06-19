@@ -16,10 +16,20 @@ File: Main Css File
 @import "variables";
 @import "variables-custom";
 @import "variables-dark";
+@import "variables-galaxy-dark";
 @import "./node_modules/bootstrap/scss/mixins";
 
 @import 'theme/default';
+@import 'theme/saas';
+@import 'theme/corporate';
 @import 'theme/modern';
+@import 'theme/creative';
+@import 'theme/minimal';
+@import 'theme/vintage';
+@import 'theme/galaxy';
+@import 'theme/interactive';
+@import 'theme/classic';
+@import 'theme/material';
 
 // Structure
 @import "structure/topbar";
