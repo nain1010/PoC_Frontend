@@ -99,6 +99,14 @@
 }
 
 /* Text and Links overrides */
+.auth-page-wrapper p {
+    color: #e4e4e7 !important;
+}
+
+.auth-page-wrapper .form-check-label {
+    color: #e4e4e7 !important;
+}
+
 .auth-page-wrapper .text-muted,
 .auth-page-wrapper .text-white-50 {
     color: #a1a1aa !important;
