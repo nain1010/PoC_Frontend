@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Input, Label, Button, Form, FormFeedback, Alert, Spinner } from 'reactstrap';
-import CoverAuth from "../AuthenticationInner/CoverAuth";
+import logoLight from "../../assets/images/logo-light.png";
+import "./Login.css";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -90,73 +91,95 @@ const Login = (props: any) => {
         }
     }, [dispatch, errorMsg]);
 
-    document.title = "Iniciar Sesión Gestión de Proyectos";
+    document.title = "Iniciar Sesión | Luma - Gestión de Proyectos";
     return (
         <React.Fragment>
-            <CoverAuth title="¡Bienvenido de nuevo!" subtitle="Inicia sesión para continuar.">
-                {error && error ? (<Alert color="danger"> {error} </Alert>) : null}
-                <div className="p-2 mt-4">
+            <div className="login-page-container">
+                <div className="login-card">
+                    <div className="login-header">
+                        <img src={logoLight} alt="Luma Logo" className="login-logo" />
+                        <h4 className="login-title">¡Bienvenido de nuevo!</h4>
+                        <p className="login-subtitle">Inicia sesión para continuar.</p>
+                    </div>
+
+                    {error && error ? (
+                        <Alert color="danger" className="border-0 bg-soft-danger text-danger mb-4">
+                            {error}
+                        </Alert>
+                    ) : null}
+
                     <Form
                         onSubmit={(e) => {
                             e.preventDefault();
                             validation.handleSubmit();
                             return false;
                         }}
-                        action="#">
-
-                        <div className="mb-3">
-                            <Label htmlFor="email" className="form-label">Correo Electrónico</Label>
-                            <Input
-                                name="email"
-                                className="form-control"
-                                placeholder="Ingresa tu correo"
-                                type="email"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.email || ""}
-                                invalid={
-                                    validation.touched.email && validation.errors.email ? true : false
-                                }
-                            />
-                            {validation.touched.email && validation.errors.email ? (
-                                <FormFeedback type="invalid">{validation.errors.email}</FormFeedback>
-                            ) : null}
+                        action="#"
+                        className="login-form-container"
+                    >
+                        <div>
+                            <Label htmlFor="email" className="login-label">Correo Electrónico</Label>
+                            <div className="login-input-group">
+                                <Input
+                                    name="email"
+                                    className={`login-input ${validation.touched.email && validation.errors.email ? 'is-invalid' : ''}`}
+                                    placeholder="Ingresa tu correo"
+                                    type="email"
+                                    onChange={validation.handleChange}
+                                    onBlur={validation.handleBlur}
+                                    value={validation.values.email || ""}
+                                    invalid={validation.touched.email && validation.errors.email ? true : false}
+                                />
+                                {validation.touched.email && validation.errors.email ? (
+                                    <FormFeedback type="invalid">{validation.errors.email}</FormFeedback>
+                                ) : null}
+                            </div>
                         </div>
 
-                        <div className="mb-3">
-                            <div className="float-end">
-                                <Link to="/forgot-password" className="text-muted">¿Olvidaste tu contraseña?</Link>
+                        <div>
+                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                <Label className="login-label mb-0" htmlFor="password-input">Contraseña</Label>
                             </div>
-                            <Label className="form-label" htmlFor="password-input">Contraseña</Label>
-                            <div className="position-relative auth-pass-inputgroup mb-3">
+                            <div className="login-input-group">
                                 <Input
+                                    id="password-input"
                                     name="password"
                                     value={validation.values.password || ""}
                                     type={passwordShow ? "text" : "password"}
-                                    className="form-control pe-5"
+                                    className={`login-input pe-5 ${validation.touched.password && validation.errors.password ? 'is-invalid' : ''}`}
                                     placeholder="Ingresa tu contraseña"
                                     onChange={validation.handleChange}
                                     onBlur={validation.handleBlur}
-                                    invalid={
-                                        validation.touched.password && validation.errors.password ? true : false
-                                    }
+                                    invalid={validation.touched.password && validation.errors.password ? true : false}
                                 />
+                                <button
+                                    className="login-password-toggle"
+                                    type="button"
+                                    id="password-addon"
+                                    onClick={() => setPasswordShow(!passwordShow)}
+                                >
+                                    <i className={passwordShow ? "ri-eye-off-fill" : "ri-eye-fill"}></i>
+                                </button>
                                 {validation.touched.password && validation.errors.password ? (
                                     <FormFeedback type="invalid">{validation.errors.password}</FormFeedback>
                                 ) : null}
-                                <button className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" id="password-addon" onClick={() => setPasswordShow(!passwordShow)}><i className="ri-eye-fill align-middle"></i></button>
                             </div>
                         </div>
 
-                        <div className="form-check">
-                            <Input className="form-check-input" type="checkbox" value="" id="auth-remember-check" />
-                            <Label className="form-check-label" htmlFor="auth-remember-check">Recordarme</Label>
+                        <div className="login-remember-forgot">
+                            <div className="form-check d-flex align-items-center gap-2">
+                                <Input className="form-check-input m-0" type="checkbox" value="" id="auth-remember-check" />
+                                <Label className="login-checkbox-label m-0" htmlFor="auth-remember-check">Recordarme</Label>
+                            </div>
+                            <Link to="/forgot-password" style={{ fontSize: "0.8rem" }} className="login-link">¿Olvidaste tu contraseña?</Link>
                         </div>
 
-                        <div className="mt-4">
-                            <Button color="success"
+                        <div className="mt-2">
+                            <Button
                                 disabled={loader}
-                                className="btn btn-success w-100" type="submit">
+                                className="login-button"
+                                type="submit"
+                            >
                                 {loader ? (
                                     <span className="d-flex align-items-center justify-content-center">
                                         <Spinner size="sm" className='me-2'> Cargando... </Spinner>
@@ -168,42 +191,61 @@ const Login = (props: any) => {
                             </Button>
                         </div>
 
-                        <div className="mt-4 text-center">
-                            <div className="signin-other-title">
-                                <h5 className="fs-13 mb-4 title text-muted">O inicia sesión con</h5>
-                            </div>
-                            <div>
-                                <Link
-                                    to="#"
-                                    className="btn btn-primary btn-icon me-1"
-                                    onClick={e => {
-                                        e.preventDefault();
-                                        socialResponse("facebook");
-                                    }}
-                                >
-                                    <i className="ri-facebook-fill fs-16" />
-                                </Link>
-                                <Link
-                                    to="#"
-                                    className="btn btn-danger btn-icon me-1"
-                                    onClick={e => {
-                                        e.preventDefault();
-                                        socialResponse("google");
-                                    }}
-                                >
-                                    <i className="ri-google-fill fs-16" />
-                                </Link>
-                                <Button color="dark" className="btn-icon"><i className="ri-github-fill fs-16"></i></Button>{" "}
-                                <Button color="info" className="btn-icon"><i className="ri-twitter-fill fs-16"></i></Button>
-                            </div>
+                        <div className="login-social-divider">
+                            <span className="login-social-divider-text">O inicia sesión con</span>
+                        </div>
+
+                        <div className="login-social-buttons">
+                            <button
+                                type="button"
+                                className="login-social-btn"
+                                onClick={e => {
+                                    e.preventDefault();
+                                    socialResponse("facebook");
+                                }}
+                            >
+                                <i className="ri-facebook-fill" />
+                            </button>
+                            <button
+                                type="button"
+                                className="login-social-btn"
+                                onClick={e => {
+                                    e.preventDefault();
+                                    socialResponse("google");
+                                }}
+                            >
+                                <i className="ri-google-fill" />
+                            </button>
+                            <button
+                                type="button"
+                                className="login-social-btn"
+                                onClick={e => {
+                                    e.preventDefault();
+                                    socialResponse("github");
+                                }}
+                            >
+                                <i className="ri-github-fill"></i>
+                            </button>
+                            <button
+                                type="button"
+                                className="login-social-btn"
+                                onClick={e => {
+                                    e.preventDefault();
+                                    socialResponse("twitter");
+                                }}
+                            >
+                                <i className="ri-twitter-fill"></i>
+                            </button>
                         </div>
                     </Form>
-                </div>
 
-                <div className="mt-4 text-center">
-                    <p className="mb-0">¿No tienes una cuenta? <Link to="/register" className="fw-semibold text-primary text-decoration-underline"> Regístrate </Link> </p>
+                    <div className="login-footer">
+                        <p className="mb-0">
+                            ¿No tienes una cuenta? <Link to="/register" className="login-link">Regístrate</Link>
+                        </p>
+                    </div>
                 </div>
-            </CoverAuth>
+            </div>
         </React.Fragment>
     );
 };
