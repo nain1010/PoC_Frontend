@@ -8,7 +8,7 @@ const Starter = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title="Home" pageTitle="Luma" />
+                    <BreadCrumb title="Home" />
                     <Row>
                         {[...Array(20)].map((_, i) => (
                             <Col xs={12} key={i}>

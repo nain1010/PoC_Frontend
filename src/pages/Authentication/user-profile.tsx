@@ -145,7 +145,7 @@ const UserProfile = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <BreadCrumb title="Mi Perfil" pageTitle=" " />
+          <BreadCrumb title="Mi Perfil" />
 
           {loading ? (
             <div className="text-center my-5">

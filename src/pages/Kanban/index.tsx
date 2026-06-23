@@ -156,7 +156,7 @@ const Kanban = () => {
         return (
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title="Sprint Activo" pageTitle="Luma" />
+                    <BreadCrumb title="Sprint Activo" />
                     <Row className="justify-content-center my-5">
                         <Col lg={6}>
                             <Card className="text-center p-5 border-0 shadow-sm">
@@ -227,7 +227,7 @@ const Kanban = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title={`Sprint Activo - ${activeProjectName}`} pageTitle="Kanban">
+                    <BreadCrumb title={`Sprint Activo - ${activeProjectName}`}>
                         {activeSprint && (
                             <div className="d-flex align-items-center gap-2">
                                 <span className="badge bg-soft-success text-success fs-13 py-1.5 px-3 border border-success border-opacity-25 rounded-pill">

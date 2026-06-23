@@ -298,7 +298,7 @@ const Planning = () => {
         return (
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title="Planificación" pageTitle="Luma" />
+                    <BreadCrumb title="Planificación" />
                     <Row className="justify-content-center my-5">
                         <Col lg={6}>
                             <Card className="text-center p-5 border-0 shadow-sm">
@@ -331,7 +331,7 @@ const Planning = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title={`Planificación - ${activeProjectName}`} pageTitle="Proyectos">
+                    <BreadCrumb title={`Planificación - ${activeProjectName}`}>
                         <div className="d-flex align-items-center gap-2">
                             <Button color="soft-primary" onClick={toggleMemberModal}>
                                 <i className="ri-group-line align-bottom me-1"></i> Miembros

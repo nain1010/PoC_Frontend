@@ -56,7 +56,7 @@ const Analytics = () => {
         return (
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title="Analíticas" pageTitle="Luma" />
+                    <BreadCrumb title="Analíticas" />
                     <Row className="justify-content-center my-5">
                         <Col lg={6}>
                             <Card className="text-center p-5 border-0 shadow-sm">
@@ -101,7 +101,7 @@ const Analytics = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title={`Analíticas - ${activeProjectName}`} pageTitle="Métricas">
+                    <BreadCrumb title={`Analíticas - ${activeProjectName}`}>
                         <Button color="soft-primary" onClick={fetchAnalyticsData} size="sm">
                             <i className="ri-refresh-line align-bottom me-1"></i> Actualizar
                         </Button>
