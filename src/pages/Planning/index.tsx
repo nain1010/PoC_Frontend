@@ -331,17 +331,16 @@ const Planning = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3">
-                        <BreadCrumb title={`Planificación - ${activeProjectName}`} pageTitle="Proyectos" />
-                        <div>
-                            <Button color="soft-primary" className="me-2" onClick={toggleMemberModal}>
+                    <BreadCrumb title={`Planificación - ${activeProjectName}`} pageTitle="Proyectos">
+                        <div className="d-flex align-items-center gap-2">
+                            <Button color="soft-primary" onClick={toggleMemberModal}>
                                 <i className="ri-group-line align-bottom me-1"></i> Miembros
                             </Button>
                             <Button color="success" onClick={handleOpenCreateSprint}>
                                 <i className="ri-add-line align-bottom me-1"></i> Nuevo Sprint
                             </Button>
                         </div>
-                    </div>
+                    </BreadCrumb>
 
                     {loading ? (
                         <div className="text-center my-5">

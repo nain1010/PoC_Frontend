@@ -227,8 +227,7 @@ const Kanban = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3">
-                        <BreadCrumb title={`Sprint Activo - ${activeProjectName}`} pageTitle="Kanban" />
+                    <BreadCrumb title={`Sprint Activo - ${activeProjectName}`} pageTitle="Kanban">
                         {activeSprint && (
                             <div className="d-flex align-items-center gap-2">
                                 <span className="badge bg-soft-success text-success fs-13 py-1.5 px-3 border border-success border-opacity-25 rounded-pill">
@@ -239,7 +238,7 @@ const Kanban = () => {
                                 </Link>
                             </div>
                         )}
-                    </div>
+                    </BreadCrumb>
 
                     {loading ? (
                         <div className="text-center my-5">

@@ -101,12 +101,11 @@ const Analytics = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3">
-                        <BreadCrumb title={`Analíticas - ${activeProjectName}`} pageTitle="Métricas" />
+                    <BreadCrumb title={`Analíticas - ${activeProjectName}`} pageTitle="Métricas">
                         <Button color="soft-primary" onClick={fetchAnalyticsData} size="sm">
                             <i className="ri-refresh-line align-bottom me-1"></i> Actualizar
                         </Button>
-                    </div>
+                    </BreadCrumb>
 
                     {loading ? (
                         <div className="text-center my-5">

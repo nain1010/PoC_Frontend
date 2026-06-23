@@ -180,12 +180,11 @@ const UserManagement = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3">
-                        <BreadCrumb title="Gestión de Usuarios" pageTitle="Admin" />
+                    <BreadCrumb title="Gestión de Usuarios" pageTitle="Admin">
                         <Button color="success" className="btn btn-success" onClick={toggleCreateModal}>
                             <i className="ri-user-add-line align-bottom me-1"></i> <span>Registrar Usuario</span>
                         </Button>
-                    </div>
+                    </BreadCrumb>
 
                     <Row className="mb-4">
                         <Col lg={12}>
