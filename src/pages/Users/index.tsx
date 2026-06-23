@@ -180,11 +180,17 @@ const UserManagement = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title="Gestión de Usuarios">
+                    <BreadCrumb title="Gestión de Usuarios" />
+
+                    <div className="d-flex align-items-center justify-content-between mb-4 mt-3">
+                        <div>
+                            <h5 className="fs-16 mb-0">Usuarios Registrados</h5>
+                            <p className="text-muted mb-0">Administra los accesos y roles globales de la plataforma.</p>
+                        </div>
                         <Button color="success" className="btn btn-success" onClick={toggleCreateModal}>
                             <i className="ri-user-add-line align-bottom me-1"></i> <span>Registrar Usuario</span>
                         </Button>
-                    </BreadCrumb>
+                    </div>
 
                     <Row className="mb-4">
                         <Col lg={12}>

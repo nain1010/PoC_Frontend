@@ -227,7 +227,13 @@ const Kanban = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title={`Sprint Activo - ${activeProjectName}`}>
+                    <BreadCrumb title={`Sprint Activo - ${activeProjectName}`} />
+
+                    <div className="d-flex align-items-center justify-content-between mb-4 mt-3">
+                        <div>
+                            <h5 className="fs-16 mb-0">Tablero Kanban</h5>
+                            <p className="text-muted mb-0">Visualiza y actualiza el estado de las tareas de tu equipo.</p>
+                        </div>
                         {activeSprint && (
                             <div className="d-flex align-items-center gap-2">
                                 <span className="badge bg-soft-success text-success fs-13 py-1.5 px-3 border border-success border-opacity-25 rounded-pill">
@@ -238,7 +244,7 @@ const Kanban = () => {
                                 </Link>
                             </div>
                         )}
-                    </BreadCrumb>
+                    </div>
 
                     {loading ? (
                         <div className="text-center my-5">

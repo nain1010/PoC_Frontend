@@ -331,16 +331,7 @@ const Planning = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title={`Planificación - ${activeProjectName}`}>
-                        <div className="d-flex align-items-center gap-2">
-                            <Button color="soft-primary" onClick={toggleMemberModal}>
-                                <i className="ri-group-line align-bottom me-1"></i> Miembros
-                            </Button>
-                            <Button color="success" onClick={handleOpenCreateSprint}>
-                                <i className="ri-add-line align-bottom me-1"></i> Nuevo Sprint
-                            </Button>
-                        </div>
-                    </BreadCrumb>
+                    <BreadCrumb title={`Planificación - ${activeProjectName}`} />
 
                     {loading ? (
                         <div className="text-center my-5">
@@ -411,8 +402,16 @@ const Planning = () => {
                             {/* Columna Derecha: Sprints (Ancho: 7) */}
                             <Col lg={7} className="mb-4">
                                 <Card className="shadow-sm border-0 h-100">
-                                    <div className="card-header bg-light border-0 p-3">
+                                    <div className="card-header bg-light border-0 d-flex justify-content-between align-items-center p-3">
                                         <h6 className="card-title mb-0 fw-bold text-muted">Planificación de Sprints</h6>
+                                        <div className="d-flex gap-2">
+                                            <Button color="soft-primary" size="sm" className="btn-sm" onClick={toggleMemberModal}>
+                                                <i className="ri-group-line align-middle me-1"></i> Miembros
+                                            </Button>
+                                            <Button color="success" size="sm" className="btn-sm" onClick={handleOpenCreateSprint}>
+                                                <i className="ri-add-line align-middle me-1"></i> Nuevo Sprint
+                                            </Button>
+                                        </div>
                                     </div>
                                     <CardBody className="p-3" style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
                                         {planningSprints.length === 0 ? (

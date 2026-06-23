@@ -104,11 +104,17 @@ const Projects = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title="Proyectos">
+                    <BreadCrumb title="Proyectos" />
+
+                    <div className="d-flex align-items-center justify-content-between mb-4 mt-3">
+                        <div>
+                            <h5 className="fs-16 mb-0">Tus Proyectos</h5>
+                            <p className="text-muted mb-0">Listado de proyectos y equipos activos.</p>
+                        </div>
                         <Button color="success" className="btn btn-success" onClick={toggleModal}>
                             <i className="ri-add-line align-bottom me-1"></i> Nuevo Proyecto
                         </Button>
-                    </BreadCrumb>
+                    </div>
 
                     {loading ? (
                         <div className="text-center my-5">
