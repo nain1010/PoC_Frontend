@@ -17,6 +17,7 @@ const Projects = () => {
     const [error, setError] = useState<string | null>(null);
     const [modal, setModal] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
+    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
     const toggleModal = () => {
         setModal(!modal);
@@ -67,6 +68,8 @@ const Projects = () => {
     });
 
     const handleSelectProject = (project: any) => {
+        if (selectedProjectId) return;
+        setSelectedProjectId(project.id);
         localStorage.setItem("activeProjectId", project.id);
         localStorage.setItem("activeProjectName", project.nombre);
         localStorage.setItem("activeProjectRole", project.mi_rol || "Sin rol");
@@ -214,8 +217,16 @@ const Projects = () => {
                                                     color="primary"
                                                     className="w-100 btn-soft-primary"
                                                     onClick={() => handleSelectProject(project)}
+                                                    disabled={selectedProjectId !== null}
                                                 >
-                                                    Seleccionar Proyecto
+                                                    {selectedProjectId === project.id ? (
+                                                        <>
+                                                            <Spinner size="sm" className="me-2" />
+                                                            Entrando...
+                                                        </>
+                                                    ) : (
+                                                        "Seleccionar Proyecto"
+                                                    )}
                                                 </Button>
                                             </div>
                                         </CardBody>

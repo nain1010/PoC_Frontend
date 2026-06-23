@@ -155,7 +155,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                 onChangeLayoutMode={onChangeLayoutMode}
                             />
 
-                            <div className="ms-1 header-item d-none d-sm-flex">
+                            <div className="ms-1 header-item d-flex">
                                 <button
                                     onClick={toggleRightSidebar}
                                     type="button"

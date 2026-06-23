@@ -46,7 +46,7 @@ const FullScreenDropdown: React.FC = () => {
 
     return (
         <>
-            <div className="ms-1 header-item d-none d-sm-flex">
+            <div className="ms-1 header-item d-flex">
                 <button
                     onClick={toggleFullscreen}
                     type="button"
