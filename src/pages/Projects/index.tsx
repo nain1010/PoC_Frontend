@@ -74,10 +74,7 @@ const Projects = () => {
         localStorage.setItem("activeProjectName", project.nombre);
         localStorage.setItem("activeProjectRole", project.mi_rol || "Sin rol");
         window.dispatchEvent(new Event("activeProjectUpdated"));
-        toast.success(`Proyecto "${project.nombre}" seleccionado`, { position: "top-right" });
-        setTimeout(() => {
-            navigate("/planning");
-        }, 1000);
+        navigate("/planning");
     };
 
     const handleDeleteProject = async (project: any) => {
