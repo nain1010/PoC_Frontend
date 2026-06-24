@@ -20,7 +20,7 @@ const Kanban = () => {
 
     const { data: projectDetails, isLoading, error } = useQuery({
         queryKey: ['project', activeProjectId],
-        queryFn: () => api.get(`/projects/${activeProjectId}`),
+        queryFn: () => api.get(`/projects/${activeProjectId}`) as any,
         enabled: !!activeProjectId,
         select: (data: any) => {
             if (data?.memberships) {
@@ -90,7 +90,7 @@ const Kanban = () => {
         }
     });
 
-    const getProjectSnapshot = () => queryClient.getQueryData(['project', activeProjectId]);
+    const getProjectSnapshot = () => queryClient.getQueryData(['project', activeProjectId]) as any;
 
     const createTaskMutation = useMutation({
         mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/stories/${payload.storyId}/tasks`, {

@@ -39,7 +39,7 @@ const Planning = () => {
 
     const { data: projectDetails, isLoading, error } = useQuery({
         queryKey: ['project', activeProjectId],
-        queryFn: () => api.get(`/projects/${activeProjectId}`),
+        queryFn: () => api.get(`/projects/${activeProjectId}`) as any,
         enabled: !!activeProjectId,
         select: (data: any) => {
             if (data?.memberships) {
@@ -67,7 +67,7 @@ const Planning = () => {
 
     const { data: autocompleteUsers = [] } = useQuery({
         queryKey: ['usersAutocomplete'],
-        queryFn: () => api.get("/users/autocomplete"),
+        queryFn: () => api.get("/users/autocomplete") as any,
         enabled: memberModal,
     });
 
@@ -147,7 +147,7 @@ const Planning = () => {
     }, [memberModal]);
 
     // Refs para optimistic updates
-    const getProjectSnapshot = () => queryClient.getQueryData(['project', activeProjectId]);
+    const getProjectSnapshot = () => queryClient.getQueryData(['project', activeProjectId]) as any;
     const setProjectSnapshot = (data: any) => queryClient.setQueryData(['project', activeProjectId], data);
     const invalidateProject = () => queryClient.invalidateQueries({ queryKey: ['project', activeProjectId] });
 

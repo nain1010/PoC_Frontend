@@ -423,14 +423,14 @@ const Analytics = () => {
 
     const { data: velocityData = { sprints: [], velocidad_promedio: 0 }, isLoading: loadingVelocity } = useQuery({
         queryKey: ['velocity', activeProjectId],
-        queryFn: () => api.get(`/projects/${activeProjectId}/velocity`),
+        queryFn: () => api.get(`/projects/${activeProjectId}/velocity`) as any,
         enabled: !!activeProjectId,
         select: (data: any) => data || { sprints: [], velocidad_promedio: 0 },
     });
 
     const { data: capacityData = null, isLoading: loadingCapacity, error } = useQuery({
         queryKey: ['capacity', activeProjectId],
-        queryFn: () => api.get(`/projects/${activeProjectId}/capacity`),
+        queryFn: () => api.get(`/projects/${activeProjectId}/capacity`) as any,
         enabled: !!activeProjectId,
     });
 
