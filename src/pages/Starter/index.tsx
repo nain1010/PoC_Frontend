@@ -267,9 +267,18 @@ const Starter = () => {
                             <i className="ri-shield-user-line display-1 text-primary"></i>
                         </div>
                         <div className="d-flex align-items-center gap-3 position-relative">
-                            <div className="avatar-md bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-20" style={{ minWidth: "60px", height: "60px" }}>
-                                {initials}
-                            </div>
+                            {profileData?.avatar_url ? (
+                                <img
+                                    className="rounded-circle avatar-md shadow"
+                                    src={profileData.avatar_url}
+                                    alt="User Avatar"
+                                    style={{ width: "60px", height: "60px", minWidth: "60px", objectFit: "cover" }}
+                                />
+                            ) : (
+                                <div className="avatar-md bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-20" style={{ minWidth: "60px", height: "60px" }}>
+                                    {initials}
+                                </div>
+                            )}
                             <div>
                                 <h4 className="fw-bold text-primary mb-1">¡Bienvenido a Luma, {userName}!</h4>
                                 <p className="text-muted mb-0 fs-13">
@@ -474,28 +483,57 @@ const Starter = () => {
                                 </CardBody>
                             </Card>
 
-                            {/* Card: Live Activities Log */}
+                            {/* Card: Project Team Members */}
                             <Card className="border-0 shadow-sm">
                                 <div className="p-3.5 border-bottom d-flex align-items-center gap-2 bg-light-subtle">
-                                    <i className="ri-pulse-line fs-18 text-info"></i>
-                                    <h6 className="card-title mb-0 fw-bold text-body">Actividad en Tiempo Real</h6>
+                                    <i className="ri-group-line fs-18 text-info"></i>
+                                    <h6 className="card-title mb-0 fw-bold text-body">Miembros del Proyecto</h6>
                                 </div>
                                 <CardBody className="p-3.5">
-                                    <div className="activity-feed">
-                                        {activities.map((act) => (
-                                            <div className="d-flex gap-2.5 mb-3 border-bottom border-dashed pb-2.5 last:border-0 last:mb-0" key={act.id}>
-                                                <div className={`avatar-xs`} style={{ minWidth: "24px" }}>
-                                                    <span className={`avatar-title bg-soft-${act.color} text-${act.color} rounded-circle fs-12`}>
-                                                        <i className={act.icon}></i>
-                                                    </span>
-                                                </div>
-                                                <div className="flex-grow-1">
-                                                    <span className="fs-13 text-body d-block">{act.text}</span>
-                                                    <small className="text-muted fs-11">{act.time}</small>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    {!activeProjectId ? (
+                                        <div className="text-center py-4 text-muted fs-13">
+                                            No hay proyecto activo seleccionado.
+                                        </div>
+                                    ) : projectDetails?.memberships?.length === 0 ? (
+                                        <div className="text-center py-4 text-muted fs-13">
+                                            Sin miembros asignados a este proyecto.
+                                        </div>
+                                    ) : (
+                                        <div className="d-flex flex-column gap-3">
+                                            {projectDetails?.memberships?.map((member: any) => {
+                                                const memberNames = member.nombre_completo.split(" ");
+                                                const memberInitials = memberNames.map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
+                                                let badgeColor = "soft-primary text-primary";
+                                                if (member.rol === "Product Owner") badgeColor = "soft-danger text-danger";
+                                                else if (member.rol === "Scrum Master") badgeColor = "soft-success text-success";
+                                                else if (member.rol === "Developer") badgeColor = "soft-info text-info";
+
+                                                return (
+                                                    <div className="d-flex align-items-center justify-content-between border-bottom border-dashed pb-2.5 last:border-0 last:mb-0 last:pb-0" key={member.usuario_id}>
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            {member.avatar_url ? (
+                                                                <img
+                                                                    src={member.avatar_url}
+                                                                    alt={member.nombre_completo}
+                                                                    className="rounded-circle avatar-xs"
+                                                                    style={{ width: "30px", height: "30px", objectFit: "cover" }}
+                                                                />
+                                                            ) : (
+                                                                <div className="rounded-circle bg-soft-primary text-primary d-flex align-items-center justify-content-center fw-semibold fs-11" style={{ width: "30px", height: "30px" }}>
+                                                                    {memberInitials}
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <span className="fs-13 fw-semibold text-body d-block">{member.nombre_completo}</span>
+                                                                <small className="text-muted fs-11">{member.usuario_id === loggedInUserId ? 'Tú' : 'Miembro'}</small>
+                                                            </div>
+                                                        </div>
+                                                        <span className={`badge bg-${badgeColor} fs-11`}>{member.rol}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </CardBody>
                             </Card>
                         </Col>

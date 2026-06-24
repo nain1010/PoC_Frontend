@@ -9,7 +9,7 @@ const ProfileDropdown = () => {
 
     const [userName, setUserName] = useState("Usuario");
     const [userEmail, setUserEmail] = useState("");
-    const [avatarSrc, setAvatarSrc] = useState(defaultAvatar);
+    const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
 
     useEffect(() => {
         const authUser: any = sessionStorage.getItem("authUser");
@@ -31,6 +31,8 @@ const ProfileDropdown = () => {
                 const obj = JSON.parse(authUser);
                 if (obj.avatar_url) {
                     setAvatarSrc(obj.avatar_url);
+                } else {
+                    setAvatarSrc(null);
                 }
                 setUserName(obj.nombre_completo || obj.email || "Usuario");
             }
@@ -44,13 +46,23 @@ const ProfileDropdown = () => {
     const toggleProfileDropdown = () => {
         setIsProfileDropdown(!isProfileDropdown);
     };
+
+    const names = userName.split(" ");
+    const initials = names.map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
+
     return (
         <React.Fragment>
             <Dropdown isOpen={isProfileDropdown} toggle={toggleProfileDropdown} className="ms-sm-3 header-item topbar-user">
                 <DropdownToggle tag="button" type="button" className="btn">
                     <span className="d-flex align-items-center">
-                        <img className="rounded-circle header-profile-user" src={avatarSrc}
-                            alt="Header Avatar" style={{ objectFit: "cover", width: "32px", height: "32px" }} />
+                        {avatarSrc ? (
+                            <img className="rounded-circle header-profile-user" src={avatarSrc}
+                                alt="Header Avatar" style={{ objectFit: "cover", width: "32px", height: "32px" }} />
+                        ) : (
+                            <div className="rounded-circle bg-soft-primary text-primary d-flex align-items-center justify-content-center fw-semibold fs-13" style={{ width: "32px", height: "32px", minWidth: "32px" }}>
+                                {initials}
+                            </div>
+                        )}
                         <span className="text-start ms-xl-2">
                             <span className="d-none d-xl-inline-block ms-1 fw-medium user-name-text">
                                 <span> {userName}</span>
