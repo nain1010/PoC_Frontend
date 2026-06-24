@@ -509,7 +509,7 @@ const Starter = () => {
                                                 else if (member.rol === "Developer") badgeColor = "soft-info text-info";
 
                                                 return (
-                                                    <div className="d-flex align-items-center justify-content-between border-bottom border-dashed pb-2.5 last:border-0 last:mb-0 last:pb-0" key={member.usuario_id}>
+                                                    <div className="d-flex align-items-center justify-content-between border-bottom pb-2.5 last:border-0 last:mb-0 last:pb-0" key={member.usuario_id}>
                                                         <div className="d-flex align-items-center gap-2">
                                                             {member.avatar_url ? (
                                                                 <img
