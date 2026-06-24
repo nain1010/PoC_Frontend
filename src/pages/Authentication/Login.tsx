@@ -68,8 +68,8 @@ const Login = (props: any) => {
         enableReinitialize: true,
 
         initialValues: {
-            email: userLogin.email || localStorage.getItem("rememberedEmail") || "testuser@example.com" || '',
-            password: userLogin.password || (localStorage.getItem("rememberedEmail") ? "" : "1234567") || '',
+            email: userLogin.email || localStorage.getItem("rememberedEmail") || '',
+            password: userLogin.password || '',
         },
         validationSchema: Yup.object({
             email: Yup.string().required("Por favor ingresa tu correo electrónico"),
