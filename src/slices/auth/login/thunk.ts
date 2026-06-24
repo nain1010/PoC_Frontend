@@ -58,6 +58,10 @@ export const loginUser = (user : any, history : any) => async (dispatch : any) =
 export const logoutUser = () => async (dispatch : any) => {
   try {
     sessionStorage.removeItem("authUser");
+    // Limpiar datos de proyecto activo del usuario saliente
+    localStorage.removeItem("activeProjectId");
+    localStorage.removeItem("activeProjectName");
+    localStorage.removeItem("activeProjectRole");
     setAuthorization("");
     let fireBaseBackend : any = getFirebaseBackend();
     if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {

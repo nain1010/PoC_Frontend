@@ -30,9 +30,9 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
     const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
     const toggleProjectDropdown = () => setProjectDropdownOpen(!projectDropdownOpen);
 
-    const { data: projects = [] } = useQuery({
+    const { data: projects = [], isSuccess } = useQuery({
         queryKey: ['projects'],
-        queryFn: () => api.get("/projects"),
+        queryFn: () => api.get("/projects") as any,
         enabled: !!sessionStorage.getItem("authUser"),
     });
 
@@ -43,6 +43,22 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
         window.dispatchEvent(new Event("activeProjectUpdated"));
         window.location.reload();
     };
+
+    useEffect(() => {
+        const storedProjectId = localStorage.getItem("activeProjectId");
+        if (storedProjectId && isSuccess) {
+            const hasAccess = projects.some((p: any) => p.id === storedProjectId);
+            if (!hasAccess) {
+                // El usuario actual no es miembro de este proyecto — limpiar datos heredados
+                localStorage.removeItem("activeProjectId");
+                localStorage.removeItem("activeProjectName");
+                localStorage.removeItem("activeProjectRole");
+                setActiveProjectName(null);
+                setActiveProjectRole(null);
+                window.dispatchEvent(new Event("activeProjectUpdated"));
+            }
+        }
+    }, [projects, isSuccess]);
 
     useEffect(() => {
         const updateActiveProject = () => {

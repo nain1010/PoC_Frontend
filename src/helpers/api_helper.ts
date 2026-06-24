@@ -76,6 +76,15 @@ axios.interceptors.response.use(
       message = error.message || "Error al procesar la solicitud.";
     }
 
+    // Si es un error 403 en un endpoint de proyecto, limpiar el proyecto activo del localStorage
+    // porque el usuario actual no tiene permisos (probablemente heredado de otra sesión)
+    if (error.response?.status === 403 && error.config?.url?.includes('/projects/')) {
+      localStorage.removeItem("activeProjectId");
+      localStorage.removeItem("activeProjectName");
+      localStorage.removeItem("activeProjectRole");
+      window.dispatchEvent(new Event("activeProjectUpdated"));
+    }
+
     return Promise.reject(message);
   }
 );
