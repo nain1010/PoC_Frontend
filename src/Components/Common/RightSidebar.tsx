@@ -55,9 +55,19 @@ import img03 from "../../assets/images/sidebar/img-3.jpg";
 import img04 from "../../assets/images/sidebar/img-4.jpg";
 import { createSelector } from 'reselect';
 
+import { getLumaTheme, saveLumaTheme, LumaThemeConfig } from '../../helpers/luma_theme_helper';
+
 const RightSidebar = (props: any) => {
     const dispatch: any = useDispatch();
     const colorInputRef = useRef<HTMLInputElement>(null);
+
+    const [lumaTheme, setLumaTheme] = useState<LumaThemeConfig>(getLumaTheme());
+
+    const updateLumaTheme = (updates: Partial<LumaThemeConfig>) => {
+        const newTheme = { ...lumaTheme, ...updates };
+        setLumaTheme(newTheme);
+        saveLumaTheme(newTheme);
+    };
 
     const [show, setShow] = useState<boolean>(false);
 
@@ -1360,6 +1370,119 @@ const RightSidebar = (props: any) => {
                                             </div>
                                             <h5 className="fs-13 text-center mt-2">Disable</h5>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Luma Premium Customization Panel */}
+                                <div className="mt-4 pt-4 border-top border-top-dashed border-primary">
+                                    <h5 className="fw-semibold text-primary d-flex align-items-center mb-3">
+                                        <i className="ri-vip-crown-2-line me-2 fs-20"></i> Luma Premium
+                                    </h5>
+                                    
+                                    <div className="mb-4">
+                                        <h6 className="fw-semibold text-uppercase mb-2">Estilo de Fondo</h6>
+                                        <p className="text-muted mb-2">Fondo interactivo y moderno.</p>
+                                        <select 
+                                            className="form-select" 
+                                            value={lumaTheme.background} 
+                                            onChange={(e) => updateLumaTheme({ background: e.target.value as any })}
+                                        >
+                                            <option value="default">Predeterminado (Luma)</option>
+                                            <option value="aurora-glow">Aurora de Medianoche (Premium)</option>
+                                            <option value="solid-indigo">Azul Índigo Profundo</option>
+                                            <option value="cyberpunk-grid">Rejilla Cyberpunk</option>
+                                            <option value="pastel-mesh">Niebla Pastel (Claro)</option>
+                                            <option value="clean-white-glass">Cristal Limpio (Claro)</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <h6 className="fw-semibold text-uppercase mb-2">Tipografía</h6>
+                                        <p className="text-muted mb-2">Cambia la fuente de la app.</p>
+                                        <select 
+                                            className="form-select" 
+                                            value={lumaTheme.fontFamily} 
+                                            onChange={(e) => updateLumaTheme({ fontFamily: e.target.value as any })}
+                                        >
+                                            <option value="Outfit">Outfit (Moderna/Redonda)</option>
+                                            <option value="Inter">Inter (Limpia/Técnica)</option>
+                                            <option value="Space Grotesk">Space Grotesk (Tech)</option>
+                                            <option value="Poppins">Poppins (Amigable)</option>
+                                            <option value="Montserrat">Montserrat (Elegante)</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <h6 className="fw-semibold text-uppercase mb-2">Bordes de Tarjetas</h6>
+                                        <p className="text-muted mb-2">Redondez de los bordes.</p>
+                                        <select 
+                                            className="form-select" 
+                                            value={lumaTheme.borderRadius} 
+                                            onChange={(e) => updateLumaTheme({ borderRadius: e.target.value as any })}
+                                        >
+                                            <option value="0px">Brutalista (0px)</option>
+                                            <option value="6px">Elegante (6px)</option>
+                                            <option value="12px">Estándar Luma (12px)</option>
+                                            <option value="18px">Premium Rounded (18px)</option>
+                                            <option value="26px">Orgánico (26px)</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <h6 className="fw-semibold text-uppercase mb-2">Estilo de Bordes</h6>
+                                        <select 
+                                            className="form-select" 
+                                            value={lumaTheme.borderStyle} 
+                                            onChange={(e) => updateLumaTheme({ borderStyle: e.target.value as any })}
+                                        >
+                                            <option value="thin">Borde Fino (Clásico)</option>
+                                            <option value="shadow-only">Solo Sombra (Sin Bordes)</option>
+                                            <option value="neon-glow">Brillo Neón</option>
+                                            <option value="glass-border">Borde de Cristal</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <h6 className="fw-semibold text-uppercase mb-2">Colores de Acento</h6>
+                                        <p className="text-muted mb-2">Tonos premium Luma.</p>
+                                        <select 
+                                            className="form-select" 
+                                            value={lumaTheme.accentPreset} 
+                                            onChange={(e) => updateLumaTheme({ accentPreset: e.target.value as any })}
+                                        >
+                                            <option value="default">Predeterminado de Luma</option>
+                                            <option value="orchid">Orquídea de Medianoche</option>
+                                            <option value="teal-breeze">Brisa Esmeralda</option>
+                                            <option value="sunset">Atardecer Dorado</option>
+                                            <option value="cyberpunk">Neón Cyberpunk</option>
+                                            <option value="nordic-slate">Pizarra Minimalista</option>
+                                            <option value="emerald">Verde Esmeralda</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <h6 className="fw-semibold text-uppercase mb-2">Transparencia (Glassmorphism)</h6>
+                                        <label className="form-label text-muted">Opacidad de Tarjetas: {Math.round(lumaTheme.glassOpacity * 100)}%</label>
+                                        <input 
+                                            type="range" 
+                                            className="form-range" 
+                                            min="0.4" 
+                                            max="1.0" 
+                                            step="0.05"
+                                            value={lumaTheme.glassOpacity}
+                                            onChange={(e) => updateLumaTheme({ glassOpacity: parseFloat(e.target.value) })}
+                                        />
+                                        
+                                        <label className="form-label text-muted mt-2">Desenfoque (Blur): {lumaTheme.glassBlur}px</label>
+                                        <input 
+                                            type="range" 
+                                            className="form-range" 
+                                            min="0" 
+                                            max="25" 
+                                            step="1"
+                                            value={lumaTheme.glassBlur}
+                                            onChange={(e) => updateLumaTheme({ glassBlur: parseInt(e.target.value) })}
+                                        />
                                     </div>
                                 </div>
                             </div>

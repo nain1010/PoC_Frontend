@@ -1,0 +1,117 @@
+// Luma Premium Theme Overrides
+
+:root {
+  // These variables will be dynamically set by luma_theme_helper.ts
+  // Defaults to fallback gracefully
+  --luma-font-family: 'Outfit', sans-serif;
+  --luma-border-radius: 12px;
+  --luma-card-opacity: 1;
+  --luma-card-blur: 0px;
+  --luma-card-border-style: solid;
+  --luma-card-border-width: 1px;
+  --luma-card-border-color: var(--vz-border-color);
+  --luma-card-shadow: 0 1px 2px rgba(56, 65, 74, 0.15);
+  --luma-card-glow: none;
+  --luma-body-bg-image: none;
+  --luma-body-bg: var(--vz-body-bg);
+  --luma-card-bg: var(--vz-card-bg);
+  --luma-sidebar-bg: var(--vz-vertical-menu-bg);
+  --luma-header-bg: var(--vz-header-bg);
+  --luma-border-color: var(--vz-border-color);
+  --luma-accent-glow: none;
+}
+
+// 1. Typography Overrides
+body {
+  font-family: var(--luma-font-family) !important;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--luma-font-family) !important;
+}
+
+// 2. Global Background Overrides
+body {
+  background-color: var(--luma-body-bg) !important;
+  background-image: var(--luma-body-bg-image) !important;
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  transition: background-color 0.4s ease, background-image 0.4s ease;
+}
+
+// 3. Card Overrides & Glassmorphism
+.card {
+  border-radius: var(--luma-border-radius) !important;
+  background-color: var(--luma-card-bg) !important;
+  backdrop-filter: blur(var(--luma-card-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--luma-card-blur)) !important;
+  border: var(--luma-card-border-width) var(--luma-card-border-style) var(--luma-card-border-color) !important;
+  box-shadow: var(--luma-card-shadow), var(--luma-card-glow) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden; // Ensures rounded corners clip contents cleanly
+}
+
+// Card micro-animations
+.card.card-animate:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15), var(--luma-card-glow) !important;
+}
+
+// 4. Border Radius propagation
+.btn, .form-control, .form-select, .input-group-text, .badge, .alert, .modal-content, .dropdown-menu {
+  border-radius: calc(var(--luma-border-radius) * 0.7) !important;
+}
+
+.rounded-circle {
+  border-radius: 50% !important; // Protect circle avatars
+}
+
+// 5. Sidebar and Header Overrides (for specific backgrounds)
+#layout-wrapper {
+  .app-menu {
+    background: var(--luma-sidebar-bg) !important;
+    border-right: 1px solid var(--luma-border-color) !important;
+    backdrop-filter: blur(var(--luma-card-blur)) !important;
+  }
+  
+  #page-topbar {
+    background: var(--luma-header-bg) !important;
+    border-bottom: 1px solid var(--luma-border-color) !important;
+    backdrop-filter: blur(var(--luma-card-blur)) !important;
+  }
+}
+
+// 6. Accent Color Tweaks
+.text-primary {
+  color: var(--vz-primary) !important;
+}
+
+.bg-primary {
+  background-color: var(--vz-primary) !important;
+}
+
+.btn-primary {
+  background-color: var(--vz-primary) !important;
+  border-color: var(--vz-primary) !important;
+  box-shadow: 0 4px 10px var(--luma-accent-glow) !important;
+  
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px var(--luma-accent-glow) !important;
+  }
+}
+
+// Specific fixes for customizer panel
+.offcanvas {
+  backdrop-filter: blur(var(--luma-card-blur));
+}
+
+// Adjust inner card elements to match border radius
+.card-header:first-child {
+  border-radius: calc(var(--luma-border-radius) - 1px) calc(var(--luma-border-radius) - 1px) 0 0 !important;
+}
+.card-footer:last-child {
+  border-radius: 0 0 calc(var(--luma-border-radius) - 1px) calc(var(--luma-border-radius) - 1px) !important;
+}
