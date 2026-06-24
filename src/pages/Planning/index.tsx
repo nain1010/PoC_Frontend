@@ -955,7 +955,7 @@ const Planning = () => {
                 </ModalHeader>
                 <ModalBody className="p-4">
                     <div className="mb-4">
-                        <h6 className="fw-bold text-dark mb-3">Asignar Miembro o Cambiar Rol</h6>
+                        <h6 className="fw-bold text-body mb-3">Asignar Miembro o Cambiar Rol</h6>
                         <Form onSubmit={(e) => {
                             e.preventDefault();
                             memberValidation.handleSubmit();
@@ -1022,12 +1022,12 @@ const Planning = () => {
                     </div>
 
                     <div className="border-top pt-3">
-                        <h6 className="fw-bold text-dark mb-3">Integrantes del Proyecto ({projectDetails?.memberships?.length || 0})</h6>
+                        <h6 className="fw-bold text-body mb-3">Integrantes del Proyecto ({projectDetails?.memberships?.length || 0})</h6>
                         <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                             {projectDetails?.memberships?.map((member: any, idx: number) => (
                                 <div className="d-flex justify-content-between align-items-center p-2 border rounded mb-2 bg-light" key={idx}>
                                     <div>
-                                        <div className="fw-semibold text-dark fs-13">{member.nombre_completo}</div>
+                                        <div className="fw-semibold text-body fs-13">{member.nombre_completo}</div>
                                         <small className="text-muted">{member.usuario_id === getLoggedUserId() ? 'Tú' : 'Miembro'}</small>
                                     </div>
                                     <span className="badge bg-soft-primary text-primary fs-12">{member.rol}</span>
@@ -1103,11 +1103,11 @@ const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPla
                         <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
                     </div>
                 </div>
-                <h6 className="fw-bold text-dark mb-2">{story.titulo}</h6>
+                <h6 className="fw-bold text-body mb-2">{story.titulo}</h6>
                 <p className="text-muted fs-13 mb-0 text-truncate-three-lines">{story.narrativa}</p>
                 {story.criterios_aceptacion?.length > 0 && (
                     <div className="mt-2 pt-2 border-top">
-                        <small className="fw-semibold text-dark d-block mb-1">Criterios de Aceptación:</small>
+                        <small className="fw-semibold text-body d-block mb-1">Criterios de Aceptación:</small>
                         <ul className="ps-3 mb-0 text-muted fs-12">
                             {story.criterios_aceptacion.map((crit: string, idx: number) => (
                                 <li key={idx}>{crit}</li>

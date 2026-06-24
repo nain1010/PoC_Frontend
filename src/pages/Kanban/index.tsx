@@ -390,8 +390,8 @@ const Kanban = () => {
                                 {/* Column 1: Pendiente */}
                                 <Col lg={4} className="mb-4">
                                     <Card className="bg-light border-top border-3 border-secondary border-opacity-50 shadow-none h-100">
-                                        <div className="p-3 bg-white d-flex justify-content-between align-items-center rounded-top border-bottom">
-                                            <h6 className="card-title mb-0 fw-bold text-dark flex-grow-1">
+                                        <div className="p-3 bg-light-subtle d-flex justify-content-between align-items-center rounded-top border-bottom">
+                                            <h6 className="card-title mb-0 fw-bold text-body flex-grow-1">
                                                 <i className="ri-checkbox-blank-circle-fill text-muted me-2 align-middle fs-10"></i>
                                                 <span>Pendiente ({pendingStories.length})</span>
                                             </h6>
@@ -422,8 +422,8 @@ const Kanban = () => {
                                 {/* Column 2: En Progreso */}
                                 <Col lg={4} className="mb-4">
                                     <Card className="bg-light border-top border-3 border-primary shadow-none h-100">
-                                        <div className="p-3 bg-white d-flex justify-content-between align-items-center rounded-top border-bottom">
-                                            <h6 className="card-title mb-0 fw-bold text-dark flex-grow-1">
+                                        <div className="p-3 bg-light-subtle d-flex justify-content-between align-items-center rounded-top border-bottom">
+                                            <h6 className="card-title mb-0 fw-bold text-body flex-grow-1">
                                                 <i className="ri-checkbox-blank-circle-fill text-primary me-2 align-middle fs-10"></i>
                                                 <span>En Progreso ({inProgressStories.length})</span>
                                             </h6>
@@ -454,8 +454,8 @@ const Kanban = () => {
                                 {/* Column 3: Terminada */}
                                 <Col lg={4} className="mb-4">
                                     <Card className="bg-light border-top border-3 border-success shadow-none h-100">
-                                        <div className="p-3 bg-white d-flex justify-content-between align-items-center rounded-top border-bottom">
-                                            <h6 className="card-title mb-0 fw-bold text-dark flex-grow-1">
+                                        <div className="p-3 bg-light-subtle d-flex justify-content-between align-items-center rounded-top border-bottom">
+                                            <h6 className="card-title mb-0 fw-bold text-body flex-grow-1">
                                                 <i className="ri-checkbox-blank-circle-fill text-success me-2 align-middle fs-10"></i>
                                                 <span>Terminada ({doneStories.length})</span>
                                             </h6>
@@ -608,7 +608,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
     ], []);
 
     return (
-        <Card className="border mb-3 shadow-sm bg-white card-animate">
+        <Card className="border mb-3 shadow-sm card-animate">
             <CardBody className="p-3">
                 <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="badge bg-soft-info text-info fs-11">{story.correlativo}</span>
@@ -637,7 +637,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                     </Dropdown>
                 </div>
 
-                <h6 className="fw-semibold text-dark mb-2">{story.titulo}</h6>
+                <h6 className="fw-semibold text-body mb-2">{story.titulo}</h6>
                 <p className="text-muted fs-13 mb-3 text-truncate-two-lines" title={story.narrativa}>
                     {story.narrativa}
                 </p>
@@ -654,7 +654,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                 <div className="mb-3 pt-2 border-top">
                     <div className="d-flex justify-content-between align-items-center mb-1">
                         <span className="text-muted fs-12">Tareas Técnicas ({doneTasksCount}/{totalTasksCount})</span>
-                        <span className="fw-semibold text-dark fs-12">{progressPercent}%</span>
+                        <span className="fw-semibold text-body fs-12">{progressPercent}%</span>
                     </div>
                     <div className="progress progress-sm" style={{ height: "6px" }}>
                         <div 
@@ -698,7 +698,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                 {/* Expanded Tasks List */}
                 {expanded && (
                     <div className="mt-3 pt-3 border-top bg-light-subtle rounded p-2 border border-dashed">
-                        <h6 className="fs-12 fw-bold text-dark mb-2"><span>Desglose Técnico:</span></h6>
+                        <h6 className="fs-12 fw-bold text-body mb-2"><span>Desglose Técnico:</span></h6>
                         <div>
                             {displayedTasks.length === 0 ? (
                                 <div className="text-center py-2 text-muted fs-11">
@@ -754,9 +754,9 @@ const KanbanTaskRow = React.memo(({ task, onTaskStatusChange, onTaskAssign, deve
     );
 
     return (
-        <div className="p-2 border rounded bg-white mb-2 shadow-none border-light-subtle">
+        <div className="p-2 border rounded bg-body mb-2 shadow-none border-light-subtle">
             <div className="d-flex justify-content-between align-items-start">
-                <span className="fw-semibold text-dark fs-12 d-block text-truncate-two-lines" style={{ maxWidth: "55%" }}>
+                <span className="fw-semibold text-body fs-12 d-block text-truncate-two-lines" style={{ maxWidth: "55%" }}>
                     {task.titulo}
                 </span>
                 

@@ -223,7 +223,7 @@ const UserProfile = () => {
 
                   <CardBody className="pt-5 mt-3">
                     <div className="text-center mb-4">
-                      <h4 className="fw-bold text-dark mb-1">{userData.nombre_completo || "Usuario"}</h4>
+                      <h4 className="fw-bold text-body mb-1">{userData.nombre_completo || "Usuario"}</h4>
                       <p className="text-muted fs-14 mb-1">{userData.email || ""}</p>
                       <span className="badge bg-soft-success text-success fs-12">{userData.rol_global || "Miembro"}</span>
                     </div>
