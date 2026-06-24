@@ -1,58 +1,155 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Container, Row, Col, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Button, Spinner, Alert, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Select from "react-select";
+
+const api = APIClient;
+
+const getProjectPrefix = (name: string) => {
+    if (!name) return "US";
+    if (name.toLowerCase().includes("mcp")) {
+        return "UMP";
+    }
+    const upper = name.replace(/[^A-Z]/g, "");
+    if (upper.length >= 2 && upper.length <= 4) return upper;
+    
+    const words = name.split(/\s+/).filter(w => {
+        const lower = w.toLowerCase();
+        return w.length > 2 && !["del", "con", "por", "para"].includes(lower);
+    });
+    if (words.length >= 2) {
+        return words.map(w => w[0]).join("").toUpperCase().substring(0, 4);
+    }
+    return name.substring(0, 3).toUpperCase();
+};
 
 const Planning = () => {
     const navigate = useNavigate();
-    const api = new APIClient();
+    const queryClient = useQueryClient();
 
     const activeProjectId = localStorage.getItem("activeProjectId");
     const activeProjectName = localStorage.getItem("activeProjectName");
 
-    const [projectDetails, setProjectDetails] = useState<any>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data: projectDetails, isLoading, error } = useQuery({
+        queryKey: ['project', activeProjectId],
+        queryFn: () => api.get(`/projects/${activeProjectId}`),
+        enabled: !!activeProjectId,
+        select: (data: any) => {
+            if (data?.memberships) {
+                const authUserStr = sessionStorage.getItem("authUser");
+                if (authUserStr) {
+                    try {
+                        const authUser = JSON.parse(authUserStr);
+                        const userId = authUser.id || authUser.usuario_id || "";
+                        const myMembership = data.memberships.find((m: any) => m.usuario_id === userId);
+                        if (myMembership) {
+                            localStorage.setItem("activeProjectRole", myMembership.rol);
+                            window.dispatchEvent(new Event("activeProjectUpdated"));
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+            }
+            return data;
+        },
+    });
 
     // Modals
     const [storyModal, setStoryModal] = useState<boolean>(false);
     const [sprintModal, setSprintModal] = useState<boolean>(false);
     const [memberModal, setMemberModal] = useState<boolean>(false);
 
+    const { data: autocompleteUsers = [] } = useQuery({
+        queryKey: ['usersAutocomplete'],
+        queryFn: () => api.get("/users/autocomplete"),
+        enabled: memberModal,
+    });
+
+    const memberOptions = useMemo(() => {
+        return (autocompleteUsers || []).map((u: any) => ({
+            value: u.email,
+            label: `${u.nombre_completo} (${u.email})`
+        }));
+    }, [autocompleteUsers]);
+
     // Edit states
     const [editStory, setEditStory] = useState<any>(null);
     const [editSprint, setEditSprint] = useState<any>(null);
+
+    const nextCorrelativo = useMemo(() => {
+        if (editStory) return editStory.correlativo;
+        if (!activeProjectName) return "";
+        
+        const prefix = getProjectPrefix(activeProjectName);
+        const existing = projectDetails?.historias_usuario || [];
+        const regex = new RegExp(`^${prefix}-(\\d+)$`, 'i');
+        let maxNum = 0;
+        existing.forEach((h: any) => {
+            const match = h.correlativo.match(regex);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxNum) maxNum = num;
+            }
+        });
+        
+        if (maxNum === 0) {
+            existing.forEach((h: any) => {
+                const match = h.correlativo.match(/(\d+)/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxNum) maxNum = num;
+                }
+            });
+        }
+        
+        return `${prefix}-${maxNum + 1}`;
+    }, [editStory, activeProjectName, projectDetails?.historias_usuario]);
 
     // Submitting indicators
     const [storySubmitting, setStorySubmitting] = useState<boolean>(false);
     const [sprintSubmitting, setSprintSubmitting] = useState<boolean>(false);
     const [memberSubmitting, setMemberSubmitting] = useState<boolean>(false);
 
-    const toggleStoryModal = () => {
+    // Delete confirmation modals
+    const [deleteStoryModal, setDeleteStoryModal] = useState<boolean>(false);
+    const [storyToDelete, setStoryToDelete] = useState<any>(null);
+    const [deleteSprintModal, setDeleteSprintModal] = useState<boolean>(false);
+    const [sprintToDelete, setSprintToDelete] = useState<any>(null);
+
+    const toggleStoryModal = useCallback(() => {
         if (storyModal) {
             setEditStory(null);
         }
         setStoryModal(!storyModal);
         storyValidation.resetForm();
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [storyModal]);
 
-    const toggleSprintModal = () => {
+    const toggleSprintModal = useCallback(() => {
         if (sprintModal) {
             setEditSprint(null);
         }
         setSprintModal(!sprintModal);
         sprintValidation.resetForm();
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sprintModal]);
 
-    const toggleMemberModal = () => {
+    const toggleMemberModal = useCallback(() => {
         setMemberModal(!memberModal);
         memberValidation.resetForm();
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [memberModal]);
+
+    // Refs para optimistic updates
+    const getProjectSnapshot = () => queryClient.getQueryData(['project', activeProjectId]);
+    const setProjectSnapshot = (data: any) => queryClient.setQueryData(['project', activeProjectId], data);
+    const invalidateProject = () => queryClient.invalidateQueries({ queryKey: ['project', activeProjectId] });
 
     const getLoggedUserId = () => {
         const authUserStr = sessionStorage.getItem("authUser");
@@ -67,39 +164,11 @@ const Planning = () => {
         return "";
     };
 
-    const fetchProjectDetails = async () => {
-        if (!activeProjectId) return;
-        setLoading(true);
-        setError(null);
-        try {
-            const data: any = await api.get(`/projects/${activeProjectId}`);
-            setProjectDetails(data || null);
-            if (data?.memberships) {
-                const myId = getLoggedUserId();
-                const myMembership = data.memberships.find((m: any) => m.usuario_id === myId);
-                if (myMembership) {
-                    localStorage.setItem("activeProjectRole", myMembership.rol);
-                    window.dispatchEvent(new Event("activeProjectUpdated"));
-                }
-            }
-        } catch (err: any) {
-            setError(err || "Error al cargar los detalles del proyecto.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (activeProjectId) {
-            fetchProjectDetails();
-        }
-    }, [activeProjectId]);
-
     // Validation schemas
     const storyValidation = useFormik({
         enableReinitialize: true,
         initialValues: {
-            correlativo: editStory?.correlativo || '',
+            correlativo: editStory?.correlativo || nextCorrelativo,
             titulo: editStory?.titulo || '',
             narrativa: editStory?.narrativa || '',
             criterios_aceptacion_raw: editStory?.criterios_aceptacion?.join('\n') || ''
@@ -112,36 +181,76 @@ const Planning = () => {
         }),
         onSubmit: async (values) => {
             setStorySubmitting(true);
-            try {
-                const criteria = values.criterios_aceptacion_raw
-                    .split('\n')
-                    .map((item: string) => item.trim())
-                    .filter((item: string) => item.length > 0);
+            const previous = getProjectSnapshot();
+            const criteria = values.criterios_aceptacion_raw
+                .split('\n')
+                .map((item: string) => item.trim())
+                .filter((item: string) => item.length > 0);
 
-                if (editStory) {
-                    await api.put(`/projects/${activeProjectId}/stories/${editStory.id}`, {
-                        titulo: values.titulo,
-                        narrativa: values.narrativa,
-                        criterios_aceptacion: criteria
-                    });
-                    toast.success("¡Historia de usuario actualizada!", { position: "top-right" });
-                } else {
-                    await api.create(`/projects/${activeProjectId}/stories`, {
-                        correlativo: values.correlativo,
-                        titulo: values.titulo,
-                        narrativa: values.narrativa,
-                        criterios_aceptacion: criteria
-                    });
-                    toast.success("¡Historia de usuario creada!", { position: "top-right" });
-                }
-                toggleStoryModal();
-                fetchProjectDetails();
-            } catch (err: any) {
-                toast.error(err || "Error al guardar la historia de usuario.", { position: "top-right" });
-            } finally {
-                setStorySubmitting(false);
+            if (editStory) {
+                const storyMutation = editStoryMutation;
+                storyMutation.mutate({ id: editStory.id, titulo: values.titulo, narrativa: values.narrativa, criteria, previous }, {
+                    onSettled: () => { toggleStoryModal(); setStorySubmitting(false); }
+                });
+            } else {
+                const storyMutation = createStoryMutation;
+                storyMutation.mutate({ correlativo: values.correlativo, titulo: values.titulo, narrativa: values.narrativa, criteria, previous }, {
+                    onSettled: () => { toggleStoryModal(); setStorySubmitting(false); }
+                });
             }
         }
+    });
+
+    const createStoryMutation = useMutation({
+        mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/stories`, {
+            correlativo: payload.correlativo, titulo: payload.titulo, narrativa: payload.narrativa, criterios_aceptacion: payload.criteria
+        }),
+        onMutate: async (payload: any) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            return { previous: payload.previous };
+        },
+        onSuccess: (res: any, payload: any) => {
+            const current = getProjectSnapshot();
+            if (current && res?.id) {
+                setProjectSnapshot({
+                    ...current,
+                    historias_usuario: [...(current.historias_usuario || []), {
+                        id: res.id, correlativo: payload.correlativo, titulo: payload.titulo,
+                        narrativa: payload.narrativa, criterios_aceptacion: payload.criteria,
+                        esfuerzo_estimado: 0, estado: res.estado || "Nueva", sprint_id: null
+                    }]
+                });
+            }
+        },
+        onError: (err: any, _payload: any, context: any) => {
+            if (context?.previous) setProjectSnapshot(context.previous);
+            toast.error(err || "Error al guardar la historia de usuario.", { position: "top-right" });
+        },
+        onSettled: () => invalidateProject(),
+    });
+
+    const editStoryMutation = useMutation({
+        mutationFn: (payload: any) => api.put(`/projects/${activeProjectId}/stories/${payload.id}`, {
+            titulo: payload.titulo, narrativa: payload.narrativa, criterios_aceptacion: payload.criteria
+        }),
+        onMutate: async (payload: any) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    historias_usuario: (current.historias_usuario || []).map((h: any) =>
+                        h.id === payload.id ? { ...h, titulo: payload.titulo, narrativa: payload.narrativa, criterios_aceptacion: payload.criteria } : h
+                    )
+                });
+            }
+            return { previous: payload.previous };
+        },
+        onError: (err: any, _payload: any, context: any) => {
+            if (context?.previous) setProjectSnapshot(context.previous);
+            toast.error(err || "Error al guardar la historia de usuario.", { position: "top-right" });
+        },
+        onSettled: () => invalidateProject(),
     });
 
     const sprintValidation = useFormik({
@@ -160,22 +269,72 @@ const Planning = () => {
         }),
         onSubmit: async (values) => {
             setSprintSubmitting(true);
-            try {
-                if (editSprint) {
-                    await api.put(`/projects/${activeProjectId}/sprints/${editSprint.id}`, values);
-                    toast.success("¡Sprint actualizado con éxito!", { position: "top-right" });
-                } else {
-                    await api.create(`/projects/${activeProjectId}/sprints`, values);
-                    toast.success("¡Sprint planificado con éxito!", { position: "top-right" });
-                }
-                toggleSprintModal();
-                fetchProjectDetails();
-            } catch (err: any) {
-                toast.error(err || "Error al guardar el Sprint.", { position: "top-right" });
-            } finally {
-                setSprintSubmitting(false);
+            const previous = getProjectSnapshot();
+
+            if (editSprint) {
+                editSprintMutation.mutate({ id: editSprint.id, ...values, previous }, {
+                    onSettled: () => { toggleSprintModal(); setSprintSubmitting(false); }
+                });
+            } else {
+                const nextNum = (projectDetails?.sprints?.length || 0) + 1;
+                const fullNombre = `Sprint ${nextNum} - ${values.nombre}`;
+                createSprintMutation.mutate({ ...values, nombre: fullNombre, previous }, {
+                    onSettled: () => { toggleSprintModal(); setSprintSubmitting(false); }
+                });
             }
         }
+    });
+
+    const createSprintMutation = useMutation({
+        mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/sprints`, {
+            nombre: payload.nombre, fecha_inicio: payload.fecha_inicio, fecha_fin: payload.fecha_fin, objetivo: payload.objetivo
+        }),
+        onMutate: async (payload: any) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            return { previous: payload.previous };
+        },
+        onSuccess: (res: any, payload: any) => {
+            const current = getProjectSnapshot();
+            if (current && res?.id) {
+                setProjectSnapshot({
+                    ...current,
+                    sprints: [...(current.sprints || []), {
+                        id: res.id, nombre: payload.nombre, fecha_inicio: payload.fecha_inicio,
+                        fecha_fin: payload.fecha_fin, estado: res.estado || "Planificacion",
+                        velocidad_comprometida: 0, velocidad_realizada: 0, objetivo: payload.objetivo || ""
+                    }]
+                });
+            }
+        },
+        onError: (err: any, _payload: any, context: any) => {
+            if (context?.previous) setProjectSnapshot(context.previous);
+            toast.error(err || "Error al guardar el Sprint.", { position: "top-right" });
+        },
+        onSettled: () => invalidateProject(),
+    });
+
+    const editSprintMutation = useMutation({
+        mutationFn: (payload: any) => api.put(`/projects/${activeProjectId}/sprints/${payload.id}`, {
+            nombre: payload.nombre, fecha_inicio: payload.fecha_inicio, fecha_fin: payload.fecha_fin, objetivo: payload.objetivo
+        }),
+        onMutate: async (payload: any) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    sprints: (current.sprints || []).map((s: any) =>
+                        s.id === payload.id ? { ...s, nombre: payload.nombre, fecha_inicio: payload.fecha_inicio, fecha_fin: payload.fecha_fin, objetivo: payload.objetivo } : s
+                    )
+                });
+            }
+            return { previous: payload.previous };
+        },
+        onError: (err: any, _payload: any, context: any) => {
+            if (context?.previous) setProjectSnapshot(context.previous);
+            toast.error(err || "Error al guardar el Sprint.", { position: "top-right" });
+        },
+        onSettled: () => invalidateProject(),
     });
 
     const memberValidation = useFormik({
@@ -189,108 +348,258 @@ const Planning = () => {
         }),
         onSubmit: async (values) => {
             setMemberSubmitting(true);
-            try {
-                const payload = {
-                    email: values.email.trim(),
-                    rol: values.rol
-                };
-                await api.create(`/projects/${activeProjectId}/members`, payload);
-                toast.success(`¡Rol asignado correctamente a ${values.email.trim()}!`, { position: "top-right" });
-                toggleMemberModal();
-                fetchProjectDetails();
-            } catch (err: any) {
-                toast.error(err || "Error al asignar el miembro.", { position: "top-right" });
-            } finally {
-                setMemberSubmitting(false);
-            }
+            addMemberMutation.mutate({ email: values.email.trim(), rol: values.rol }, {
+                onSettled: () => { toggleMemberModal(); setMemberSubmitting(false); }
+            });
         }
     });
 
-    const handleEstimateStory = async (storyId: string, puntos: number) => {
-        try {
-            await api.create(`/projects/${activeProjectId}/stories/${storyId}/estimate`, { puntos });
-            toast.success("Historia estimada con éxito.", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const addMemberMutation = useMutation({
+        mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/members`, payload),
+        onError: (err: any) => {
+            toast.error(err || "Error al asignar el miembro.", { position: "top-right" });
+        },
+        onSettled: () => invalidateProject(),
+    });
+
+    const estimateMutation = useMutation({
+        mutationFn: ({ storyId, puntos }: { storyId: string; puntos: number }) =>
+            api.create(`/projects/${activeProjectId}/stories/${storyId}/estimate`, { puntos }),
+        onMutate: async ({ storyId, puntos }) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    historias_usuario: (current.historias_usuario || []).map((h: any) =>
+                        h.id === storyId ? { ...h, esfuerzo_estimado: puntos, estado: h.estado === "Nueva" ? "Refinada" : h.estado } : h
+                    )
+                });
+            }
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al estimar la historia.", { position: "top-right" });
-        }
-    };
+        },
+    });
 
-    const handlePlanStory = async (storyId: string, sprintId: string) => {
-        try {
-            await api.create(`/projects/${activeProjectId}/stories/${storyId}/sprint`, { sprint_id: sprintId });
-            toast.success("Historia planificada en el Sprint.", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const handleEstimateStory = useCallback((storyId: string, puntos: number) => {
+        estimateMutation.mutate({ storyId, puntos });
+    }, [estimateMutation]);
+
+    const planStoryMutation = useMutation({
+        mutationFn: ({ storyId, sprintId }: { storyId: string; sprintId: string }) =>
+            api.create(`/projects/${activeProjectId}/stories/${storyId}/sprint`, { sprint_id: sprintId }),
+        onMutate: async ({ storyId, sprintId }) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    historias_usuario: (current.historias_usuario || []).map((h: any) =>
+                        h.id === storyId ? { ...h, sprint_id: sprintId, estado: "Comprometida" } : h
+                    )
+                });
+            }
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al planificar la historia.", { position: "top-right" });
-        }
-    };
+        },
+    });
 
-    const handleActivateSprint = async (sprintId: string) => {
-        try {
-            await api.create(`/projects/${activeProjectId}/sprints/${sprintId}/activate`, {});
-            toast.success("Sprint activado con éxito. ¡A trabajar!", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const handlePlanStory = useCallback((storyId: string, sprintId: string) => {
+        planStoryMutation.mutate({ storyId, sprintId });
+    }, [planStoryMutation]);
+
+    const activateSprintMutation = useMutation({
+        mutationFn: (sprintId: string) =>
+            api.create(`/projects/${activeProjectId}/sprints/${sprintId}/activate`, {}),
+        onMutate: async (sprintId) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    sprints: (current.sprints || []).map((s: any) =>
+                        s.id === sprintId ? { ...s, estado: "Activo" } : s
+                    )
+                });
+            }
+        },
+        onSuccess: (res: any, sprintId) => {
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    sprints: (current.sprints || []).map((s: any) =>
+                        s.id === sprintId ? { ...s, velocidad_comprometida: res?.velocidad_comprometida || 0 } : s
+                    )
+                });
+            }
+            toast.success("Sprint activado correctamente.", { position: "top-right" });
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al activar el Sprint.", { position: "top-right" });
-        }
-    };
+        },
+    });
 
-    const handleCloseSprint = async (sprintId: string) => {
-        try {
-            await api.create(`/projects/${activeProjectId}/sprints/${sprintId}/close`, {});
-            toast.success("Sprint cerrado exitosamente.", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const handleActivateSprint = useCallback((sprintId: string) => {
+        activateSprintMutation.mutate(sprintId);
+    }, [activateSprintMutation]);
+
+    const closeSprintMutation = useMutation({
+        mutationFn: (sprintId: string) =>
+            api.create(`/projects/${activeProjectId}/sprints/${sprintId}/close`, {}),
+        onMutate: async (sprintId) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    sprints: (current.sprints || []).map((s: any) =>
+                        s.id === sprintId ? { ...s, estado: "Cerrado" } : s
+                    ),
+                    historias_usuario: (current.historias_usuario || []).map((h: any) => {
+                        if (h.sprint_id === sprintId && h.estado !== "Hecha") {
+                            return { ...h, sprint_id: null, estado: h.esfuerzo_estimado > 0 ? "Refinada" : "Nueva" };
+                        }
+                        return h;
+                    })
+                });
+            }
+        },
+        onSuccess: (res: any, sprintId) => {
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    sprints: (current.sprints || []).map((s: any) =>
+                        s.id === sprintId ? { ...s, velocidad_realizada: res?.velocidad_realizada || 0 } : s
+                    )
+                });
+            }
+            toast.success("Sprint cerrado correctamente.", { position: "top-right" });
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al cerrar el Sprint.", { position: "top-right" });
-        }
-    };
+        },
+    });
 
-    const handleOpenCreateStory = () => {
+    const handleCloseSprint = useCallback((sprintId: string) => {
+        closeSprintMutation.mutate(sprintId);
+    }, [closeSprintMutation]);
+
+    const handleOpenCreateStory = useCallback(() => {
         setEditStory(null);
         setStoryModal(true);
-    };
+    }, []);
 
-    const handleOpenEditStory = (story: any) => {
+    const handleOpenEditStory = useCallback((story: any) => {
         setEditStory(story);
         setStoryModal(true);
-    };
+    }, []);
 
-    const handleDeleteStory = async (storyId: string) => {
-        if (!window.confirm("¿Estás seguro de que deseas eliminar esta historia de usuario? Esta acción también eliminará todas sus tareas asociadas.")) {
-            return;
-        }
-        try {
-            await api.delete(`/projects/${activeProjectId}/stories/${storyId}`);
-            toast.success("Historia de usuario eliminada correctamente.", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const toggleDeleteStoryModal = useCallback(() => {
+        setDeleteStoryModal(!deleteStoryModal);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [deleteStoryModal]);
+
+    const deleteStoryMutation = useMutation({
+        mutationFn: (storyId: string) => api.delete(`/projects/${activeProjectId}/stories/${storyId}`),
+        onMutate: async (storyId) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    historias_usuario: (current.historias_usuario || []).filter((h: any) => h.id !== storyId),
+                    tareas: (current.tareas || []).filter((t: any) => t.historia_id !== storyId)
+                });
+            }
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al eliminar la historia de usuario.", { position: "top-right" });
-        }
-    };
+        },
+        onSettled: () => invalidateProject(),
+    });
 
-    const handleOpenCreateSprint = () => {
+    const confirmDeleteStory = useCallback(() => {
+        if (!storyToDelete) return;
+        toggleDeleteStoryModal();
+        deleteStoryMutation.mutate(storyToDelete.id);
+    }, [storyToDelete, toggleDeleteStoryModal, deleteStoryMutation]);
+
+    const handleDeleteStory = useCallback((storyId: string) => {
+        const story = projectDetails?.historias_usuario?.find((h: any) => h.id === storyId);
+        if (story) {
+            setStoryToDelete(story);
+            toggleDeleteStoryModal();
+        }
+    }, [projectDetails?.historias_usuario, toggleDeleteStoryModal]);
+
+    const handleOpenCreateSprint = useCallback(() => {
         setEditSprint(null);
         setSprintModal(true);
-    };
+    }, []);
 
-    const handleOpenEditSprint = (sprint: any) => {
+    const handleOpenEditSprint = useCallback((sprint: any) => {
         setEditSprint(sprint);
         setSprintModal(true);
-    };
+    }, []);
 
-    const handleDeleteSprint = async (sprintId: string) => {
-        if (!window.confirm("¿Estás seguro de que deseas eliminar este Sprint? Las historias asociadas volverán al backlog.")) {
-            return;
-        }
-        try {
-            await api.delete(`/projects/${activeProjectId}/sprints/${sprintId}`);
-            toast.success("Sprint eliminado correctamente.", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const toggleDeleteSprintModal = useCallback(() => {
+        setDeleteSprintModal(!deleteSprintModal);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [deleteSprintModal]);
+
+    const deleteSprintMutation = useMutation({
+        mutationFn: (sprintId: string) => api.delete(`/projects/${activeProjectId}/sprints/${sprintId}`),
+        onMutate: async (sprintId) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                setProjectSnapshot({
+                    ...current,
+                    sprints: (current.sprints || []).filter((s: any) => s.id !== sprintId),
+                    historias_usuario: (current.historias_usuario || []).map((h: any) =>
+                        h.sprint_id === sprintId ? { ...h, sprint_id: null, estado: h.esfuerzo_estimado > 0 ? "Refinada" : "Nueva" } : h
+                    )
+                });
+            }
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al eliminar el Sprint.", { position: "top-right" });
+        },
+        onSettled: () => invalidateProject(),
+    });
+
+    const confirmDeleteSprint = useCallback(() => {
+        if (!sprintToDelete) return;
+        toggleDeleteSprintModal();
+        deleteSprintMutation.mutate(sprintToDelete.id);
+    }, [sprintToDelete, toggleDeleteSprintModal, deleteSprintMutation]);
+
+    const handleDeleteSprint = useCallback((sprintId: string) => {
+        const sprint = projectDetails?.sprints?.find((s: any) => s.id === sprintId);
+        if (sprint) {
+            setSprintToDelete(sprint);
+            toggleDeleteSprintModal();
         }
-    };
+    }, [projectDetails?.sprints, toggleDeleteSprintModal]);
+
+    const backlogStories = useMemo(
+        () => projectDetails?.historias_usuario?.filter((s: any) => !s.sprint_id) || [],
+        [projectDetails?.historias_usuario]
+    );
+    const planningSprints = useMemo(
+        () => projectDetails?.sprints || [],
+        [projectDetails?.sprints]
+    );
 
     document.title = `Planificación | Luma - ${activeProjectName || 'Scrum'}`;
 
@@ -324,22 +633,19 @@ const Planning = () => {
         );
     }
 
-    const backlogStories = projectDetails?.historias_usuario?.filter((s: any) => !s.sprint_id) || [];
-    const planningSprints = projectDetails?.sprints || [];
-
     return (
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
                     <BreadCrumb title={`Planificación - ${activeProjectName}`} />
 
-                    {loading ? (
+                    {isLoading ? (
                         <div className="text-center my-5">
                             <Spinner color="primary" />
                             <p className="text-muted mt-2">Cargando tablero de planificación...</p>
                         </div>
                     ) : error ? (
-                        <Alert color="danger" className="text-center">{error}</Alert>
+                        <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
                     ) : (
                         <Row>
                             {/* Columna Izquierda: Backlog (Ancho: 5) */}
@@ -362,37 +668,15 @@ const Planning = () => {
                                             </div>
                                         ) : (
                                             backlogStories.map((story: any) => (
-                                                <Card className="border mb-3 shadow-none card-animate" key={story.id}>
-                                                    <CardBody className="p-3">
-                                                        <div className="d-flex justify-content-between align-items-start mb-2">
-                                                            <span className="badge bg-soft-info text-info fs-11">{story.correlativo}</span>
-                                                            <div className="d-flex gap-1 align-items-center">
-                                                                {/* Dropdown de Estimación Fibonacci */}
-                                                                <DropdownEstimate onSelect={(puntos) => handleEstimateStory(story.id, puntos)} currentPoints={story.esfuerzo_estimado} />
-
-                                                                {/* Dropdown para Planificar en Sprint */}
-                                                                <DropdownPlan sprints={planningSprints} onSelect={(sprintId) => handlePlanStory(story.id, sprintId)} />
-
-                                                                {/* Acciones de Edición/Eliminación */}
-                                                                <StoryActionsDropdown onEdit={() => handleOpenEditStory(story)} onDelete={() => handleDeleteStory(story.id)} />
-                                                            </div>
-                                                        </div>
-                                                        <h6 className="fw-bold text-dark mb-2">{story.titulo}</h6>
-                                                        <p className="text-muted fs-13 mb-0 text-truncate-three-lines">
-                                                            {story.narrativa}
-                                                        </p>
-                                                        {story.criterios_aceptacion?.length > 0 && (
-                                                            <div className="mt-2 pt-2 border-top">
-                                                                <small className="fw-semibold text-dark d-block mb-1">Criterios de Aceptación:</small>
-                                                                <ul className="ps-3 mb-0 text-muted fs-12">
-                                                                    {story.criterios_aceptacion.map((crit: string, idx: number) => (
-                                                                        <li key={idx}>{crit}</li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
-                                                        )}
-                                                    </CardBody>
-                                                </Card>
+                                                <BacklogStoryCard
+                                                    key={story.id}
+                                                    story={story}
+                                                    planningSprints={planningSprints}
+                                                    onEstimate={handleEstimateStory}
+                                                    onPlan={handlePlanStory}
+                                                    onEdit={handleOpenEditStory}
+                                                    onDelete={handleDeleteStory}
+                                                />
                                             ))
                                         )}
                                     </CardBody>
@@ -406,10 +690,10 @@ const Planning = () => {
                                         <h6 className="card-title mb-0 fw-bold text-muted">Planificación de Sprints</h6>
                                         <div className="d-flex gap-2">
                                             <Button color="soft-primary" size="sm" className="btn-sm" onClick={toggleMemberModal}>
-                                                <i className="ri-group-line align-middle me-1"></i> Miembros
+                                                <i className="ri-group-line align-middle me-1"></i> Gestionar Miembros
                                             </Button>
                                             <Button color="success" size="sm" className="btn-sm" onClick={handleOpenCreateSprint}>
-                                                <i className="ri-add-line align-middle me-1"></i> Nuevo Sprint
+                                                <i className="ri-add-line align-middle me-1"></i> Crear Sprint
                                             </Button>
                                         </div>
                                     </div>
@@ -426,80 +710,21 @@ const Planning = () => {
                                                 const totalPoints = sprintStories.reduce((acc: number, item: any) => acc + (item.esfuerzo_estimado || 0), 0);
 
                                                 return (
-                                                    <Card className="border mb-4 shadow-none" key={sprint.id}>
-                                                        <CardBody className="p-3">
-                                                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                                                <div>
-                                                                    <h6 className="fw-bold text-muted mb-1 d-flex align-items-center gap-2">
-                                                                        {sprint.nombre}
-                                                                        <span className="d-flex gap-2 ms-1 align-items-center">
-                                                                            <button className="btn btn-link p-0 text-muted fs-14" onClick={() => handleOpenEditSprint(sprint)} title="Editar Sprint">
-                                                                                <i className="ri-pencil-line"></i>
-                                                                            </button>
-                                                                            {sprint.estado !== 'Activo' && (
-                                                                                <button className="btn btn-link p-0 text-danger fs-14" onClick={() => handleDeleteSprint(sprint.id)} title="Eliminar Sprint">
-                                                                                    <i className="ri-delete-bin-line"></i>
-                                                                                </button>
-                                                                            )}
-                                                                        </span>
-                                                                    </h6>
-                                                                    <small className="text-muted">
-                                                                        {sprint.fecha_inicio} al {sprint.fecha_fin}
-                                                                    </small>
-                                                                </div>
-                                                                <div className="d-flex align-items-center gap-2">
-                                                                    <span className={`badge ${
-                                                                        sprint.estado === 'Planificacion' ? 'bg-soft-warning text-warning' :
-                                                                        sprint.estado === 'Activo' ? 'bg-soft-success text-success' : 'bg-soft-secondary text-secondary'
-                                                                    } fs-12`}>
-                                                                        {sprint.estado}
-                                                                    </span>
-                                                                    
-                                                                    {sprint.estado === 'Planificacion' && (
-                                                                        <Button color="success" size="sm" className="btn-sm px-3" onClick={() => handleActivateSprint(sprint.id)}>
-                                                                            Activar
-                                                                        </Button>
-                                                                    )}
-
-                                                                    {sprint.estado === 'Activo' && (
-                                                                        <Button color="danger" size="sm" className="btn-sm px-3" onClick={() => handleCloseSprint(sprint.id)}>
-                                                                            Cerrar
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            <p className="text-muted fs-13 mb-3 fst-italic">
-                                                                <strong>Objetivo:</strong> {sprint.objetivo || "Sin objetivo definido."}
-                                                            </p>
-
-                                                            <div className="border-top pt-3">
-                                                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                                                    <span className="fw-bold text-muted fs-14">Historias en el Sprint ({sprintStories.length})</span>
-                                                                    <span className="badge bg-soft-info text-info fs-13">{totalPoints} Puntos Comprometidos</span>
-                                                                </div>
-
-                                                                {sprintStories.length === 0 ? (
-                                                                    <div className="text-center py-3 border border-dashed text-muted fs-13 rounded">
-                                                                        Arrastra o planifica historias del backlog aquí.
-                                                                    </div>
-                                                                ) : (
-                                                                    sprintStories.map((story: any) => (
-                                                                        <div className="d-flex justify-content-between align-items-center p-2 border rounded mb-2 bg-light" key={story.id}>
-                                                                            <div>
-                                                                                <span className="badge bg-soft-muted text-muted me-2">{story.correlativo}</span>
-                                                                                <span className="text-muted fw-medium fs-13">{story.titulo}</span>
-                                                                            </div>
-                                                                            <div className="d-flex align-items-center gap-2">
-                                                                                <DropdownEstimate onSelect={(puntos) => handleEstimateStory(story.id, puntos)} currentPoints={story.esfuerzo_estimado} />
-                                                                                <DropdownPlan sprints={planningSprints} currentSprintId={sprint.id} onSelect={(targetSprintId) => handlePlanStory(story.id, targetSprintId)} />
-                                                                                <StoryActionsDropdown onEdit={() => handleOpenEditStory(story)} onDelete={() => handleDeleteStory(story.id)} />
-                                                                            </div>
-                                                                        </div>
-                                                                    ))
-                                                                )}
-                                                            </div>
-                                                        </CardBody>
-                                                    </Card>
+                                                    <SprintCard
+                                                        key={sprint.id}
+                                                        sprint={sprint}
+                                                        sprintStories={sprintStories}
+                                                        totalPoints={totalPoints}
+                                                        planningSprints={planningSprints}
+                                                        onEstimate={handleEstimateStory}
+                                                        onPlan={handlePlanStory}
+                                                        onActivate={handleActivateSprint}
+                                                        onClose={handleCloseSprint}
+                                                        onEditSprint={handleOpenEditSprint}
+                                                        onDeleteSprint={handleDeleteSprint}
+                                                        onEditStory={handleOpenEditStory}
+                                                        onDeleteStory={handleDeleteStory}
+                                                    />
                                                 );
                                             })
                                         )}
@@ -623,17 +848,36 @@ const Planning = () => {
                     <ModalBody className="p-4">
                         <div className="mb-3">
                             <Label htmlFor="sprintName" className="form-label">Nombre del Sprint <span className="text-danger">*</span></Label>
-                            <Input
-                                id="sprintName"
-                                name="nombre"
-                                className="form-control"
-                                placeholder="Ej. Sprint 1"
-                                type="text"
-                                onChange={sprintValidation.handleChange}
-                                onBlur={sprintValidation.handleBlur}
-                                value={sprintValidation.values.nombre}
-                                invalid={sprintValidation.touched.nombre && sprintValidation.errors.nombre ? true : false}
-                            />
+                            {editSprint ? (
+                                <Input
+                                    id="sprintName"
+                                    name="nombre"
+                                    className="form-control"
+                                    placeholder="Ej. Sprint 1 - Nombre"
+                                    type="text"
+                                    onChange={sprintValidation.handleChange}
+                                    onBlur={sprintValidation.handleBlur}
+                                    value={sprintValidation.values.nombre}
+                                    invalid={sprintValidation.touched.nombre && sprintValidation.errors.nombre ? true : false}
+                                />
+                            ) : (
+                                <div className="input-group">
+                                    <span className="input-group-text bg-light text-muted">
+                                        {`Sprint ${(projectDetails?.sprints?.length || 0) + 1} -`}
+                                    </span>
+                                    <Input
+                                        id="sprintName"
+                                        name="nombre"
+                                        className="form-control"
+                                        placeholder="Planificación, Desarrollo, etc."
+                                        type="text"
+                                        onChange={sprintValidation.handleChange}
+                                        onBlur={sprintValidation.handleBlur}
+                                        value={sprintValidation.values.nombre}
+                                        invalid={sprintValidation.touched.nombre && sprintValidation.errors.nombre ? true : false}
+                                    />
+                                </div>
+                            )}
                             {sprintValidation.touched.nombre && sprintValidation.errors.nombre ? (
                                 <FormFeedback type="invalid">{sprintValidation.errors.nombre?.toString()}</FormFeedback>
                             ) : null}
@@ -718,20 +962,33 @@ const Planning = () => {
                             return false;
                         }}>
                             <div className="mb-3">
-                                <Label htmlFor="memberEmail" className="form-label">Email del Usuario <span className="text-danger">*</span></Label>
-                                <Input
+                                <Label htmlFor="memberEmail" className="form-label">Miembro del Equipo <span className="text-danger">*</span></Label>
+                                <Select
                                     id="memberEmail"
                                     name="email"
-                                    className="form-control"
-                                    placeholder="ejemplo@correo.com"
-                                    type="email"
-                                    onChange={memberValidation.handleChange}
-                                    onBlur={memberValidation.handleBlur}
-                                    value={memberValidation.values.email}
-                                    invalid={memberValidation.touched.email && memberValidation.errors.email ? true : false}
+                                    placeholder="Buscar por nombre o correo..."
+                                    options={memberOptions}
+                                    onChange={(option: any) => {
+                                        memberValidation.setFieldValue("email", option ? option.value : "");
+                                    }}
+                                    onBlur={() => memberValidation.setFieldTouched("email", true)}
+                                    value={memberOptions.find((opt: any) => opt.value === memberValidation.values.email) || null}
+                                    isClearable
+                                    menuPortalTarget={document.body}
+                                    styles={{
+                                        menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+                                        control: (provided: any) => ({
+                                            ...provided,
+                                            borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : provided.borderColor,
+                                            "&:hover": {
+                                                borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : provided.borderColor,
+                                            }
+                                        })
+                                    }}
+                                    classNamePrefix="react-select"
                                 />
                                 {memberValidation.touched.email && memberValidation.errors.email ? (
-                                    <FormFeedback type="invalid">{memberValidation.errors.email?.toString()}</FormFeedback>
+                                    <div className="text-danger fs-12 mt-1">{memberValidation.errors.email?.toString()}</div>
                                 ) : null}
                             </div>
 
@@ -781,24 +1038,231 @@ const Planning = () => {
                 </ModalBody>
             </Modal>
 
+            {/* Modal de Confirmación de Eliminación de Historia */}
+            <Modal isOpen={deleteStoryModal} toggle={toggleDeleteStoryModal} centered>
+                <ModalHeader toggle={toggleDeleteStoryModal} className="bg-light p-3">
+                    Confirmar Eliminación de Historia
+                </ModalHeader>
+                <ModalBody className="p-4 text-center">
+                    <div className="text-danger mb-3">
+                        <i className="ri-delete-bin-5-line display-4"></i>
+                    </div>
+                    <h5>¿Estás seguro de que deseas eliminar la historia "{storyToDelete?.titulo}"?</h5>
+                    <p className="text-muted mb-0">Esta acción también eliminará todas sus tareas técnicas asociadas de forma definitiva.</p>
+                </ModalBody>
+                <ModalFooter className="bg-light">
+                    <Button color="light" onClick={toggleDeleteStoryModal}>Cancelar</Button>
+                    <Button color="danger" onClick={confirmDeleteStory}>Eliminar</Button>
+                </ModalFooter>
+            </Modal>
+
+            {/* Modal de Confirmación de Eliminación de Sprint */}
+            <Modal isOpen={deleteSprintModal} toggle={toggleDeleteSprintModal} centered>
+                <ModalHeader toggle={toggleDeleteSprintModal} className="bg-light p-3">
+                    Confirmar Eliminación de Sprint
+                </ModalHeader>
+                <ModalBody className="p-4 text-center">
+                    <div className="text-danger mb-3">
+                        <i className="ri-delete-bin-5-line display-4"></i>
+                    </div>
+                    <h5>¿Estás seguro de que deseas eliminar el sprint "{sprintToDelete?.nombre}"?</h5>
+                    <p className="text-muted mb-0">Las historias asociadas volverán automáticamente al backlog del proyecto.</p>
+                </ModalBody>
+                <ModalFooter className="bg-light">
+                    <Button color="light" onClick={toggleDeleteSprintModal}>Cancelar</Button>
+                    <Button color="danger" onClick={confirmDeleteSprint}>Eliminar</Button>
+                </ModalFooter>
+            </Modal>
+
             <ToastContainer />
         </React.Fragment>
     );
 };
 
-// Sub-component estimates dropdown
-const DropdownEstimate = ({ onSelect, currentPoints }: { onSelect: (pts: number) => void, currentPoints?: number }) => {
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const toggle = () => setDropdownOpen((prevState) => !prevState);
-
-    const fibs = [1, 2, 3, 5, 8, 13, 21];
+// Backlog story card
+const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPlan, onEdit, onDelete }: {
+    story: any; planningSprints: any[];
+    onEstimate: (storyId: string, puntos: number) => void;
+    onPlan: (storyId: string, sprintId: string) => void;
+    onEdit: (story: any) => void;
+    onDelete: (storyId: string) => void;
+}) => {
+    const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
+    const handlePlan = useCallback((sprintId: string) => onPlan(story.id, sprintId), [story.id, onPlan]);
+    const handleEdit = useCallback(() => onEdit(story), [story, onEdit]);
+    const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
     return (
-        <Dropdown isOpen={dropdownOpen} toggle={toggle} size="sm">
+        <Card className="border mb-3 shadow-none card-animate">
+            <CardBody className="p-3">
+                <div className="d-flex justify-content-between align-items-start mb-2">
+                    <span className="badge bg-soft-info text-info fs-11">{story.correlativo}</span>
+                    <div className="d-flex gap-1 align-items-center">
+                        <DropdownEstimate onSelect={handleEstimate} currentPoints={story.esfuerzo_estimado} />
+                        <DropdownPlan sprints={planningSprints} onSelect={handlePlan} />
+                        <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
+                    </div>
+                </div>
+                <h6 className="fw-bold text-dark mb-2">{story.titulo}</h6>
+                <p className="text-muted fs-13 mb-0 text-truncate-three-lines">{story.narrativa}</p>
+                {story.criterios_aceptacion?.length > 0 && (
+                    <div className="mt-2 pt-2 border-top">
+                        <small className="fw-semibold text-dark d-block mb-1">Criterios de Aceptación:</small>
+                        <ul className="ps-3 mb-0 text-muted fs-12">
+                            {story.criterios_aceptacion.map((crit: string, idx: number) => (
+                                <li key={idx}>{crit}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </CardBody>
+        </Card>
+    );
+});
+
+// Sprint card in planning column
+const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory }: {
+    sprint: any; sprintStories: any[]; totalPoints: number; planningSprints: any[];
+    onEstimate: (storyId: string, puntos: number) => void;
+    onPlan: (storyId: string, sprintId: string) => void;
+    onActivate: (sprintId: string) => void;
+    onClose: (sprintId: string) => void;
+    onEditSprint: (sprint: any) => void;
+    onDeleteSprint: (sprintId: string) => void;
+    onEditStory: (story: any) => void;
+    onDeleteStory: (storyId: string) => void;
+}) => {
+    const handleActivate = useCallback(() => onActivate(sprint.id), [sprint.id, onActivate]);
+    const handleClose = useCallback(() => onClose(sprint.id), [sprint.id, onClose]);
+    const handleEditSprintFn = useCallback(() => onEditSprint(sprint), [sprint, onEditSprint]);
+    const handleDeleteSprintFn = useCallback(() => onDeleteSprint(sprint.id), [sprint.id, onDeleteSprint]);
+
+    const [isCollapsed, setIsCollapsed] = useState<boolean>(sprint.estado === 'Cerrado');
+    const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), []);
+
+    return (
+        <Card className="border mb-4 shadow-none">
+            <CardBody className="p-3">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 className="fw-bold text-muted mb-1 d-flex align-items-center gap-2">
+                            <button 
+                                type="button" 
+                                className="btn btn-link p-0 text-muted fs-16 d-flex align-items-center" 
+                                onClick={toggleCollapse}
+                                style={{ textDecoration: "none" }}
+                            >
+                                <i className={isCollapsed ? "ri-arrow-right-s-line" : "ri-arrow-down-s-line"}></i>
+                            </button>
+                            <span onClick={toggleCollapse} style={{ cursor: "pointer" }}>{sprint.nombre}</span>
+                            {isCollapsed && (
+                                <span className="fs-12 fw-normal text-muted ms-2 italic">
+                                    ({sprintStories.length} {sprintStories.length === 1 ? 'historia' : 'historias'}, {totalPoints} pts)
+                                </span>
+                            )}
+                            <span className="d-flex gap-2 ms-1 align-items-center">
+                                <button className="btn btn-link p-0 text-muted fs-14" onClick={handleEditSprintFn} title="Editar Sprint">
+                                    <i className="ri-pencil-line"></i>
+                                </button>
+                                {sprint.estado !== 'Activo' && (
+                                    <button className="btn btn-link p-0 text-danger fs-14" onClick={handleDeleteSprintFn} title="Eliminar Sprint">
+                                        <i className="ri-delete-bin-line"></i>
+                                    </button>
+                                )}
+                            </span>
+                        </h6>
+                        <small className="text-muted">{sprint.fecha_inicio} al {sprint.fecha_fin}</small>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                        <span className={`badge ${
+                            sprint.estado === 'Planificacion' ? 'bg-soft-warning text-warning' :
+                            sprint.estado === 'Activo' ? 'bg-soft-success text-success' : 'bg-soft-secondary text-secondary'
+                        } fs-12`}>{sprint.estado}</span>
+                        {sprint.estado === 'Planificacion' && (
+                            <Button color="success" size="sm" className="btn-sm px-3" onClick={handleActivate}>Activar</Button>
+                        )}
+                        {sprint.estado === 'Activo' && (
+                            <Button color="danger" size="sm" className="btn-sm px-3" onClick={handleClose}>Cerrar</Button>
+                        )}
+                    </div>
+                </div>
+                {!isCollapsed && (
+                    <>
+                        <p className="text-muted fs-13 mb-3 fst-italic">
+                            <strong>Objetivo:</strong> {sprint.objetivo || "Sin objetivo definido."}
+                        </p>
+                        <div className="border-top pt-3">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <span className="fw-bold text-muted fs-14">Historias en el Sprint ({sprintStories.length})</span>
+                                <span className="badge bg-soft-info text-info fs-13">{totalPoints} Puntos Comprometidos</span>
+                            </div>
+                            {sprintStories.length === 0 ? (
+                                <div className="text-center py-3 border border-dashed text-muted fs-13 rounded">
+                                    Arrastra o planifica historias del backlog aquí.
+                                </div>
+                            ) : (
+                                sprintStories.map((story: any) => (
+                                    <SprintStoryRow
+                                        key={story.id}
+                                        story={story}
+                                        sprintId={sprint.id}
+                                        planningSprints={planningSprints}
+                                        onEstimate={onEstimate}
+                                        onPlan={onPlan}
+                                        onEdit={onEditStory}
+                                        onDelete={onDeleteStory}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </>
+                )}
+            </CardBody>
+        </Card>
+    );
+});
+
+// Sprint story row
+const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete }: {
+    story: any; sprintId: string; planningSprints: any[];
+    onEstimate: (storyId: string, puntos: number) => void;
+    onPlan: (storyId: string, sprintId: string) => void;
+    onEdit: (story: any) => void;
+    onDelete: (storyId: string) => void;
+}) => {
+    const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
+    const handlePlan = useCallback((targetSprintId: string) => onPlan(story.id, targetSprintId), [story.id, onPlan]);
+    const handleEdit = useCallback(() => onEdit(story), [story, onEdit]);
+    const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
+
+    return (
+        <div className="d-flex justify-content-between align-items-center p-2 border rounded mb-2 bg-light">
+            <div>
+                <span className="badge bg-soft-muted text-muted me-2">{story.correlativo}</span>
+                <span className="text-muted fw-medium fs-13">{story.titulo}</span>
+            </div>
+            <div className="d-flex align-items-center gap-2">
+                <DropdownEstimate onSelect={handleEstimate} currentPoints={story.esfuerzo_estimado} />
+                <DropdownPlan sprints={planningSprints} currentSprintId={sprintId} onSelect={handlePlan} />
+                <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
+            </div>
+        </div>
+    );
+});
+
+// Sub-component estimates dropdown
+const DropdownEstimate = React.memo(({ onSelect, currentPoints }: { onSelect: (pts: number) => void, currentPoints?: number }) => {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const toggle = useCallback(() => setDropdownOpen((prevState) => !prevState), []);
+
+    const fibs = useMemo(() => [1, 2, 3, 5, 8, 13, 21], []);
+
+    return (
+        <Dropdown isOpen={dropdownOpen} toggle={toggle} size="sm" strategy="fixed">
             <DropdownToggle tag="button" className="btn btn-sm btn-outline-secondary py-0 px-2 fs-12">
                 <span>{currentPoints !== undefined && currentPoints !== null ? `${currentPoints} pts` : "Estimar"}</span>
             </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-sm">
+            <DropdownMenu className="dropdown-menu-sm" container="body">
                 <DropdownItem header><span>Puntos de Esfuerzo</span></DropdownItem>
                 {fibs.map((fib) => (
                     <DropdownItem key={fib} onClick={() => onSelect(fib)}>
@@ -808,21 +1272,21 @@ const DropdownEstimate = ({ onSelect, currentPoints }: { onSelect: (pts: number)
             </DropdownMenu>
         </Dropdown>
     );
-};
+});
 
 // Sub-component plan dropdown
-const DropdownPlan = ({ sprints, onSelect, currentSprintId }: { sprints: any[], onSelect: (sprintId: string) => void, currentSprintId?: string }) => {
+const DropdownPlan = React.memo(({ sprints, onSelect, currentSprintId }: { sprints: any[], onSelect: (sprintId: string) => void, currentSprintId?: string }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const toggle = () => setDropdownOpen((prevState) => !prevState);
+    const toggle = useCallback(() => setDropdownOpen((prevState) => !prevState), []);
 
-    const activeSprints = sprints.filter(s => s.estado !== 'Cerrado');
+    const activeSprints = useMemo(() => sprints.filter(s => s.estado !== 'Cerrado'), [sprints]);
 
     return (
-        <Dropdown isOpen={dropdownOpen} toggle={toggle} size="sm">
+        <Dropdown isOpen={dropdownOpen} toggle={toggle} size="sm" strategy="fixed">
             <DropdownToggle tag="button" className="btn btn-sm btn-outline-primary py-0 px-2 fs-12">
                 <i className="ri-calendar-event-line"></i>
             </DropdownToggle>
-            <DropdownMenu>
+            <DropdownMenu container="body">
                 <DropdownItem header><span>Planificar en Sprint</span></DropdownItem>
                 {activeSprints.length === 0 ? (
                     <DropdownItem disabled><span>Crea un sprint primero</span></DropdownItem>
@@ -840,19 +1304,19 @@ const DropdownPlan = ({ sprints, onSelect, currentSprintId }: { sprints: any[], 
             </DropdownMenu>
         </Dropdown>
     );
-};
+});
 
 // Sub-component story actions dropdown (three vertical dots menu)
-const StoryActionsDropdown = ({ onEdit, onDelete }: { onEdit: () => void, onDelete: () => void }) => {
+const StoryActionsDropdown = React.memo(({ onEdit, onDelete }: { onEdit: () => void, onDelete: () => void }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const toggle = () => setDropdownOpen((prevState) => !prevState);
+    const toggle = useCallback(() => setDropdownOpen((prevState) => !prevState), []);
 
     return (
-        <Dropdown isOpen={dropdownOpen} toggle={toggle} size="sm" className="d-inline-block">
+        <Dropdown isOpen={dropdownOpen} toggle={toggle} size="sm" className="d-inline-block" strategy="fixed">
             <DropdownToggle tag="button" className="btn btn-sm btn-link p-0 text-muted fs-14 lh-1">
                 <i className="ri-more-2-fill fs-16"></i>
             </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-end">
+            <DropdownMenu className="dropdown-menu-end" container="body">
                 <DropdownItem onClick={onEdit}>
                     <i className="ri-pencil-line align-middle me-2 text-muted"></i> <span>Editar</span>
                 </DropdownItem>
@@ -862,6 +1326,6 @@ const StoryActionsDropdown = ({ onEdit, onDelete }: { onEdit: () => void, onDele
             </DropdownMenu>
         </Dropdown>
     );
-};
+});
 
 export default Planning;

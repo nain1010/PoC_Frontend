@@ -2,7 +2,7 @@ import { APIClient } from "./api_helper";
 
 import * as url from "./url_helper";
 
-const api = new APIClient();
+const api = APIClient;
 
 // Gets the logged in user data from local session
 export const getLoggedInUser = () => {

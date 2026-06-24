@@ -1,23 +1,45 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Container, Row, Col, Card, CardBody, Badge, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Spinner, Alert, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+const api = APIClient;
+
 const Kanban = () => {
     const navigate = useNavigate();
-    const api = new APIClient();
+    const queryClient = useQueryClient();
 
     const activeProjectId = localStorage.getItem("activeProjectId");
     const activeProjectName = localStorage.getItem("activeProjectName");
 
-    const [projectDetails, setProjectDetails] = useState<any>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data: projectDetails, isLoading, error } = useQuery({
+        queryKey: ['project', activeProjectId],
+        queryFn: () => api.get(`/projects/${activeProjectId}`),
+        enabled: !!activeProjectId,
+        select: (data: any) => {
+            if (data?.memberships) {
+                const authUserStr = sessionStorage.getItem("authUser");
+                if (authUserStr) {
+                    try {
+                        const authUser = JSON.parse(authUserStr);
+                        const userId = authUser.id || authUser.usuario_id || "";
+                        const myMembership = data.memberships.find((m: any) => m.usuario_id === userId);
+                        if (myMembership) {
+                            localStorage.setItem("activeProjectRole", myMembership.rol);
+                            window.dispatchEvent(new Event("activeProjectUpdated"));
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+            }
+            return data;
+        },
+    });
 
     // Filters & UI State
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -35,58 +57,19 @@ const Kanban = () => {
         taskValidation.resetForm();
     };
 
-    const openTaskModal = (storyId: string) => {
+    const openTaskModal = useCallback((storyId: string) => {
         setSelectedStoryId(storyId);
         setTaskModal(true);
-    };
+    }, []);
 
-    const toggleStoryExpand = (storyId: string) => {
+    const toggleStoryExpand = useCallback((storyId: string) => {
         setExpandedStories(prev => ({
             ...prev,
             [storyId]: !prev[storyId]
         }));
-    };
+    }, []);
 
-    const getLoggedUserId = () => {
-        const authUserStr = sessionStorage.getItem("authUser");
-        if (authUserStr) {
-            try {
-                const authUser = JSON.parse(authUserStr);
-                return authUser.id || authUser.usuario_id || "";
-            } catch (e) {
-                return "";
-            }
-        }
-        return "";
-    };
-
-    const fetchProjectDetails = async () => {
-        if (!activeProjectId) return;
-        setLoading(true);
-        setError(null);
-        try {
-            const data: any = await api.get(`/projects/${activeProjectId}`);
-            setProjectDetails(data || null);
-            if (data?.memberships) {
-                const myId = getLoggedUserId();
-                const myMembership = data.memberships.find((m: any) => m.usuario_id === myId);
-                if (myMembership) {
-                    localStorage.setItem("activeProjectRole", myMembership.rol);
-                    window.dispatchEvent(new Event("activeProjectUpdated"));
-                }
-            }
-        } catch (err: any) {
-            setError(err || "Error al cargar los detalles del proyecto.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (activeProjectId) {
-            fetchProjectDetails();
-        }
-    }, [activeProjectId]);
+    const invalidateProject = useCallback(() => queryClient.invalidateQueries({ queryKey: ['project', activeProjectId] }), [activeProjectId, queryClient]);
 
     // Formik for new task
     const taskValidation = useFormik({
@@ -101,54 +84,157 @@ const Kanban = () => {
         onSubmit: async (values) => {
             if (!activeProjectId || !selectedStoryId) return;
             setTaskSubmitting(true);
-            try {
-                await api.create(`/projects/${activeProjectId}/stories/${selectedStoryId}/tasks`, {
-                    titulo: values.titulo,
-                    descripcion: values.descripcion
-                });
-                toast.success("¡Tarea técnica agregada con éxito!", { position: "top-right" });
-                toggleTaskModal();
-                fetchProjectDetails();
-            } catch (err: any) {
-                toast.error(err || "Error al crear la tarea técnica. Verifica tus permisos (Developer).", { position: "top-right" });
-            } finally {
-                setTaskSubmitting(false);
-            }
+            createTaskMutation.mutate({ storyId: selectedStoryId, titulo: values.titulo, descripcion: values.descripcion }, {
+                onSettled: () => { toggleTaskModal(); setTaskSubmitting(false); }
+            });
         }
     });
 
-    const handleStoryStatusChange = async (storyId: string, newStatus: string) => {
-        if (!activeProjectId) return;
-        try {
-            await api.put(`/projects/${activeProjectId}/stories/${storyId}/status`, { estado: newStatus });
-            toast.success("Estado de la historia actualizado.", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const getProjectSnapshot = () => queryClient.getQueryData(['project', activeProjectId]);
+
+    const createTaskMutation = useMutation({
+        mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/stories/${payload.storyId}/tasks`, {
+            titulo: payload.titulo, descripcion: payload.descripcion
+        }),
+        onSuccess: (res: any, payload: any) => {
+            const current = getProjectSnapshot();
+            if (current && res?.id) {
+                queryClient.setQueryData(['project', activeProjectId], {
+                    ...current,
+                    tareas: [...(current.tareas || []), {
+                        id: res.id, historia_id: payload.storyId, titulo: payload.titulo,
+                        descripcion: payload.descripcion, estado: res.estado || "Pendiente", asignado_a: null
+                    }]
+                });
+            }
+        },
+        onError: (err: any) => {
+            toast.error(err || "Error al crear la tarea técnica. Verifica tus permisos (Developer).", { position: "top-right" });
+        },
+        onSettled: () => invalidateProject(),
+    });
+
+    const updateStoryStatusMutation = useMutation({
+        mutationFn: ({ storyId, status }: { storyId: string; status: string }) =>
+            api.put(`/projects/${activeProjectId}/stories/${storyId}/status`, { estado: status }),
+        onMutate: async ({ storyId, status }) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                queryClient.setQueryData(['project', activeProjectId], {
+                    ...current,
+                    historias_usuario: (current.historias_usuario || []).map((h: any) =>
+                        h.id === storyId ? { ...h, estado: status } : h
+                    )
+                });
+            }
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al actualizar el estado de la historia (¿Eres el Product Owner?).", { position: "top-right" });
-        }
-    };
+        },
+    });
 
-    const handleTaskStatusChange = async (taskId: string, newStatus: string) => {
-        if (!activeProjectId) return;
-        try {
-            await api.put(`/projects/${activeProjectId}/tasks/${taskId}/status`, { estado: newStatus });
-            toast.success("Estado de la tarea técnica actualizado.", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const updateTaskStatusMutation = useMutation({
+        mutationFn: ({ taskId, status }: { taskId: string; status: string }) =>
+            api.put(`/projects/${activeProjectId}/tasks/${taskId}/status`, { estado: status }),
+        onMutate: async ({ taskId, status }) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                queryClient.setQueryData(['project', activeProjectId], {
+                    ...current,
+                    tareas: (current.tareas || []).map((t: any) =>
+                        t.id === taskId ? { ...t, estado: status } : t
+                    )
+                });
+            }
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al actualizar el estado de la tarea (Se requiere rol Developer).", { position: "top-right" });
-        }
-    };
+        },
+    });
 
-    const handleTaskAssign = async (taskId: string, usuarioId: string) => {
-        if (!activeProjectId) return;
-        try {
-            await api.put(`/projects/${activeProjectId}/tasks/${taskId}/assign`, { usuario_id: usuarioId });
-            toast.success("Tarea asignada correctamente.", { position: "top-right" });
-            fetchProjectDetails();
-        } catch (err: any) {
+    const assignTaskMutation = useMutation({
+        mutationFn: ({ taskId, usuarioId }: { taskId: string; usuarioId: string }) =>
+            api.put(`/projects/${activeProjectId}/tasks/${taskId}/assign`, { usuario_id: usuarioId }),
+        onMutate: async ({ taskId, usuarioId }) => {
+            await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
+            const current = getProjectSnapshot();
+            if (current) {
+                queryClient.setQueryData(['project', activeProjectId], {
+                    ...current,
+                    tareas: (current.tareas || []).map((t: any) =>
+                        t.id === taskId ? { ...t, asignado_a: usuarioId } : t
+                    )
+                });
+            }
+        },
+        onError: (err: any) => {
+            invalidateProject();
             toast.error(err || "Error al asignar la tarea.", { position: "top-right" });
-        }
-    };
+        },
+    });
+
+    const handleStoryStatusChange = useCallback((storyId: string, newStatus: string) => {
+        updateStoryStatusMutation.mutate({ storyId, status: newStatus });
+    }, [updateStoryStatusMutation]);
+
+    const handleTaskStatusChange = useCallback((taskId: string, newStatus: string) => {
+        updateTaskStatusMutation.mutate({ taskId, status: newStatus });
+    }, [updateTaskStatusMutation]);
+
+    const handleTaskAssign = useCallback((taskId: string, usuarioId: string) => {
+        assignTaskMutation.mutate({ taskId, usuarioId });
+    }, [assignTaskMutation]);
+
+    const activeSprint = useMemo(
+        () => projectDetails?.sprints?.find((s: any) => s.estado === 'Activo'),
+        [projectDetails?.sprints]
+    );
+    const activeSprintStories = useMemo(
+        () => activeSprint
+            ? (projectDetails?.historias_usuario?.filter((h: any) => h.sprint_id === activeSprint.id) || [])
+            : [],
+        [activeSprint, projectDetails?.historias_usuario]
+    );
+    const filteredStories = useMemo(
+        () => activeSprintStories.filter((story: any) => {
+            const matchesSearch = story.titulo.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                 story.correlativo.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesPoints = pointsFilter === null || story.esfuerzo_estimado === pointsFilter;
+            let matchesMember = true;
+            if (memberFilter !== null) {
+                const storyTasks = projectDetails?.tareas?.filter((t: any) => t.historia_id === story.id) || [];
+                if (memberFilter === "unassigned") {
+                    matchesMember = storyTasks.some((t: any) => !t.asignado_a);
+                } else {
+                    matchesMember = storyTasks.some((t: any) => t.asignado_a === memberFilter);
+                }
+            }
+            return matchesSearch && matchesPoints && matchesMember;
+        }),
+        [activeSprintStories, searchQuery, pointsFilter, memberFilter, projectDetails?.tareas]
+    );
+    const pendingStories = useMemo(
+        () => filteredStories.filter((story: any) => 
+            ["Nueva", "Refinada", "Comprometida"].includes(story.estado)
+        ),
+        [filteredStories]
+    );
+    const inProgressStories = useMemo(
+        () => filteredStories.filter((story: any) => 
+            ["En Progreso", "Lista para Pruebas"].includes(story.estado)
+        ),
+        [filteredStories]
+    );
+    const doneStories = useMemo(
+        () => filteredStories.filter((story: any) => 
+            story.estado === "Hecha"
+        ),
+        [filteredStories]
+    );
 
     document.title = `Sprint Activo | Luma - ${activeProjectName || 'Scrum'}`;
 
@@ -182,47 +268,6 @@ const Kanban = () => {
         );
     }
 
-    // Identify active sprint
-    const activeSprint = projectDetails?.sprints?.find((s: any) => s.estado === 'Activo');
-    const activeSprintStories = activeSprint
-        ? (projectDetails?.historias_usuario?.filter((h: any) => h.sprint_id === activeSprint.id) || [])
-        : [];
-
-    // Filter stories
-    const filteredStories = activeSprintStories.filter((story: any) => {
-        const matchesSearch = story.titulo.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                             story.correlativo.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesPoints = pointsFilter === null || story.esfuerzo_estimado === pointsFilter;
-        
-        let matchesMember = true;
-        if (memberFilter !== null) {
-            const storyTasks = projectDetails?.tareas?.filter((t: any) => t.historia_id === story.id) || [];
-            if (memberFilter === "unassigned") {
-                matchesMember = storyTasks.some((t: any) => !t.asignado_a);
-            } else {
-                matchesMember = storyTasks.some((t: any) => t.asignado_a === memberFilter);
-            }
-        }
-        
-        return matchesSearch && matchesPoints && matchesMember;
-    });
-
-    // Classify stories into columns
-    // Column 1: Pendiente (Nueva, Refinada, Comprometida)
-    const pendingStories = filteredStories.filter((story: any) => 
-        ["Nueva", "Refinada", "Comprometida"].includes(story.estado)
-    );
-
-    // Column 2: En Progreso (En Progreso, Lista para Pruebas)
-    const inProgressStories = filteredStories.filter((story: any) => 
-        ["En Progreso", "Lista para Pruebas"].includes(story.estado)
-    );
-
-    // Column 3: Terminada (Hecha)
-    const doneStories = filteredStories.filter((story: any) => 
-        story.estado === "Hecha"
-    );
-
     return (
         <React.Fragment>
             <div className="page-content">
@@ -246,13 +291,13 @@ const Kanban = () => {
                         )}
                     </div>
 
-                    {loading ? (
+                    {isLoading ? (
                         <div className="text-center my-5">
                             <Spinner color="primary" />
                             <p className="text-muted mt-2">Cargando tablero Kanban...</p>
                         </div>
                     ) : error ? (
-                        <Alert color="danger" className="text-center">{error}</Alert>
+                        <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
                     ) : !activeSprint ? (
                         <Row className="justify-content-center my-5">
                             <Col lg={7}>
@@ -364,9 +409,9 @@ const Kanban = () => {
                                                         onStoryStatusChange={handleStoryStatusChange}
                                                         onTaskStatusChange={handleTaskStatusChange}
                                                         onTaskAssign={handleTaskAssign}
-                                                        openTaskModal={openTaskModal}
+                                                        onOpenTaskModal={openTaskModal}
                                                         expanded={!!expandedStories[story.id]}
-                                                        toggleExpand={() => toggleStoryExpand(story.id)}
+                                                        onToggleExpand={toggleStoryExpand}
                                                     />
                                                 ))
                                             )}
@@ -396,9 +441,9 @@ const Kanban = () => {
                                                         onStoryStatusChange={handleStoryStatusChange}
                                                         onTaskStatusChange={handleTaskStatusChange}
                                                         onTaskAssign={handleTaskAssign}
-                                                        openTaskModal={openTaskModal}
+                                                        onOpenTaskModal={openTaskModal}
                                                         expanded={!!expandedStories[story.id]}
-                                                        toggleExpand={() => toggleStoryExpand(story.id)}
+                                                        onToggleExpand={toggleStoryExpand}
                                                     />
                                                 ))
                                             )}
@@ -428,9 +473,9 @@ const Kanban = () => {
                                                         onStoryStatusChange={handleStoryStatusChange}
                                                         onTaskStatusChange={handleTaskStatusChange}
                                                         onTaskAssign={handleTaskAssign}
-                                                        openTaskModal={openTaskModal}
+                                                        onOpenTaskModal={openTaskModal}
                                                         expanded={!!expandedStories[story.id]}
-                                                        toggleExpand={() => toggleStoryExpand(story.id)}
+                                                        onToggleExpand={toggleStoryExpand}
                                                     />
                                                 ))
                                             )}
@@ -509,42 +554,58 @@ const Kanban = () => {
 };
 
 // Story Card sub-component
-const KanbanStoryCard = ({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, openTaskModal, expanded, toggleExpand }: {
+const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, onOpenTaskModal, expanded, onToggleExpand }: {
     story: any;
     projectDetails: any;
     memberFilter: string | null;
     onStoryStatusChange: (storyId: string, status: string) => void;
     onTaskStatusChange: (taskId: string, status: string) => void;
     onTaskAssign: (taskId: string, usuarioId: string) => void;
-    openTaskModal: (storyId: string) => void;
+    onOpenTaskModal: (storyId: string) => void;
     expanded: boolean;
-    toggleExpand: () => void;
+    onToggleExpand: (storyId: string) => void;
 }) => {
     // Filter tasks for this story
-    const storyTasks = projectDetails?.tareas?.filter((t: any) => t.historia_id === story.id) || [];
-    const doneTasksCount = storyTasks.filter((t: any) => t.estado === 'Terminada').length;
+    const storyTasks = useMemo(
+        () => projectDetails?.tareas?.filter((t: any) => t.historia_id === story.id) || [],
+        [projectDetails?.tareas, story.id]
+    );
+    const doneTasksCount = useMemo(
+        () => storyTasks.filter((t: any) => t.estado === 'Terminada').length,
+        [storyTasks]
+    );
     const totalTasksCount = storyTasks.length;
 
     // Filter tasks inside the story card by selected member
-    const displayedTasks = storyTasks.filter((t: any) => {
-        if (memberFilter === null) return true;
-        if (memberFilter === "unassigned") return !t.asignado_a;
-        return t.asignado_a === memberFilter;
-    });
+    const displayedTasks = useMemo(
+        () => storyTasks.filter((t: any) => {
+            if (memberFilter === null) return true;
+            if (memberFilter === "unassigned") return !t.asignado_a;
+            return t.asignado_a === memberFilter;
+        }),
+        [storyTasks, memberFilter]
+    );
 
     // Progress percentage
-    const progressPercent = totalTasksCount > 0 ? Math.round((doneTasksCount / totalTasksCount) * 100) : 0;
+    const progressPercent = useMemo(
+        () => totalTasksCount > 0 ? Math.round((doneTasksCount / totalTasksCount) * 100) : 0,
+        [doneTasksCount, totalTasksCount]
+    );
+
+    // Stable handlers
+    const handleToggleExpand = useCallback(() => { onToggleExpand(story.id); }, [story.id, onToggleExpand]);
+    const handleOpenTaskModal = useCallback(() => { onOpenTaskModal(story.id); }, [story.id, onOpenTaskModal]);
 
     // Handle dropdown select
     const [storyDropdownOpen, setStoryDropdownOpen] = useState(false);
-    const toggleStoryDropdown = () => setStoryDropdownOpen(prevState => !prevState);
+    const toggleStoryDropdown = useCallback(() => setStoryDropdownOpen(prevState => !prevState), []);
 
-    const states = [
+    const states = useMemo(() => [
         { label: "Comprometida (Pendiente)", value: "Comprometida" },
         { label: "En Progreso (En curso)", value: "En Progreso" },
         { label: "Lista para Pruebas (En curso)", value: "Lista para Pruebas" },
         { label: "Hecha (Terminada)", value: "Hecha" }
-    ];
+    ], []);
 
     return (
         <Card className="border mb-3 shadow-sm bg-white card-animate">
@@ -553,7 +614,7 @@ const KanbanStoryCard = ({ story, projectDetails, memberFilter, onStoryStatusCha
                     <span className="badge bg-soft-info text-info fs-11">{story.correlativo}</span>
                     
                     {/* Story status dropdown selector */}
-                    <Dropdown isOpen={storyDropdownOpen} toggle={toggleStoryDropdown} size="sm">
+                    <Dropdown isOpen={storyDropdownOpen} toggle={toggleStoryDropdown} size="sm" strategy="fixed">
                         <DropdownToggle tag="button" className="btn btn-sm btn-outline-light text-muted border-0 py-0 px-2 fs-12">
                             <span className="d-flex align-items-center gap-1">
                                 <span>{story.estado}</span>
@@ -613,7 +674,7 @@ const KanbanStoryCard = ({ story, projectDetails, memberFilter, onStoryStatusCha
                         color="link" 
                         size="sm" 
                         className="p-0 text-decoration-none fs-12 text-secondary"
-                        onClick={toggleExpand}
+                        onClick={handleToggleExpand}
                     >
                         <span className="d-flex align-items-center gap-1">
                             <i className={`${expanded ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'} align-middle`}></i>
@@ -625,11 +686,11 @@ const KanbanStoryCard = ({ story, projectDetails, memberFilter, onStoryStatusCha
                         color="soft-success" 
                         size="sm" 
                         className="btn-sm py-0.5 px-2 fs-11"
-                        onClick={() => openTaskModal(story.id)}
+                        onClick={handleOpenTaskModal}
                     >
                         <span className="d-flex align-items-center gap-1">
                             <i className="ri-add-line align-middle"></i>
-                            <span>+ Tarea</span>
+                            <span>Crear Tarea</span>
                         </span>
                     </Button>
                 </div>
@@ -660,24 +721,24 @@ const KanbanStoryCard = ({ story, projectDetails, memberFilter, onStoryStatusCha
             </CardBody>
         </Card>
     );
-};
+});
 
 // Task Row inside story card
-const KanbanTaskRow = ({ task, onTaskStatusChange, onTaskAssign, developers }: {
+const KanbanTaskRow = React.memo(({ task, onTaskStatusChange, onTaskAssign, developers }: {
     task: any;
     onTaskStatusChange: (taskId: string, status: string) => void;
     onTaskAssign: (taskId: string, usuarioId: string) => void;
     developers: any[];
 }) => {
     const [taskDropdownOpen, setTaskDropdownOpen] = useState(false);
-    const toggleTaskDropdown = () => setTaskDropdownOpen(prevState => !prevState);
+    const toggleTaskDropdown = useCallback(() => setTaskDropdownOpen(prevState => !prevState), []);
 
     const [assignDropdownOpen, setAssignDropdownOpen] = useState(false);
-    const toggleAssignDropdown = () => setAssignDropdownOpen(prevState => !prevState);
+    const toggleAssignDropdown = useCallback(() => setAssignDropdownOpen(prevState => !prevState), []);
 
-    const taskStates = ["Pendiente", "En Curso", "Bloqueada", "Terminada"];
+    const taskStates = useMemo(() => ["Pendiente", "En Curso", "Bloqueada", "Terminada"], []);
 
-    const getBadgeColor = (status: string) => {
+    const getBadgeColor = useCallback((status: string) => {
         switch (status) {
             case "Pendiente": return "secondary";
             case "En Curso": return "primary";
@@ -685,9 +746,12 @@ const KanbanTaskRow = ({ task, onTaskStatusChange, onTaskAssign, developers }: {
             case "Terminada": return "success";
             default: return "dark";
         }
-    };
+    }, []);
 
-    const assignedDev = developers.find((d: any) => d.usuario_id === task.asignado_a);
+    const assignedDev = useMemo(
+        () => developers.find((d: any) => d.usuario_id === task.asignado_a),
+        [developers, task.asignado_a]
+    );
 
     return (
         <div className="p-2 border rounded bg-white mb-2 shadow-none border-light-subtle">
@@ -698,7 +762,7 @@ const KanbanTaskRow = ({ task, onTaskStatusChange, onTaskAssign, developers }: {
                 
                 <div className="d-flex align-items-center gap-1">
                     {/* Assign Dropdown */}
-                    <Dropdown isOpen={assignDropdownOpen} toggle={toggleAssignDropdown} size="sm">
+                    <Dropdown isOpen={assignDropdownOpen} toggle={toggleAssignDropdown} size="sm" strategy="fixed">
                         <DropdownToggle tag="button" className={`badge ${assignedDev ? 'bg-soft-info text-info' : 'bg-soft-warning text-warning'} border-0 py-0.5 px-1.5 fs-10`}>
                             <span className="d-flex align-items-center gap-1">
                                 <span>{assignedDev ? assignedDev.nombre_completo.split(' ')[0] : 'Sin asignar'}</span>
@@ -725,7 +789,7 @@ const KanbanTaskRow = ({ task, onTaskStatusChange, onTaskAssign, developers }: {
                     </Dropdown>
 
                     {/* Task Status Dropdown */}
-                    <Dropdown isOpen={taskDropdownOpen} toggle={toggleTaskDropdown} size="sm">
+                    <Dropdown isOpen={taskDropdownOpen} toggle={toggleTaskDropdown} size="sm" strategy="fixed">
                         <DropdownToggle tag="button" className={`badge bg-soft-${getBadgeColor(task.estado)} text-${getBadgeColor(task.estado)} border-0 py-0.5 px-1.5 fs-10`}>
                             <span className="d-flex align-items-center gap-1">
                                 <span>{task.estado}</span>
@@ -752,6 +816,6 @@ const KanbanTaskRow = ({ task, onTaskStatusChange, onTaskAssign, developers }: {
             )}
         </div>
     );
-};
+});
 
 export default Kanban;

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Dropdown, DropdownMenu, DropdownToggle, Form } from 'reactstrap';
+import { Link, useNavigate } from 'react-router-dom';
+import { Dropdown, DropdownMenu, DropdownToggle, DropdownItem, Form } from 'reactstrap';
+import { useQuery } from '@tanstack/react-query';
+import { APIClient } from '../helpers/api_helper';
 
 //import images
 import logoSm from "../assets/images/logo-sm.png";
@@ -17,11 +19,30 @@ import { changeSidebarVisibility } from '../slices/thunks';
 import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from 'reselect';
 
+const api = APIClient;
+
 const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSidebar } : any) => {
     const dispatch : any = useDispatch();
+    const navigate = useNavigate();
 
     const [activeProjectName, setActiveProjectName] = useState<string | null>(localStorage.getItem("activeProjectName"));
     const [activeProjectRole, setActiveProjectRole] = useState<string | null>(localStorage.getItem("activeProjectRole"));
+    const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
+    const toggleProjectDropdown = () => setProjectDropdownOpen(!projectDropdownOpen);
+
+    const { data: projects = [] } = useQuery({
+        queryKey: ['projects'],
+        queryFn: () => api.get("/projects"),
+        enabled: !!sessionStorage.getItem("authUser"),
+    });
+
+    const handleSelectProject = (project: any) => {
+        localStorage.setItem("activeProjectId", project.id);
+        localStorage.setItem("activeProjectName", project.nombre);
+        localStorage.setItem("activeProjectRole", project.mi_rol || "Sin rol");
+        window.dispatchEvent(new Event("activeProjectUpdated"));
+        window.location.reload();
+    };
 
     useEffect(() => {
         const updateActiveProject = () => {
@@ -129,21 +150,52 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                 </DropdownMenu>
                             </Dropdown> */}
 
-                            {activeProjectName && (
-                                <div className="d-flex align-items-center me-3 border-end pe-3 d-none d-md-flex">
-                                    <div className="text-end me-2.5">
-                                        <span className="text-muted fs-10 d-block text-uppercase fw-semibold tracking-wider">Proyecto Activo</span>
-                                        <span className="fw-bold fs-13 text-truncate d-block" style={{ maxWidth: "180px" }}>{activeProjectName}</span>
-                                    </div>
-                                    <span className={`badge ${
-                                        activeProjectRole === 'Product Owner' ? 'bg-soft-primary text-primary' :
-                                        activeProjectRole === 'Scrum Master' ? 'bg-soft-success text-success' :
-                                        activeProjectRole === 'Developer' ? 'bg-soft-info text-info' :
-                                        'bg-soft-secondary text-secondary'
-                                    } fs-11 py-1 px-2 border border-opacity-10 rounded-pill`}>
-                                        <span>{activeProjectRole || 'Sin rol'}</span>
-                                    </span>
-                                </div>
+                             {activeProjectName && (
+                                <Dropdown isOpen={projectDropdownOpen} toggle={toggleProjectDropdown} className="d-none d-md-flex me-3 border-end pe-3 align-items-center">
+                                    <DropdownToggle tag="div" className="d-flex align-items-center" role="button" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                                        <div className="text-end me-2.5">
+                                            <span className="text-muted fs-10 d-block text-uppercase fw-semibold tracking-wider">
+                                                Proyecto Activo <i className="ri-arrow-down-s-line align-middle ms-0.5"></i>
+                                            </span>
+                                            <span className="fw-bold fs-13 text-truncate d-block" style={{ maxWidth: "180px" }}>{activeProjectName}</span>
+                                        </div>
+                                        <span className={`badge ${
+                                            activeProjectRole === 'Product Owner' ? 'bg-soft-primary text-primary' :
+                                            activeProjectRole === 'Scrum Master' ? 'bg-soft-success text-success' :
+                                            activeProjectRole === 'Developer' ? 'bg-soft-info text-info' :
+                                            'bg-soft-secondary text-secondary'
+                                        } fs-11 py-1 px-2 border border-opacity-10 rounded-pill`}>
+                                            <span>{activeProjectRole || 'Sin rol'}</span>
+                                        </span>
+                                    </DropdownToggle>
+                                    <DropdownMenu className="dropdown-menu-md dropdown-menu-end p-2 shadow-lg" style={{ minWidth: "240px" }}>
+                                        <DropdownItem header className="text-uppercase fs-11 tracking-wider text-muted border-bottom pb-2 mb-2">
+                                            <span>Cambiar de Proyecto</span>
+                                        </DropdownItem>
+                                        <div style={{ maxHeight: "250px", overflowY: "auto" }}>
+                                            {projects.map((proj: any) => (
+                                                <DropdownItem
+                                                    key={proj.id}
+                                                    onClick={() => handleSelectProject(proj)}
+                                                    active={proj.id === localStorage.getItem("activeProjectId")}
+                                                    className="d-flex justify-content-between align-items-center py-2 px-3 rounded mb-1"
+                                                >
+                                                    <div className="text-truncate me-2" style={{ maxWidth: "160px" }}>
+                                                        <div className="fw-semibold text-dark fs-13 text-truncate">{proj.nombre}</div>
+                                                        <small className="text-muted fs-11">{proj.mi_rol || 'Sin rol'}</small>
+                                                    </div>
+                                                    {proj.id === localStorage.getItem("activeProjectId") && (
+                                                        <i className="ri-check-line text-success fs-15"></i>
+                                                    )}
+                                                </DropdownItem>
+                                            ))}
+                                        </div>
+                                        <DropdownItem divider />
+                                        <DropdownItem onClick={() => navigate("/projects")} className="text-center text-primary fw-medium fs-12 py-1.5">
+                                            <i className="ri-folders-line align-middle me-1"></i> Ver Todos los Proyectos
+                                        </DropdownItem>
+                                    </DropdownMenu>
+                                </Dropdown>
                             )}
 
                             {/* FullScreenDropdown */}

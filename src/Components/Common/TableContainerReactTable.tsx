@@ -227,7 +227,8 @@ const TableContainer = ({
 
       <Row className="align-items-center mt-2 g-3 text-center text-sm-start">
         <div className="col-sm">
-          <div className="text-muted">Showing<span className="fw-semibold ms-1">{getState().pagination.pageSize}</span> of <span className="fw-semibold">{data.length}</span> Results
+          <div className="text-muted">
+            Showing <span className="fw-semibold">{table.getFilteredRowModel().rows.length === 0 ? 0 : getState().pagination.pageIndex * getState().pagination.pageSize + 1}</span> to <span className="fw-semibold">{Math.min(table.getFilteredRowModel().rows.length, (getState().pagination.pageIndex + 1) * getState().pagination.pageSize)}</span> of <span className="fw-semibold">{table.getFilteredRowModel().rows.length}</span> Results
           </div>
         </div>
         <div className="col-sm-auto">

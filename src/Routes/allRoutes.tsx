@@ -1,30 +1,22 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-//Dashboard
-//Starter
-import Starter from "../pages/Starter";
-
-import Basic404 from '../pages/AuthenticationInner/Errors/Basic404';
-import Cover404 from '../pages/AuthenticationInner/Errors/Cover404';
-import Alt404 from '../pages/AuthenticationInner/Errors/Alt404';
-import Error500 from '../pages/AuthenticationInner/Errors/Error500';
-import Offlinepage from "../pages/AuthenticationInner/Errors/Offlinepage";
-
-// //login
-import Login from "../pages/Authentication/Login";
-import ForgetPasswordPage from "../pages/Authentication/ForgetPassword";
-import Logout from "../pages/Authentication/Logout";
-import Register from "../pages/Authentication/Register";
-
-import UserProfile from "../pages/Authentication/user-profile";
-
-// Scrum pages
-import Projects from "../pages/Projects";
-import Planning from "../pages/Planning";
-import Kanban from "../pages/Kanban";
-import Analytics from "../pages/Analytics";
-import UserManagement from "../pages/Users";
+const Starter = React.lazy(() => import("../pages/Starter"));
+const Basic404 = React.lazy(() => import('../pages/AuthenticationInner/Errors/Basic404'));
+const Cover404 = React.lazy(() => import('../pages/AuthenticationInner/Errors/Cover404'));
+const Alt404 = React.lazy(() => import('../pages/AuthenticationInner/Errors/Alt404'));
+const Error500 = React.lazy(() => import('../pages/AuthenticationInner/Errors/Error500'));
+const Offlinepage = React.lazy(() => import("../pages/AuthenticationInner/Errors/Offlinepage"));
+const Login = React.lazy(() => import("../pages/Authentication/Login"));
+const ForgetPasswordPage = React.lazy(() => import("../pages/Authentication/ForgetPassword"));
+const Logout = React.lazy(() => import("../pages/Authentication/Logout"));
+const Register = React.lazy(() => import("../pages/Authentication/Register"));
+const UserProfile = React.lazy(() => import("../pages/Authentication/user-profile"));
+const Projects = React.lazy(() => import("../pages/Projects"));
+const Planning = React.lazy(() => import("../pages/Planning"));
+const Kanban = React.lazy(() => import("../pages/Kanban"));
+const Analytics = React.lazy(() => import("../pages/Analytics"));
+const UserManagement = React.lazy(() => import("../pages/Users"));
 
 
 const authProtectedRoutes = [

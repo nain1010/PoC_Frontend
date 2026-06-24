@@ -1,37 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Button, Spinner, Alert, Table } from 'reactstrap';
+import React, { useState, useCallback, useMemo } from 'react';
+import { Container, Row, Col, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Button, Spinner, Alert } from 'reactstrap';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import TableContainer from '../../Components/Common/TableContainer';
+
+const api = APIClient;
 
 const UserManagement = () => {
     const navigate = useNavigate();
-    const api = new APIClient();
+    const queryClient = useQueryClient();
 
-    const [users, setUsers] = useState<any[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState<string>('');
     const [submitting, setSubmitting] = useState<boolean>(false);
 
-    // Modals state
     const [createModal, setCreateModal] = useState<boolean>(false);
     const [editModal, setEditModal] = useState<boolean>(false);
     const [selectedUser, setSelectedUser] = useState<any | null>(null);
-
-    const toggleCreateModal = () => {
-        setCreateModal(!createModal);
-        createValidation.resetForm();
-    };
-
-    const toggleEditModal = () => {
-        setEditModal(!editModal);
-        editValidation.resetForm();
-    };
+    const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [userToDelete, setUserToDelete] = useState<any | null>(null);
 
     const checkAdminAccess = () => {
         const authUserStr = sessionStorage.getItem("authUser");
@@ -52,25 +43,52 @@ const UserManagement = () => {
         return true;
     };
 
-    const fetchUsers = async () => {
-        if (!checkAdminAccess()) return;
-        setLoading(true);
-        setError(null);
-        try {
-            const data: any = await api.get("/users");
-            setUsers(data || []);
-        } catch (err: any) {
-            setError(err || "Error al cargar la lista de usuarios.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data: users = [], isLoading, error } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => {
+            if (!checkAdminAccess()) return Promise.resolve([]);
+            return api.get("/users");
+        },
+        select: (data: any) => data || [],
+    });
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    const invalidateUsers = useCallback(() => queryClient.invalidateQueries({ queryKey: ['users'] }), [queryClient]);
 
-    // Validation for User Creation
+    const createUserMutation = useMutation({
+        mutationFn: (values: any) => api.create("/register", values),
+        onError: (err: any) => {
+            toast.error(err || "Error al registrar el usuario.", { position: "top-right" });
+        },
+        onSettled: () => invalidateUsers(),
+    });
+
+    const editUserMutation = useMutation({
+        mutationFn: (payload: any) => api.put(`/users/${payload.id}`, payload),
+        onError: (err: any) => {
+            toast.error(err || "Error al actualizar el usuario.", { position: "top-right" });
+        },
+        onSettled: () => invalidateUsers(),
+    });
+
+    const deleteUserMutation = useMutation({
+        mutationFn: (id: string) => api.delete(`/users/${id}`),
+        onMutate: async (id: string) => {
+            await queryClient.cancelQueries({ queryKey: ['users'] });
+            const previous = queryClient.getQueryData(['users']);
+            queryClient.setQueryData(['users'], (old: any) =>
+                Array.isArray(old) ? old.filter((u: any) => u.id !== id) : []
+            );
+            return { previous };
+        },
+        onError: (err: any, _id: string, context: any) => {
+            if (context?.previous) {
+                queryClient.setQueryData(['users'], context.previous);
+            }
+            toast.error(err || "Error al eliminar el usuario.", { position: "top-right" });
+        },
+        onSettled: () => invalidateUsers(),
+    });
+
     const createValidation = useFormik({
         initialValues: {
             nombre_completo: '',
@@ -86,27 +104,18 @@ const UserManagement = () => {
         }),
         onSubmit: async (values) => {
             setSubmitting(true);
-            try {
-                // Register via register endpoint (public)
-                await api.create("/register", values);
-                toast.success("¡Usuario registrado con éxito!", { position: "top-right" });
-                toggleCreateModal();
-                fetchUsers();
-            } catch (err: any) {
-                toast.error(err || "Error al registrar el usuario.", { position: "top-right" });
-            } finally {
-                setSubmitting(false);
-            }
+            createUserMutation.mutate(values, {
+                onSettled: () => { toggleCreateModal(); setSubmitting(false); }
+            });
         }
     });
 
-    // Validation for User Edition
     const editValidation = useFormik({
         enableReinitialize: true,
         initialValues: {
             nombre_completo: selectedUser ? selectedUser.nombre_completo : '',
             email: selectedUser ? selectedUser.email : '',
-            password: '', // blank by default, only updated if entered
+            password: '',
             rol_global: selectedUser ? selectedUser.rol_global : 'Miembro'
         },
         validationSchema: Yup.object({
@@ -118,61 +127,132 @@ const UserManagement = () => {
         onSubmit: async (values) => {
             if (!selectedUser) return;
             setSubmitting(true);
-            try {
-                const payload: any = {
-                    nombre_completo: values.nombre_completo,
-                    email: values.email,
-                    rol_global: values.rol_global
-                };
-                if (values.password && values.password.trim() !== '') {
-                    payload.password = values.password;
-                }
-                
-                await api.put(`/users/${selectedUser.id}`, payload);
-                toast.success("¡Usuario actualizado con éxito!", { position: "top-right" });
-                toggleEditModal();
-                fetchUsers();
-            } catch (err: any) {
-                toast.error(err || "Error al actualizar el usuario.", { position: "top-right" });
-            } finally {
-                setSubmitting(false);
+            const payload: any = {
+                nombre_completo: values.nombre_completo,
+                email: values.email,
+                rol_global: values.rol_global
+            };
+            if (values.password && values.password.trim() !== '') {
+                payload.password = values.password;
             }
+            editUserMutation.mutate({ id: selectedUser.id, ...payload }, {
+                onSettled: () => { toggleEditModal(); setSubmitting(false); }
+            });
         }
     });
 
-    const handleDeleteUser = async (user: any) => {
+    const toggleCreateModal = useCallback(() => {
+        setCreateModal(prev => !prev);
+        createValidation.resetForm();
+    }, []);
+
+    const toggleEditModal = useCallback(() => {
+        setEditModal(prev => !prev);
+        editValidation.resetForm();
+    }, []);
+
+    const toggleDeleteModal = useCallback(() => {
+        setDeleteModal(prev => !prev);
+    }, []);
+
+    const handleDeleteUser = useCallback((user: any) => {
         const authUser = JSON.parse(sessionStorage.getItem("authUser") || "{}");
         if (authUser.usuario_id === user.id) {
             toast.error("No puedes eliminar tu propia cuenta de administrador en sesión.", { position: "top-right" });
             return;
         }
+        setUserToDelete(user);
+        toggleDeleteModal();
+    }, [toggleDeleteModal]);
 
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar al usuario "${user.nombre_completo}"? Esta acción limpiará sus asignaciones de forma definitiva.`)) {
-            return;
-        }
-
-        try {
-            await api.delete(`/users/${user.id}`);
-            toast.success(`Usuario "${user.nombre_completo}" eliminado.`, { position: "top-right" });
-            fetchUsers();
-        } catch (err: any) {
-            toast.error(err || "Error al eliminar el usuario.", { position: "top-right" });
-        }
-    };
-
-    const handleEditClick = (user: any) => {
+    const handleEditClick = useCallback((user: any) => {
         setSelectedUser(user);
         toggleEditModal();
-    };
+    }, [toggleEditModal]);
 
-    const filteredUsers = users.filter((u: any) => {
-        const query = searchTerm.toLowerCase();
-        return (
-            (u.nombre_completo || '').toLowerCase().includes(query) ||
-            (u.email || '').toLowerCase().includes(query) ||
-            (u.id || '').toLowerCase().includes(query)
-        );
-    });
+    const confirmDeleteUser = useCallback(() => {
+        if (!userToDelete) return;
+        toggleDeleteModal();
+        deleteUserMutation.mutate(userToDelete.id);
+    }, [userToDelete, toggleDeleteModal, deleteUserMutation]);
+
+    const columns = useMemo(() => [
+        {
+            header: "ID",
+            accessorKey: "id",
+            enableColumnFilter: false,
+            cell: (cell: any) => (
+                <span className="text-muted fs-12 fw-semibold" style={{ fontFamily: "monospace" }}>
+                    {cell.getValue()}
+                </span>
+            )
+        },
+        {
+            header: "Nombre Completo",
+            accessorKey: "nombre_completo",
+            enableColumnFilter: false,
+            cell: (cell: any) => (
+                <span className="fw-semibold">{cell.getValue()}</span>
+            )
+        },
+        {
+            header: "Email",
+            accessorKey: "email",
+            enableColumnFilter: false
+        },
+        {
+            header: "Contraseña",
+            accessorKey: "password_plain",
+            enableColumnFilter: false,
+            cell: (cell: any) => (
+                <span className="badge bg-soft-warning text-warning fs-13" style={{ fontFamily: "monospace" }}>
+                    {cell.getValue() || "••••••••"}
+                </span>
+            )
+        },
+        {
+            header: "Rol Global",
+            accessorKey: "rol_global",
+            enableColumnFilter: false,
+            cell: (cell: any) => {
+                const role = cell.getValue();
+                return (
+                    <span className={`badge ${role === 'Administrador' ? 'bg-soft-danger text-danger' : 'bg-soft-primary text-primary'
+                        } fs-12`}>
+                        <span>{role}</span>
+                    </span>
+                );
+            }
+        },
+        {
+            header: "Acciones",
+            id: "actions",
+            enableColumnFilter: false,
+            cell: (cell: any) => {
+                const user = cell.row.original;
+                return (
+                    <div className="d-flex justify-content-center gap-2">
+                        <Button
+                            color="light"
+                            className="btn btn-sm btn-soft-primary"
+                            onClick={() => handleEditClick(user)}
+                            title="Editar Usuario"
+                        >
+                            <i className="ri-pencil-line"></i>
+                        </Button>
+                        <Button
+                            color="light"
+                            className="btn btn-sm btn-soft-danger"
+                            onClick={() => handleDeleteUser(user)}
+                            title="Eliminar Usuario"
+                        >
+                            <i className="ri-delete-bin-line"></i>
+                        </Button>
+                    </div>
+                );
+            }
+        }
+    ], [handleEditClick, handleDeleteUser]);
 
     document.title = "Gestión de Usuarios | Luma - Admin";
 
@@ -196,94 +276,24 @@ const UserManagement = () => {
                         <Col lg={12}>
                             <Card className="shadow-sm border-0">
                                 <CardBody>
-                                    <div className="search-box mb-3 col-md-4">
-                                        <div className="position-relative">
-                                            <Input
-                                                type="text"
-                                                className="form-control bg-light border-light"
-                                                placeholder="Buscar por nombre, email o ID..."
-                                                value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
-                                            />
-                                            <i className="ri-search-line search-icon position-absolute text-muted fs-16" style={{ top: "10px", right: "12px" }}></i>
-                                        </div>
-                                    </div>
-
-                                    {loading ? (
+                                    {isLoading ? (
                                         <div className="text-center my-5">
                                             <Spinner color="primary" />
                                             <p className="text-muted mt-2"><span>Cargando usuarios...</span></p>
                                         </div>
                                     ) : error ? (
-                                        <Alert color="danger" className="text-center">{error}</Alert>
-                                    ) : filteredUsers.length === 0 ? (
-                                        <div className="text-center py-4">
-                                            <p className="text-muted fs-16">No se encontraron usuarios que coincidan con la búsqueda.</p>
-                                        </div>
+                                        <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
                                     ) : (
-                                        <div className="table-responsive">
-                                            <Table className="table-centered table-nowrap mb-0 align-middle">
-                                                <thead className="table-light">
-                                                    <tr>
-                                                        <th scope="col"><span>ID</span></th>
-                                                        <th scope="col"><span>Nombre Completo</span></th>
-                                                        <th scope="col"><span>Email</span></th>
-                                                        <th scope="col"><span>Contraseña (Plana)</span></th>
-                                                        <th scope="col"><span>Rol Global</span></th>
-                                                        <th scope="col" className="text-center"><span>Acciones</span></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {filteredUsers.map((user: any) => (
-                                                        <tr key={user.id}>
-                                                            <td>
-                                                                <span className="text-muted fs-12 fw-semibold" style={{ fontFamily: "monospace" }}>
-                                                                    {user.id}
-                                                                </span>
-                                                            </td>
-                                                            <td className="fw-semibold">
-                                                                <span>{user.nombre_completo}</span>
-                                                            </td>
-                                                            <td>
-                                                                <span>{user.email}</span>
-                                                            </td>
-                                                            <td>
-                                                                <span className="badge bg-soft-warning text-warning fs-13" style={{ fontFamily: "monospace" }}>
-                                                                    {user.password_plain || "••••••••"}
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <span className={`badge ${
-                                                                    user.rol_global === 'Administrador' ? 'bg-soft-danger text-danger' : 'bg-soft-primary text-primary'
-                                                                } fs-12`}>
-                                                                    <span>{user.rol_global}</span>
-                                                                </span>
-                                                            </td>
-                                                            <td className="text-center">
-                                                                <div className="d-flex justify-content-center gap-2">
-                                                                    <Button
-                                                                        color="light"
-                                                                        className="btn btn-sm btn-soft-primary"
-                                                                        onClick={() => handleEditClick(user)}
-                                                                        title="Editar Usuario"
-                                                                    >
-                                                                        <i className="ri-pencil-line"></i>
-                                                                    </Button>
-                                                                    <Button
-                                                                        color="light"
-                                                                        className="btn btn-sm btn-soft-danger"
-                                                                        onClick={() => handleDeleteUser(user)}
-                                                                        title="Eliminar Usuario"
-                                                                    >
-                                                                        <i className="ri-delete-bin-line"></i>
-                                                                    </Button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
-                                        </div>
+                                        <TableContainer
+                                            columns={columns}
+                                            data={users}
+                                            isGlobalFilter={true}
+                                            customPageSize={10}
+                                            SearchPlaceholder="Buscar por nombre, email o ID..."
+                                            tableClass="align-middle table-nowrap table-hover"
+                                            theadClass="table-light"
+                                            divClass="table-responsive"
+                                        />
                                     )}
                                 </CardBody>
                             </Card>
@@ -302,7 +312,7 @@ const UserManagement = () => {
                     createValidation.handleSubmit();
                     return false;
                 }}>
-                    <ModalBody>
+                    <ModalBody className="p-4">
                         <div className="mb-3">
                             <Label htmlFor="nombre_completo-field" className="form-label">Nombre Completo</Label>
                             <Input
@@ -380,13 +390,14 @@ const UserManagement = () => {
                             </Input>
                         </div>
                     </ModalBody>
-                    <ModalFooter>
-                        <div className="hstack gap-2 justify-content-end">
-                            <Button type="button" color="light" onClick={toggleCreateModal}>Cancelar</Button>
-                            <Button type="submit" color="success" disabled={submitting}>
-                                {submitting ? <Spinner size="sm" className="me-1" /> : null} Registrar
-                            </Button>
-                        </div>
+                    <ModalFooter className="bg-light">
+                        <Button type="button" color="light" onClick={toggleCreateModal} disabled={submitting}>Cancelar</Button>
+                        <Button type="submit" color="success" disabled={submitting}>
+                            <span className="d-flex align-items-center gap-1">
+                                {submitting && <Spinner size="sm" />}
+                                <span>Registrar</span>
+                            </span>
+                        </Button>
                     </ModalFooter>
                 </Form>
             </Modal>
@@ -401,7 +412,7 @@ const UserManagement = () => {
                     editValidation.handleSubmit();
                     return false;
                 }}>
-                    <ModalBody>
+                    <ModalBody className="p-4">
                         <div className="mb-3">
                             <Label htmlFor="edit-nombre_completo-field" className="form-label">Nombre Completo</Label>
                             <Input
@@ -477,16 +488,36 @@ const UserManagement = () => {
                             </Input>
                         </div>
                     </ModalBody>
-                    <ModalFooter>
-                        <div className="hstack gap-2 justify-content-end">
-                            <Button type="button" color="light" onClick={toggleEditModal}>Cancelar</Button>
-                            <Button type="submit" color="primary" disabled={submitting}>
-                                {submitting ? <Spinner size="sm" className="me-1" /> : null} Guardar Cambios
-                            </Button>
-                        </div>
+                    <ModalFooter className="bg-light">
+                        <Button type="button" color="light" onClick={toggleEditModal} disabled={submitting}>Cancelar</Button>
+                        <Button type="submit" color="primary" disabled={submitting}>
+                            <span className="d-flex align-items-center gap-1">
+                                {submitting && <Spinner size="sm" />}
+                                <span>Guardar Cambios</span>
+                            </span>
+                        </Button>
                     </ModalFooter>
                 </Form>
             </Modal>
+
+            {/* Modal de Confirmación de Eliminación de Usuario */}
+            <Modal isOpen={deleteModal} toggle={toggleDeleteModal} centered>
+                <ModalHeader toggle={toggleDeleteModal} className="bg-light p-3">
+                    Confirmar Eliminación de Usuario
+                </ModalHeader>
+                <ModalBody className="p-4 text-center">
+                    <div className="text-danger mb-3">
+                        <i className="ri-delete-bin-5-line display-4"></i>
+                    </div>
+                    <h5>¿Estás seguro de que deseas eliminar al usuario "{userToDelete?.nombre_completo}"?</h5>
+                    <p className="text-muted mb-0">Esta acción limpiará sus asignaciones de forma definitiva en todos los proyectos.</p>
+                </ModalBody>
+                <ModalFooter className="bg-light">
+                    <Button color="light" onClick={toggleDeleteModal}>Cancelar</Button>
+                    <Button color="danger" onClick={confirmDeleteUser}>Eliminar</Button>
+                </ModalFooter>
+            </Modal>
+
             <ToastContainer />
         </React.Fragment>
     );

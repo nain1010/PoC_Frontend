@@ -24,7 +24,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const UserProfile = () => {
-  const api = new APIClient();
+  const api = APIClient;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [userData, setUserData] = useState<any>(null);
@@ -39,6 +39,44 @@ const UserProfile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+
+  // Name edit modal
+  const [nameModal, setNameModal] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [updatingName, setUpdatingName] = useState(false);
+
+  const toggleNameModal = () => {
+    setNameModal(!nameModal);
+    setNewName(userData?.nombre_completo || "");
+  };
+
+  const handleChangeName = async () => {
+    const trimmed = newName.trim();
+    if (!trimmed) {
+      toast.error("El nombre completo no puede estar vacío.", { position: "top-right" });
+      return;
+    }
+    setUpdatingName(true);
+    try {
+      await api.put("/me/profile", { nombre_completo: trimmed });
+      
+      const authUser = sessionStorage.getItem("authUser");
+      if (authUser) {
+        const obj = JSON.parse(authUser);
+        obj.nombre_completo = trimmed;
+        sessionStorage.setItem("authUser", JSON.stringify(obj));
+        window.dispatchEvent(new Event("activeProjectUpdated"));
+      }
+      
+      toggleNameModal();
+      fetchProfile();
+      toast.success("Nombre actualizado exitosamente.", { position: "top-right" });
+    } catch (err: any) {
+      toast.error(err || "Error al actualizar el nombre.", { position: "top-right" });
+    } finally {
+      setUpdatingName(false);
+    }
+  };
 
   // Avatar cropper
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -98,7 +136,6 @@ const UserProfile = () => {
     setCropperOpen(false);
     try {
       await api.put("/me/avatar", { avatar_url: croppedBase64 });
-      toast.success("¡Foto de perfil actualizada!", { position: "top-right" });
 
       // Update sessionStorage
       const authUser = sessionStorage.getItem("authUser");
@@ -127,7 +164,6 @@ const UserProfile = () => {
     setChangingPassword(true);
     try {
       await api.put("/me/password", { new_password: newPassword });
-      toast.success("¡Contraseña actualizada exitosamente!", { position: "top-right" });
       togglePasswordModal();
       fetchProfile();
     } catch (err: any) {
@@ -196,16 +232,26 @@ const UserProfile = () => {
                       <Row className="g-3">
                         {/* Nombre */}
                         <Col xs={12}>
-                          <div className="d-flex align-items-center p-3 bg-light rounded">
-                            <div className="avatar-xs me-3">
-                              <span className="avatar-title bg-soft-primary text-primary rounded-circle fs-16">
-                                <i className="ri-user-3-line"></i>
-                              </span>
+                          <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                            <div className="d-flex align-items-center">
+                              <div className="avatar-xs me-3">
+                                <span className="avatar-title bg-soft-primary text-primary rounded-circle fs-16">
+                                  <i className="ri-user-3-line"></i>
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-muted mb-0 fs-12">Nombre Completo</p>
+                                <h6 className="mb-0 fw-semibold">{userData.nombre_completo || "—"}</h6>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-muted mb-0 fs-12">Nombre Completo</p>
-                              <h6 className="mb-0 fw-semibold">{userData.nombre_completo || "—"}</h6>
-                            </div>
+                            <Button
+                              color="light"
+                              className="btn btn-sm btn-soft-primary ms-2"
+                              onClick={toggleNameModal}
+                              title="Editar Nombre"
+                            >
+                              <i className="ri-pencil-line fs-14"></i>
+                            </Button>
                           </div>
                         </Col>
 
@@ -335,6 +381,38 @@ const UserProfile = () => {
             <span className="d-flex align-items-center gap-1">
                 {changingPassword && <Spinner size="sm" />}
                 <span>Guardar Contraseña</span>
+            </span>
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Change Name Modal */}
+      <Modal isOpen={nameModal} toggle={toggleNameModal} centered>
+        <ModalHeader toggle={toggleNameModal} className="bg-light p-3">
+          Editar Nombre Completo
+        </ModalHeader>
+        <ModalBody className="p-4">
+          <div className="mb-3">
+            <Label className="form-label">Nombre Completo <span className="text-danger">*</span></Label>
+            <Input
+              type="text"
+              className="form-control"
+              placeholder="Ingresa tu nombre completo"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+          </div>
+        </ModalBody>
+        <ModalFooter className="bg-light">
+          <Button color="light" onClick={toggleNameModal} disabled={updatingName}>Cancelar</Button>
+          <Button
+            color="primary"
+            onClick={handleChangeName}
+            disabled={updatingName || !newName.trim()}
+          >
+            <span className="d-flex align-items-center gap-1">
+                {updatingName && <Spinner size="sm" />}
+                <span>Guardar Nombre</span>
             </span>
           </Button>
         </ModalFooter>

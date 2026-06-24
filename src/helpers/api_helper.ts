@@ -87,55 +87,36 @@ const setAuthorization = (token : string) => {
   axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 };
 
-class APIClient {
-  /**
-   * Fetches data from the given URL
-   */
-  get = (url: string, params?: any): Promise<AxiosResponse> => {
-    let response: Promise<AxiosResponse>;
-
+const apiClient = {
+  get: (url: string, params?: any): Promise<AxiosResponse> => {
     let paramKeys: string[] = [];
-
     if (params) {
       Object.keys(params).map(key => {
         paramKeys.push(key + '=' + params[key]);
         return paramKeys;
       });
-
-      const queryString = paramKeys && paramKeys.length ? paramKeys.join('&') : "";
-      response = axios.get(`${url}?${queryString}`, params);
-    } else {
-      response = axios.get(`${url}`, params);
+      const queryString = paramKeys.length ? paramKeys.join('&') : "";
+      return axios.get(`${url}?${queryString}`, params);
     }
+    return axios.get(`${url}`, params);
+  },
 
-    return response;
-  };
-
-  /**
-   * Posts the given data to the URL
-   */
-  create = (url: string, data: any): Promise<AxiosResponse> => {
+  create: (url: string, data: any): Promise<AxiosResponse> => {
     return axios.post(url, data);
-  };
+  },
 
-  /**
-   * Updates data
-   */
-  update = (url: string, data: any): Promise<AxiosResponse> => {
+  update: (url: string, data: any): Promise<AxiosResponse> => {
     return axios.patch(url, data);
-  };
+  },
 
-  put = (url: string, data: any): Promise<AxiosResponse> => {
+  put: (url: string, data: any): Promise<AxiosResponse> => {
     return axios.put(url, data);
-  };
+  },
 
-  /**
-   * Deletes data
-   */
-  delete = (url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> => {
+  delete: (url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> => {
     return axios.delete(url, { ...config });
-  };
-}
+  },
+};
 
 const getLoggedinUser = () => {
   const user = sessionStorage.getItem("authUser");
@@ -146,4 +127,4 @@ const getLoggedinUser = () => {
   }
 };
 
-export { APIClient, setAuthorization, getLoggedinUser };
+export { apiClient as APIClient, setAuthorization, getLoggedinUser };

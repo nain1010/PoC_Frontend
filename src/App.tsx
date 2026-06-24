@@ -12,26 +12,16 @@ import Route from './Routes';
 // Fake Backend 
 import fakeBackend from "./helpers/AuthType/fakeBackend";
 
+// SSE
+import { useSSE } from './Components/Hooks/useSSE';
+
 // Activating fake backend
 if (process.env.REACT_APP_DEFAULTAUTH === "fake") {
   fakeBackend();
 }
 
-// const firebaseConfig = {
-//   apiKey: process.env.REACT_APP_APIKEY,
-//   authDomain: process.env.REACT_APP_AUTHDOMAIN,
-//   databaseURL: process.env.REACT_APP_DATABASEURL,
-//   projectId: process.env.REACT_APP_PROJECTID,
-//   storageBucket: process.env.REACT_APP_STORAGEBUCKET,
-//   messagingSenderId: process.env.REACT_APP_MESSAGINGSENDERID,
-//   appId: process.env.REACT_APP_APPID,
-//   measurementId: process.env.REACT_APP_MEASUREMENTID,
-// };
-
-// // init firebase backend
-// initFirebaseBackend(firebaseConfig);
-
 function App() {
+  useSSE();
   return (
     <React.Fragment>
       <Route />
