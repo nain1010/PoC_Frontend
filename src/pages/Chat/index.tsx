@@ -200,7 +200,7 @@ const Chat = () => {
         if (themeMatch && themeMatch[1].includes("dark_mode")) {
           jsonStr = themeMatch[1];
         } else {
-          const rawJsonMatch = reply.match(/\{[\s\S]*"dark_mode"[\s\S]*\}/);
+          const rawJsonMatch = reply.match(/\{[^{}]*"dark_mode"[^{}]*\}/);
           if (rawJsonMatch) jsonStr = rawJsonMatch[0];
         }
 
