@@ -42,14 +42,7 @@ const Login = (props: any) => {
     const [rememberMe, setRememberMe] = useState<boolean>(false);
 
     useEffect(() => {
-        const savedEmail = localStorage.getItem("rememberedEmail");
-        if (savedEmail) {
-            setRememberMe(true);
-            setUserLogin({
-                email: savedEmail,
-                password: ""
-            });
-        }
+        // No custom manual email saving needed, standard Auth behavior
     }, []);
 
     useEffect(() => {
@@ -68,7 +61,7 @@ const Login = (props: any) => {
         enableReinitialize: true,
 
         initialValues: {
-            email: userLogin.email || localStorage.getItem("rememberedEmail") || '',
+            email: userLogin.email || '',
             password: userLogin.password || '',
         },
         validationSchema: Yup.object({
@@ -76,12 +69,7 @@ const Login = (props: any) => {
             password: Yup.string().required("Por favor ingresa tu contraseña"),
         }),
         onSubmit: (values) => {
-            if (rememberMe) {
-                localStorage.setItem("rememberedEmail", values.email);
-            } else {
-                localStorage.removeItem("rememberedEmail");
-            }
-            dispatch(loginUser(values, props.router.navigate));
+            dispatch(loginUser(values, props.router.navigate, rememberMe));
             setLoader(true)
         }
     });

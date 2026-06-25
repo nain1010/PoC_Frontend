@@ -12,7 +12,7 @@ const ProfileDropdown = () => {
     const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
 
     useEffect(() => {
-        const authUser: any = sessionStorage.getItem("authUser");
+        const authUser: any = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
         if (authUser) {
             const obj: any = JSON.parse(authUser);
             setUserName(obj.nombre_completo || obj.email || "Usuario");
@@ -26,7 +26,7 @@ const ProfileDropdown = () => {
     // Listen for avatar updates
     useEffect(() => {
         const handleStorageChange = () => {
-            const authUser: any = sessionStorage.getItem("authUser");
+            const authUser: any = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
             if (authUser) {
                 const obj = JSON.parse(authUser);
                 if (obj.avatar_url) {

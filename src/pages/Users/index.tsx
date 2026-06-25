@@ -25,7 +25,7 @@ const UserManagement = () => {
     const [userToDelete, setUserToDelete] = useState<any | null>(null);
 
     const checkAdminAccess = () => {
-        const authUserStr = sessionStorage.getItem("authUser");
+        const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
         if (!authUserStr) {
             navigate("/login");
             return false;
@@ -156,7 +156,7 @@ const UserManagement = () => {
     }, []);
 
     const handleDeleteUser = useCallback((user: any) => {
-        const authUser = JSON.parse(sessionStorage.getItem("authUser") || "{}");
+        const authUser = JSON.parse((sessionStorage.getItem("authUser") || localStorage.getItem("authUser")) || "{}");
         if (authUser.usuario_id === user.id) {
             toast.error("No puedes eliminar tu propia cuenta de administrador en sesión.", { position: "top-right" });
             return;

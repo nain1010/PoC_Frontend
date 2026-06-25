@@ -5,6 +5,7 @@ const Navdata = () => {
     const history = useNavigate();
     //state data
     const [isProjects, setIsProjects] = useState<boolean>(false);
+    const [isChat, setIsChat] = useState<boolean>(false);
     const [isPlanning, setIsPlanning] = useState<boolean>(false);
     const [isKanban, setIsKanban] = useState<boolean>(false);
     const [isAnalytics, setIsAnalytics] = useState<boolean>(false);
@@ -32,6 +33,7 @@ const Navdata = () => {
     useEffect(() => {
         document.body.classList.remove('twocolumn-panel');
         if (iscurrentState !== 'Projects') setIsProjects(false);
+        if (iscurrentState !== 'Chat') setIsChat(false);
         if (iscurrentState !== 'Planning') setIsPlanning(false);
         if (iscurrentState !== 'Kanban') setIsKanban(false);
         if (iscurrentState !== 'Analytics') setIsAnalytics(false);
@@ -42,6 +44,7 @@ const Navdata = () => {
         history,
         iscurrentState,
         isProjects,
+        isChat,
         isPlanning,
         isKanban,
         isAnalytics,
@@ -50,7 +53,7 @@ const Navdata = () => {
         isUsers,
     ]);
 
-    const authUserStr = sessionStorage.getItem("authUser");
+    const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
     const isAdmin = authUserStr ? JSON.parse(authUserStr).rol_global === "Administrador" : false;
 
     const menuItems: any = [
@@ -70,6 +73,20 @@ const Navdata = () => {
                 setIscurrentState('Projects');
                 updateIconSidebar(e);
                 history("/projects");
+            },
+        },
+        {
+            id: "chat",
+            label: "Asistente IA",
+            icon: "ri-robot-line",
+            link: "/chat",
+            stateVariables: isChat,
+            click: function (e: any) {
+                e.preventDefault();
+                setIsChat(!isChat);
+                setIscurrentState('Chat');
+                updateIconSidebar(e);
+                history("/chat");
             },
         },
         {

@@ -8,7 +8,7 @@ import { setAuthorization } from "../../../helpers/api_helper";
 
 import { loginSuccess, logoutUserSuccess, apiError, reset_login_flag } from './reducer';
 
-export const loginUser = (user : any, history : any) => async (dispatch : any) => {
+export const loginUser = (user : any, history : any, rememberMe : boolean = false) => async (dispatch : any) => {
   try {
     let response;
     if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
@@ -32,7 +32,13 @@ export const loginUser = (user : any, history : any) => async (dispatch : any) =
     var data = await response;
 
     if (data) {
-      sessionStorage.setItem("authUser", JSON.stringify(data));
+      const authDataString = JSON.stringify(data);
+      if (rememberMe) {
+          localStorage.setItem("authUser", authDataString);
+      } else {
+          sessionStorage.setItem("authUser", authDataString);
+      }
+      
       if (process.env.REACT_APP_DEFAULTAUTH === "fake") {
         var finallogin : any = JSON.stringify(data);
         finallogin = JSON.parse(finallogin)
@@ -58,6 +64,8 @@ export const loginUser = (user : any, history : any) => async (dispatch : any) =
 export const logoutUser = () => async (dispatch : any) => {
   try {
     sessionStorage.removeItem("authUser");
+    localStorage.removeItem("authUser");
+    sessionStorage.removeItem("chatHistory");
     // Limpiar datos de proyecto activo del usuario saliente
     localStorage.removeItem("activeProjectId");
     localStorage.removeItem("activeProjectName");
@@ -70,6 +78,9 @@ export const logoutUser = () => async (dispatch : any) => {
     } else {
       dispatch(logoutUserSuccess(true));
     }
+    
+    // Hard refresh to clear React Query cache and any remaining app state
+    window.location.href = "/login";
 
   } catch (error) {
     dispatch(apiError(error));

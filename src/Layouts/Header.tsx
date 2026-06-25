@@ -33,7 +33,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
     const { data: projects = [], isSuccess } = useQuery({
         queryKey: ['projects'],
         queryFn: () => api.get("/projects") as any,
-        enabled: !!sessionStorage.getItem("authUser"),
+        enabled: !!(sessionStorage.getItem("authUser") || localStorage.getItem("authUser")),
     });
 
     const handleSelectProject = (project: any) => {

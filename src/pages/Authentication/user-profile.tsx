@@ -103,7 +103,7 @@ const UserProfile = () => {
     try {
       await api.put("/me/profile", { nombre_completo: trimmed });
       
-      const authUser = sessionStorage.getItem("authUser");
+      const authUser = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
       if (authUser) {
         const obj = JSON.parse(authUser);
         obj.nombre_completo = trimmed;
@@ -181,7 +181,7 @@ const UserProfile = () => {
       await api.put("/me/avatar", { avatar_url: croppedBase64 });
 
       // Update sessionStorage
-      const authUser = sessionStorage.getItem("authUser");
+      const authUser = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
       if (authUser) {
         const obj = JSON.parse(authUser);
         obj.avatar_url = croppedBase64;

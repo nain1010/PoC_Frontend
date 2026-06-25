@@ -17,11 +17,13 @@ const Planning = React.lazy(() => import("../pages/Planning"));
 const Kanban = React.lazy(() => import("../pages/Kanban"));
 const Analytics = React.lazy(() => import("../pages/Analytics"));
 const UserManagement = React.lazy(() => import("../pages/Users"));
+const Chat = React.lazy(() => import("../pages/Chat"));
 
 
 const authProtectedRoutes = [
   { path: "/home", component: <Starter /> },
   { path: "/projects", component: <Projects /> },
+  { path: "/chat", component: <Chat /> },
   { path: "/planning", component: <Planning /> },
   { path: "/kanban", component: <Kanban /> },
   { path: "/analytics", component: <Analytics /> },

@@ -24,7 +24,7 @@ const Kanban = () => {
         enabled: !!activeProjectId,
         select: (data: any) => {
             if (data?.memberships) {
-                const authUserStr = sessionStorage.getItem("authUser");
+                const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
                 if (authUserStr) {
                     try {
                         const authUser = JSON.parse(authUserStr);

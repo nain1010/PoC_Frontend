@@ -43,7 +43,7 @@ const Planning = () => {
         enabled: !!activeProjectId,
         select: (data: any) => {
             if (data?.memberships) {
-                const authUserStr = sessionStorage.getItem("authUser");
+                const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
                 if (authUserStr) {
                     try {
                         const authUser = JSON.parse(authUserStr);
@@ -152,7 +152,7 @@ const Planning = () => {
     const invalidateProject = () => queryClient.invalidateQueries({ queryKey: ['project', activeProjectId] });
 
     const getLoggedUserId = () => {
-        const authUserStr = sessionStorage.getItem("authUser");
+        const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
         if (authUserStr) {
             try {
                 const authUser = JSON.parse(authUserStr);
