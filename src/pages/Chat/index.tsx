@@ -194,9 +194,18 @@ const Chat = () => {
       let themeConfig: ThemeConfig | null = null;
       const reply = res.reply || '';
       try {
-        const themeMatch = reply.match(/```theme\n?([\s\S]*?)```/);
-        if (themeMatch) {
-          const parsed = JSON.parse(themeMatch[1]);
+        let jsonStr = null;
+        const themeMatch = reply.match(/```(?:theme|json)?\n?([\s\S]*?)```/);
+        
+        if (themeMatch && themeMatch[1].includes("dark_mode")) {
+          jsonStr = themeMatch[1];
+        } else {
+          const rawJsonMatch = reply.match(/\{[\s\S]*"dark_mode"[\s\S]*\}/);
+          if (rawJsonMatch) jsonStr = rawJsonMatch[0];
+        }
+
+        if (jsonStr) {
+          const parsed = JSON.parse(jsonStr);
           if (parsed.dark_mode !== undefined) {
             themeConfig = parsed;
             assistantMessage.theme = parsed;
