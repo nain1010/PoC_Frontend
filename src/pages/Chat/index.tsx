@@ -209,6 +209,12 @@ const Chat = () => {
           if (parsed.dark_mode !== undefined) {
             themeConfig = parsed;
             assistantMessage.theme = parsed;
+            // Ocultar el código JSON crudo de la vista del usuario
+            const matchToRemove = (themeMatch && themeMatch[1].includes("dark_mode")) ? themeMatch[0] : rawJsonMatch![0];
+            assistantMessage.content = assistantMessage.content.replace(matchToRemove, '').trim();
+            if (!assistantMessage.content) {
+              assistantMessage.content = "✨ He generado y aplicado el nuevo tema a tu perfil.";
+            }
           }
         }
       } catch { }
