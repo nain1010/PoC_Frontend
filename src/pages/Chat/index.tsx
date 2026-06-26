@@ -265,10 +265,10 @@ const Chat = () => {
       <Container fluid>
         <BreadCrumb title="Chat · Asistente IA" />
 
-        <Row className="justify-content-center">
-          <Col xxl={8} xl={10} lg={12}>
-            <Card className="chat-card" style={{ height: 'calc(100vh - 220px)', display: 'flex', flexDirection: 'column' }}>
-              <CardBody className="p-3" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <Row className="m-0 h-100">
+          <Col xs={12} className="p-0 h-100">
+            <Card className="chat-card shadow-none border-0 m-0" style={{ height: 'calc(100vh - 180px)', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
+              <CardBody className="p-0" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ flex: 1, overflowY: 'auto', paddingRight: '10px' }} className="chat-messages">
                   {messages.map((msg, idx) => (
                     <div key={idx} className={`d-flex mb-3 ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
