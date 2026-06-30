@@ -48,19 +48,21 @@ export const CommandList = forwardRef((props: any, ref) => {
     }));
 
     return (
-        <div className="dropdown-menu show shadow-lg border-0" style={{ position: 'relative', minWidth: '220px', borderRadius: '8px', overflow: 'hidden' }}>
+        <div className="dropdown-menu show shadow-lg border" style={{ position: 'relative', minWidth: '240px', borderRadius: '12px', overflow: 'hidden', backgroundColor: 'var(--vz-card-bg-custom)', padding: '0.5rem' }}>
             {props.items.length ? (
                 props.items.map((item, index) => (
                     <button
-                        className={`dropdown-item d-flex align-items-center gap-2 py-2 px-3 ${index === selectedIndex ? 'active bg-light text-dark' : ''}`}
+                        className={`d-flex align-items-center gap-3 py-2 px-3 w-100 border-0 text-start ${index === selectedIndex ? 'bg-soft-primary text-primary rounded' : 'bg-transparent text-body'}`}
                         key={index}
                         onClick={() => selectItem(index)}
-                        style={{ cursor: 'pointer', outline: 'none' }}
+                        style={{ cursor: 'pointer', outline: 'none', transition: 'all 0.2s ease' }}
                     >
-                        <i className={`${item.icon} fs-16 text-muted`}></i>
+                        <div className={`d-flex align-items-center justify-content-center rounded ${index === selectedIndex ? 'bg-primary text-white' : 'bg-light text-muted'}`} style={{ width: '32px', height: '32px' }}>
+                            <i className={`${item.icon} fs-16`}></i>
+                        </div>
                         <div>
                             <div className="fw-semibold fs-13">{item.title}</div>
-                            <div className="text-muted fs-11">{item.description}</div>
+                            <div className="opacity-75 fs-11">{item.description}</div>
                         </div>
                     </button>
                 ))

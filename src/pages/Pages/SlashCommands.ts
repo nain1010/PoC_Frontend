@@ -86,15 +86,11 @@ export const getSuggestionItems = () => {
         },
         {
             title: 'Imagen',
-            description: 'Insertar una imagen por URL.',
+            description: 'Insertar imagen (JPG, PNG).',
             icon: 'ri-image-line',
             command: ({ editor, range }) => {
-                const url = window.prompt('URL de la imagen:');
-                if (url) {
-                    editor.chain().focus().deleteRange(range).setImage({ src: url }).run();
-                } else {
-                    editor.chain().focus().deleteRange(range).run();
-                }
+                editor.chain().focus().deleteRange(range).run();
+                document.getElementById('tiptap-image-upload')?.click();
             },
         },
     ];

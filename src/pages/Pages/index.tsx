@@ -338,6 +338,25 @@ const Pages = () => {
                                         )}
                                         <EditorContent editor={editor} />
                                     </div>
+                                    
+                                    {/* Hidden File Input for TipTap Slash Commands Image Upload */}
+                                    <input
+                                        type="file"
+                                        id="tiptap-image-upload"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                const file = e.target.files[0];
+                                                uploadImage(file).then(url => {
+                                                    if (url && editor) {
+                                                        editor.chain().focus().setImage({ src: url }).run();
+                                                    }
+                                                    e.target.value = '';
+                                                });
+                                            }
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </>
