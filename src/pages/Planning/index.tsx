@@ -146,12 +146,6 @@ const Planning = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [memberModal]);
 
-    const handleRemoveMember = useCallback((userId: string) => {
-        if (window.confirm("¿Estás seguro de que deseas eliminar a este miembro del proyecto?")) {
-            deleteMemberMutation.mutate(userId);
-        }
-    }, [deleteMemberMutation]);
-
     // Refs para optimistic updates
     const getProjectSnapshot = () => queryClient.getQueryData(['project', activeProjectId]) as any;
     const setProjectSnapshot = (data: any) => queryClient.setQueryData(['project', activeProjectId], data);
@@ -379,6 +373,12 @@ const Planning = () => {
         },
         onSettled: () => invalidateProject(),
     });
+
+    const handleRemoveMember = useCallback((userId: string) => {
+        if (window.confirm("¿Estás seguro de que deseas eliminar a este miembro del proyecto?")) {
+            deleteMemberMutation.mutate(userId);
+        }
+    }, [deleteMemberMutation]);
 
     const estimateMutation = useMutation({
         mutationFn: ({ storyId, puntos }: { storyId: string; puntos: number }) =>
