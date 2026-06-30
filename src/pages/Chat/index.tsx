@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Row, Col, Card, CardBody, Input, Button, Spinner, Badge } from 'reactstrap';
 import BreadCrumb from '../../Components/Common/BreadCrumb';
+import { useDispatch } from 'react-redux';
+import { changeLayoutMode, changeTopbarTheme, changeSidebarTheme } from '../../slices/thunks';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -93,8 +95,10 @@ const Chat = () => {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(localStorage.getItem('activeProjectId'));
 
-  const activeProjectId = localStorage.getItem("activeProjectId");
+  const dispatch = useDispatch<any>();
   const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
   const authUser = authUserStr ? JSON.parse(authUserStr) : null;
 
@@ -133,32 +137,22 @@ const Chat = () => {
     }
   }, [input]);
 
-  const applyTheme = useCallback((theme: ThemeConfig) => {
-    const velzonTheme = {
-      darkMode: theme.dark_mode,
-      layoutType: theme.dark_mode ? 'dark' : 'light',
-      sidebarColor: theme.sidebar_color || 'dark',
-      topbarColor: theme.topbar_color || 'light',
-      leftSideBarType: 'fixed',
-    };
-    sessionStorage.setItem('themeSettings', JSON.stringify(velzonTheme));
-    localStorage.setItem('themeSettings', JSON.stringify(velzonTheme));
+  const applyTheme = useCallback((theme: ThemeConfig | null) => {
+    if (!theme) return;
     if (theme.dark_mode) {
-      document.documentElement.setAttribute('data-bs-theme', 'dark');
-      document.body.setAttribute('data-layout-mode', 'dark');
-      document.body.setAttribute('data-topbar', theme.topbar_color || 'dark');
-      document.body.setAttribute('data-sidebar', theme.sidebar_color || 'dark');
+      dispatch(changeLayoutMode('dark'));
+      dispatch(changeTopbarTheme(theme.topbar_color || 'dark'));
+      dispatch(changeSidebarTheme(theme.sidebar_color || 'dark'));
     } else {
-      document.documentElement.setAttribute('data-bs-theme', 'light');
-      document.body.setAttribute('data-layout-mode', 'light');
-      document.body.setAttribute('data-topbar', theme.topbar_color || 'light');
-      document.body.setAttribute('data-sidebar', theme.sidebar_color || 'light');
+      dispatch(changeLayoutMode('light'));
+      dispatch(changeTopbarTheme(theme.topbar_color || 'light'));
+      dispatch(changeSidebarTheme(theme.sidebar_color || 'light'));
     }
     if (theme.primary_color) {
       document.documentElement.style.setProperty('--vz-primary', theme.primary_color);
     }
     toast.success('Tema aplicado correctamente');
-  }, []);
+  }, [dispatch]);
 
   const sendMessage = useCallback(async (text?: string) => {
     const msg = text || input;
