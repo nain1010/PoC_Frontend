@@ -21,7 +21,7 @@ const MenuBar = ({ editor, onOpenAssets }: { editor: any, onOpenAssets: () => vo
     if (!editor) return null;
 
     const btnClass = (active: boolean) =>
-        `btn btn-sm ${active ? 'btn-primary' : 'btn-ghost-secondary'} rounded-2`;
+        `btn btn-sm ${active ? 'btn-soft-primary text-primary' : 'btn-ghost-secondary'} rounded-2`;
 
     const addImage = () => {
         const url = window.prompt('URL de la imagen:');
@@ -31,8 +31,8 @@ const MenuBar = ({ editor, onOpenAssets }: { editor: any, onOpenAssets: () => vo
     };
 
     return (
-        <div className="d-flex align-items-center gap-1 p-2 bg-white sticky-top border-bottom z-1" style={{ top: 0, marginTop: '-1px' }}>
-            <div className="d-flex bg-light rounded p-1">
+        <div className="d-flex align-items-center gap-1 p-2 sticky-top border-bottom z-1" style={{ top: 0, marginTop: '-1px', backgroundColor: 'var(--vz-card-bg-custom)' }}>
+            <div className="d-flex rounded p-1">
                 <button className={btnClass(editor.isActive('bold'))} onClick={() => editor.chain().focus().toggleBold().run()} title="Negrita">
                     <i className="ri-bold"></i>
                 </button>
@@ -47,7 +47,7 @@ const MenuBar = ({ editor, onOpenAssets }: { editor: any, onOpenAssets: () => vo
                 </button>
             </div>
             
-            <div className="d-flex bg-light rounded p-1 ms-2">
+            <div className="d-flex rounded p-1 ms-2 border-start border-end px-2">
                 <button className={btnClass(editor.isActive('heading', { level: 1 }))} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="H1">
                     <i className="ri-h-1"></i>
                 </button>
@@ -56,7 +56,7 @@ const MenuBar = ({ editor, onOpenAssets }: { editor: any, onOpenAssets: () => vo
                 </button>
             </div>
 
-            <div className="d-flex bg-light rounded p-1 ms-2">
+            <div className="d-flex rounded p-1 ms-2">
                 <button className={btnClass(editor.isActive('bulletList'))} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Lista">
                     <i className="ri-list-unordered"></i>
                 </button>
@@ -68,7 +68,7 @@ const MenuBar = ({ editor, onOpenAssets }: { editor: any, onOpenAssets: () => vo
                 </button>
             </div>
 
-            <div className="d-flex bg-light rounded p-1 ms-2">
+            <div className="d-flex rounded p-1 ms-2 border-start px-2">
                 <button className="btn btn-sm btn-ghost-secondary rounded-2" onClick={addImage} title="Insertar imagen por URL">
                     <i className="ri-image-add-line"></i>
                 </button>
@@ -77,7 +77,7 @@ const MenuBar = ({ editor, onOpenAssets }: { editor: any, onOpenAssets: () => vo
                 </button>
             </div>
             
-            <div className="ms-auto d-flex bg-light rounded p-1">
+            <div className="ms-auto d-flex rounded p-1">
                 <button className="btn btn-sm btn-ghost-secondary rounded-2" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
                     <i className="ri-arrow-go-back-line"></i>
                 </button>
@@ -192,7 +192,7 @@ const Pages = () => {
         },
         editorProps: {
             attributes: {
-                class: 'prose prose-lg focus:outline-none w-100 max-w-none',
+                class: 'prose prose-lg focus:outline-none w-100 max-w-none text-body',
             },
             handleDrop: function(view, event, slice, moved) {
                 if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
@@ -258,7 +258,7 @@ const Pages = () => {
 
     if (!activeProjectId) {
         return (
-            <div className="page-content d-flex align-items-center justify-content-center" style={{ height: 'calc(100vh - 70px)' }}>
+            <div className="page-content d-flex align-items-center justify-content-center" style={{ height: 'calc(100vh - 70px)', backgroundColor: 'var(--vz-body-bg)' }}>
                 <div className="text-center text-muted">
                     <i className="ri-file-text-line display-1 mb-3 d-inline-block"></i>
                     <h4>Selecciona un proyecto para ver sus documentos</h4>
@@ -269,10 +269,10 @@ const Pages = () => {
 
     return (
         <React.Fragment>
-            <div className="page-content p-0 d-flex overflow-hidden" style={{ height: 'calc(100vh - 70px)' }}>
+            <div className="page-content p-0 d-flex overflow-hidden" style={{ height: 'calc(100vh - 70px)', backgroundColor: 'var(--vz-body-bg)' }}>
                 
                 {/* ======= Sidebar: Pages Tree ======= */}
-                <div className="border-end bg-light" style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+                <div className="border-end" style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--vz-card-bg-custom)' }}>
                     <div className="p-3 border-bottom d-flex align-items-center justify-content-between">
                         <span className="fw-semibold text-uppercase fs-12 text-muted">
                             {activeProjectName}
@@ -294,11 +294,11 @@ const Pages = () => {
                                 {pages.map((page: any) => (
                                     <div
                                         key={page.id}
-                                        className={`list-group-item list-group-item-action d-flex align-items-center gap-2 border-0 px-3 py-1 ${
+                                        className={`list-group-item list-group-item-action d-flex align-items-center gap-2 border-0 px-3 py-2 ${
                                             selectedPageId === page.id ? 'bg-soft-primary text-primary fw-medium' : 'bg-transparent text-body'
                                         }`}
                                         onClick={() => setSelectedPageId(page.id)}
-                                        style={{ cursor: 'pointer', borderRadius: '4px', margin: '0 8px' }}
+                                        style={{ cursor: 'pointer', borderRadius: '4px', margin: '0 8px', marginBottom: '2px' }}
                                     >
                                         <span className="fs-14">{page.icono || "📝"}</span>
                                         <span className="flex-grow-1 text-truncate fs-14">
@@ -312,7 +312,7 @@ const Pages = () => {
                 </div>
 
                 {/* ======= Main: Editor ======= */}
-                <div className="flex-grow-1 d-flex flex-column bg-white position-relative" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
+                <div className="flex-grow-1 d-flex flex-column position-relative" style={{ overflowY: 'auto', overflowX: 'hidden', backgroundColor: 'var(--vz-body-bg)' }}>
                     {!selectedPageId ? (
                         <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
                             <i className="ri-draft-line display-1 mb-3"></i>
@@ -330,11 +330,11 @@ const Pages = () => {
                             <MenuBar editor={editor} onOpenAssets={() => setIsAssetsOpen(true)} />
                             
                             <div className="d-flex justify-content-center w-100 flex-grow-1">
-                                <div className="editor-content-wrapper px-4 py-5" style={{ width: '100%', maxWidth: '800px' }}>
+                                <div className="editor-content-wrapper px-4 py-5" style={{ width: '100%', maxWidth: '850px' }}>
                                     
                                     {/* Indicador de guardado flotante */}
-                                    <div className="position-absolute top-0 end-0 p-3">
-                                        <span className="text-muted fs-12 fw-medium bg-light px-2 py-1 rounded-pill">
+                                    <div className="position-absolute top-0 end-0 p-3 mt-5">
+                                        <span className="text-muted fs-12 fw-medium px-2 py-1 rounded-pill" style={{backgroundColor: 'var(--vz-light)'}}>
                                             {updatePageMutation.isPending ? (
                                                 <><Spinner size="sm" className="me-1" style={{width: 10, height: 10}}/> Guardando...</>
                                             ) : (
@@ -351,7 +351,7 @@ const Pages = () => {
                                         onBlur={handleTitleSave}
                                         placeholder="Sin título"
                                         className="fw-bold bg-transparent border-0 p-0 mb-4 text-body"
-                                        style={{ fontSize: '2.5rem', boxShadow: 'none' }}
+                                        style={{ fontSize: '3rem', boxShadow: 'none', lineHeight: '1.2' }}
                                     />
 
                                     {/* Editor Principal */}
@@ -360,8 +360,8 @@ const Pages = () => {
                                     </div>
 
                                     {/* Botón flotante para eliminar página al fondo */}
-                                    <div className="mt-5 pt-5 border-top">
-                                        <Button color="danger" outline size="sm" className="rounded-pill border-0" onClick={() => {
+                                    <div className="mt-5 pt-5 border-top border-dashed">
+                                        <Button color="danger" outline size="sm" className="rounded-pill border-0 mt-4 hover-bg-soft-danger" onClick={() => {
                                             if (window.confirm("¿Estás seguro de eliminar esta página permanentemente?")) {
                                                 deletePageMutation.mutate(selectedPageId);
                                             }
@@ -382,14 +382,14 @@ const Pages = () => {
                     isOpen={isAssetsOpen}
                     direction="end"
                     toggle={() => setIsAssetsOpen(!isAssetsOpen)}
-                    style={{ width: '350px' }}
+                    style={{ width: '400px', backgroundColor: 'var(--vz-card-bg-custom)' }}
                 >
                     <OffcanvasHeader toggle={() => setIsAssetsOpen(!isAssetsOpen)} className="border-bottom">
-                        <i className="ri-folder-2-line me-2"></i> Recursos
+                        <i className="ri-folder-2-line me-2"></i> Recursos y Adjuntos
                     </OffcanvasHeader>
                     <OffcanvasBody className="p-0">
-                        <div className="p-3 bg-light border-bottom text-muted fs-13">
-                            Sube PDFs, archivos ZIP o cualquier recurso que no necesites mostrar directamente dentro del texto. Las imágenes pegadas en el texto se subirán automáticamente.
+                        <div className="p-3 border-bottom text-muted fs-13" style={{ backgroundColor: 'var(--vz-light)'}}>
+                            Sube PDFs, archivos ZIP o documentos. Las imágenes pegadas directamente en el editor se incrustan en el texto y no necesitan subirse aquí.
                         </div>
                         <div className="p-3">
                             <AttachmentPanel
@@ -407,33 +407,34 @@ const Pages = () => {
                 .tiptap-plane-theme .tiptap {
                     outline: none;
                     min-height: 50vh;
-                    font-size: 1.1rem;
-                    line-height: 1.7;
-                    color: #37352f;
+                    font-size: 1.15rem;
+                    line-height: 1.8;
+                    color: var(--vz-body-color);
+                    font-family: 'Inter', sans-serif;
                 }
                 .tiptap-plane-theme .tiptap p {
-                    margin-bottom: 1em;
+                    margin-bottom: 1.2em;
                 }
                 .tiptap-plane-theme .tiptap > * + * {
                     margin-top: 0.5em;
                 }
-                .tiptap-plane-theme .tiptap h1 { font-size: 2em; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; }
-                .tiptap-plane-theme .tiptap h2 { font-size: 1.5em; font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; }
-                .tiptap-plane-theme .tiptap h3 { font-size: 1.25em; font-weight: 600; margin-top: 1em; }
+                .tiptap-plane-theme .tiptap h1 { font-size: 2.2em; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
+                .tiptap-plane-theme .tiptap h2 { font-size: 1.6em; font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
+                .tiptap-plane-theme .tiptap h3 { font-size: 1.3em; font-weight: 600; margin-top: 1em; color: var(--vz-heading-color); }
                 .tiptap-plane-theme .tiptap ul,
                 .tiptap-plane-theme .tiptap ol { padding-left: 1.5em; margin-bottom: 1em; }
                 .tiptap-plane-theme .tiptap code {
-                    background: rgba(135, 131, 120, 0.15);
-                    color: #eb5757;
-                    border-radius: 3px;
+                    background: var(--vz-light);
+                    color: var(--vz-danger);
+                    border-radius: 4px;
                     padding: 0.2em 0.4em;
                     font-size: 0.85em;
                 }
                 .tiptap-plane-theme .tiptap pre {
-                    background: #f7f6f3;
-                    color: #37352f;
-                    border-radius: 0.3em;
-                    padding: 1em;
+                    background: var(--vz-light);
+                    color: var(--vz-body-color);
+                    border-radius: 6px;
+                    padding: 1.2em;
                     overflow-x: auto;
                     font-size: 0.9em;
                 }
@@ -443,18 +444,23 @@ const Pages = () => {
                     padding: 0;
                 }
                 .tiptap-plane-theme .tiptap blockquote {
-                    border-left: 3px solid #37352f;
-                    padding-left: 1em;
-                    color: #787774;
+                    border-left: 3px solid var(--vz-primary);
+                    padding-left: 1.2em;
+                    color: var(--vz-text-muted);
                     font-style: italic;
                     margin-left: 0;
+                    margin-right: 0;
+                    background: var(--vz-light);
+                    padding-top: 0.5em;
+                    padding-bottom: 0.5em;
+                    border-radius: 0 4px 4px 0;
                 }
                 .tiptap-plane-theme .tiptap img {
                     max-width: 100%;
-                    border-radius: 0.5em;
+                    border-radius: 8px;
                     display: block;
                     margin: 2em auto;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                 }
                 .tiptap-plane-theme .tiptap img.ProseMirror-selectednode {
                     outline: 3px solid var(--vz-primary);
@@ -473,19 +479,15 @@ const Pages = () => {
                     margin-top: 0.2em;
                 }
                 .tiptap-plane-theme .tiptap p.is-editor-empty:first-child::before {
-                    color: #adb5bd;
+                    color: var(--vz-text-muted);
                     content: attr(data-placeholder);
                     float: left;
                     height: 0;
                     pointer-events: none;
                 }
-                
-                /* Dark Mode adjustments for text */
-                [data-layout-mode="dark"] .tiptap-plane-theme .tiptap { color: #e4e4e4; }
-                [data-layout-mode="dark"] .tiptap-plane-theme .tiptap pre { background: #2a2a2a; color: #e4e4e4; }
-                [data-layout-mode="dark"] .tiptap-plane-theme .tiptap code { background: rgba(255,255,255,0.1); color: #ff8c8c; }
-                [data-layout-mode="dark"] .tiptap-plane-theme .tiptap blockquote { border-left-color: #666; color: #aaa; }
-                [data-layout-mode="dark"] input::placeholder { color: #6c757d !important; }
+                .hover-bg-soft-danger:hover {
+                    background-color: var(--vz-danger-bg-subtle) !important;
+                }
             `}</style>
         </React.Fragment>
     );
