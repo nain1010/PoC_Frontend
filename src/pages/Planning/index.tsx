@@ -146,6 +146,12 @@ const Planning = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [memberModal]);
 
+    const handleRemoveMember = useCallback((userId: string) => {
+        if (window.confirm("¿Estás seguro de que deseas eliminar a este miembro del proyecto?")) {
+            deleteMemberMutation.mutate(userId);
+        }
+    }, [deleteMemberMutation]);
+
     // Refs para optimistic updates
     const getProjectSnapshot = () => queryClient.getQueryData(['project', activeProjectId]) as any;
     const setProjectSnapshot = (data: any) => queryClient.setQueryData(['project', activeProjectId], data);
@@ -358,6 +364,14 @@ const Planning = () => {
         mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/members`, payload),
         onError: (err: any) => {
             toast.error(err || "Error al asignar el miembro.", { position: "top-right" });
+        },
+        onSettled: () => invalidateProject(),
+    });
+
+    const deleteMemberMutation = useMutation({
+        mutationFn: (userId: string) => api.delete(`/projects/${activeProjectId}/members/${userId}`),
+        onError: (err: any) => {
+            toast.error(err || "Error al remover el miembro.", { position: "top-right" });
         },
         onSettled: () => invalidateProject(),
     });
@@ -1030,7 +1044,14 @@ const Planning = () => {
                                         <div className="fw-semibold text-body fs-13">{member.nombre_completo}</div>
                                         <small className="text-muted">{member.usuario_id === getLoggedUserId() ? 'Tú' : 'Miembro'}</small>
                                     </div>
-                                    <span className="badge bg-soft-primary text-primary fs-12">{member.rol}</span>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <span className="badge bg-soft-primary text-primary fs-12">{member.rol}</span>
+                                        {(authUser?.rol_global === "Administrador" || projectDetails?.memberships?.some((m: any) => m.usuario_id === getLoggedUserId() && m.rol === "Product Owner")) && (
+                                            <Button color="danger" size="sm" className="btn-icon rounded-circle" onClick={() => handleRemoveMember(member.usuario_id)} title="Eliminar miembro">
+                                                <i className="ri-delete-bin-line"></i>
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
