@@ -16,6 +16,7 @@ const ImageNodeView = (props: any) => {
 
     const handleMouseDown = (e: React.MouseEvent) => {
         e.preventDefault();
+        e.stopPropagation(); // Previene que TipTap/ProseMirror detecte esto como un arrastre del nodo
         setIsResizing(true);
         if (imageRef.current) {
             resizeInitial.current = {
@@ -74,6 +75,7 @@ const ImageNodeView = (props: any) => {
                     ref={imageRef}
                     src={src} 
                     alt={alt || ''} 
+                    draggable={false}
                     className="img-fluid rounded shadow-sm"
                     style={{ 
                         width: '100%', 
