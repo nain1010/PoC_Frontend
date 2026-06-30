@@ -121,6 +121,8 @@ const Planning = () => {
     const [storyToDelete, setStoryToDelete] = useState<any>(null);
     const [deleteSprintModal, setDeleteSprintModal] = useState<boolean>(false);
     const [sprintToDelete, setSprintToDelete] = useState<any>(null);
+    const [deleteMemberModalState, setDeleteMemberModalState] = useState<boolean>(false);
+    const [memberToDelete, setMemberToDelete] = useState<any>(null);
 
     const toggleStoryModal = useCallback(() => {
         if (storyModal) {
@@ -374,11 +376,21 @@ const Planning = () => {
         onSettled: () => invalidateProject(),
     });
 
-    const handleRemoveMember = useCallback((userId: string) => {
-        if (window.confirm("¿Estás seguro de que deseas eliminar a este miembro del proyecto?")) {
-            deleteMemberMutation.mutate(userId);
-        }
-    }, [deleteMemberMutation]);
+    const toggleDeleteMemberModal = useCallback(() => {
+        setDeleteMemberModalState(!deleteMemberModalState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [deleteMemberModalState]);
+
+    const confirmDeleteMember = useCallback(() => {
+        if (!memberToDelete) return;
+        toggleDeleteMemberModal();
+        deleteMemberMutation.mutate(memberToDelete.usuario_id);
+    }, [memberToDelete, toggleDeleteMemberModal, deleteMemberMutation]);
+
+    const handleRemoveMember = useCallback((member: any) => {
+        setMemberToDelete(member);
+        toggleDeleteMemberModal();
+    }, [toggleDeleteMemberModal]);
 
     const estimateMutation = useMutation({
         mutationFn: ({ storyId, puntos }: { storyId: string; puntos: number }) =>
@@ -1051,7 +1063,7 @@ const Planning = () => {
                                     <div className="d-flex align-items-center gap-2">
                                         <span className="badge bg-soft-primary text-primary fs-12">{member.rol}</span>
                                         {(getLoggedUser()?.rol_global === "Administrador" || projectDetails?.memberships?.some((m: any) => m.usuario_id === getLoggedUserId() && m.rol === "Product Owner")) && (
-                                            <Button color="danger" size="sm" className="btn-icon rounded-circle" onClick={() => handleRemoveMember(member.usuario_id)} title="Eliminar miembro">
+                                            <Button color="danger" size="sm" className="btn-icon rounded-circle" onClick={() => handleRemoveMember(member)} title="Eliminar miembro">
                                                 <i className="ri-delete-bin-line"></i>
                                             </Button>
                                         )}
@@ -1078,6 +1090,24 @@ const Planning = () => {
                 <ModalFooter className="bg-light">
                     <Button color="light" onClick={toggleDeleteStoryModal}>Cancelar</Button>
                     <Button color="danger" onClick={confirmDeleteStory}>Eliminar</Button>
+                </ModalFooter>
+            </Modal>
+
+            {/* Modal de Confirmación de Eliminación de Miembro */}
+            <Modal isOpen={deleteMemberModalState} toggle={toggleDeleteMemberModal} centered>
+                <ModalHeader toggle={toggleDeleteMemberModal} className="bg-light p-3">
+                    Confirmar Eliminación de Miembro
+                </ModalHeader>
+                <ModalBody className="p-4 text-center">
+                    <div className="text-danger mb-3">
+                        <i className="ri-delete-bin-5-line display-4"></i>
+                    </div>
+                    <h5>¿Estás seguro de que deseas eliminar a {memberToDelete?.nombre_completo}?</h5>
+                    <p className="text-muted mb-0">Este usuario perderá acceso al proyecto inmediatamente.</p>
+                </ModalBody>
+                <ModalFooter className="bg-light">
+                    <Button color="light" onClick={toggleDeleteMemberModal}>Cancelar</Button>
+                    <Button color="danger" onClick={confirmDeleteMember}>Eliminar</Button>
                 </ModalFooter>
             </Modal>
 
