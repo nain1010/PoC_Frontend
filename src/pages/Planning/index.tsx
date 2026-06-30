@@ -157,17 +157,21 @@ const Planning = () => {
     const setProjectSnapshot = (data: any) => queryClient.setQueryData(['project', activeProjectId], data);
     const invalidateProject = () => queryClient.invalidateQueries({ queryKey: ['project', activeProjectId] });
 
-    const getLoggedUserId = () => {
+    const getLoggedUser = () => {
         const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
         if (authUserStr) {
             try {
-                const authUser = JSON.parse(authUserStr);
-                return authUser.id || authUser.usuario_id || "";
+                return JSON.parse(authUserStr);
             } catch (e) {
-                return "";
+                return null;
             }
         }
-        return "";
+        return null;
+    };
+
+    const getLoggedUserId = () => {
+        const user = getLoggedUser();
+        return user ? (user.id || user.usuario_id || "") : "";
     };
 
     // Validation schemas
@@ -1046,7 +1050,7 @@ const Planning = () => {
                                     </div>
                                     <div className="d-flex align-items-center gap-2">
                                         <span className="badge bg-soft-primary text-primary fs-12">{member.rol}</span>
-                                        {(authUser?.rol_global === "Administrador" || projectDetails?.memberships?.some((m: any) => m.usuario_id === getLoggedUserId() && m.rol === "Product Owner")) && (
+                                        {(getLoggedUser()?.rol_global === "Administrador" || projectDetails?.memberships?.some((m: any) => m.usuario_id === getLoggedUserId() && m.rol === "Product Owner")) && (
                                             <Button color="danger" size="sm" className="btn-icon rounded-circle" onClick={() => handleRemoveMember(member.usuario_id)} title="Eliminar miembro">
                                                 <i className="ri-delete-bin-line"></i>
                                             </Button>
