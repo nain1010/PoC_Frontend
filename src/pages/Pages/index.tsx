@@ -403,6 +403,10 @@ const Pages = () => {
                 .bubble-menu { display: flex; background-color: var(--vz-card-bg-custom); padding: 0.2rem; }
                 .bubble-menu button { background: none; border: none; padding: 0.25rem 0.6rem; border-radius: 20px; color: var(--vz-body-color); font-size: 14px; cursor: pointer; transition: all 0.2s; }
                 .bubble-menu button:hover, .bubble-menu button.is-active { background-color: var(--vz-light); color: var(--vz-primary); }
+                
+                /* Utilities */
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
         </React.Fragment>
     );
