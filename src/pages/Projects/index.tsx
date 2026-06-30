@@ -5,6 +5,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BreadCrumb from '../../Components/Common/BreadCrumb';
+import TableContainer from '../../Components/Common/TableContainer';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -133,6 +134,7 @@ const Projects = () => {
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [projectToDelete, setProjectToDelete] = useState<any>(null);
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
     const { data: projects = [], isLoading, error } = useQuery({
         queryKey: ['projects'],
@@ -227,6 +229,76 @@ const Projects = () => {
         deleteMutation.mutate(projectToDelete.id);
     }, [projectToDelete, toggleDeleteModal, deleteMutation]);
 
+    const columns = useMemo(() => [
+        {
+            header: 'Proyecto',
+            accessorKey: 'nombre',
+            enableColumnFilter: false,
+            cell: (cell: any) => <div className="fw-semibold text-body">{cell.getValue()}</div>,
+        },
+        {
+            header: 'Descripción',
+            accessorKey: 'descripcion',
+            enableColumnFilter: false,
+            cell: (cell: any) => (
+                <span className="text-truncate d-inline-block" style={{ maxWidth: '250px' }}>
+                    {cell.getValue() || <span className="text-muted fs-12 italic">Sin descripción</span>}
+                </span>
+            ),
+        },
+        {
+            header: 'Rol',
+            accessorKey: 'mi_rol',
+            enableColumnFilter: false,
+            cell: (cell: any) => {
+                const rol = cell.getValue();
+                const roleBadgeClass = rol === 'Product Owner' ? 'bg-primary' :
+                    rol === 'Scrum Master' ? 'bg-success' :
+                    rol === 'Developer' ? 'bg-info' : 'bg-secondary';
+                return <span className={`badge ${roleBadgeClass} fs-11`}>{rol || 'Sin rol'}</span>;
+            },
+        },
+        {
+            header: 'Fecha de Inicio',
+            accessorKey: 'fecha_inicio',
+            enableColumnFilter: false,
+        },
+        {
+            header: 'Equipo',
+            accessorKey: 'integrantes',
+            enableColumnFilter: false,
+            cell: (cell: any) => <IntegrantesAvatars integrantes={cell.getValue()} />,
+        },
+        {
+            header: 'Acciones',
+            accessorKey: 'acciones',
+            enableColumnFilter: false,
+            cell: (cell: any) => {
+                const project = cell.row.original;
+                return (
+                    <div className="d-flex gap-2">
+                        <Button 
+                            color="primary" 
+                            size="sm" 
+                            onClick={() => handleSelectProject(project)}
+                            disabled={selectedProjectId !== null}
+                        >
+                            {selectedProjectId === project.id ? <Spinner size="sm" /> : "Entrar"}
+                        </Button>
+                        <Button 
+                            color="danger" 
+                            size="sm" 
+                            outline 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteProject(project); }}
+                        >
+                            <i className="ri-delete-bin-line"></i>
+                        </Button>
+                    </div>
+                );
+            },
+        }
+    ], [handleSelectProject, handleDeleteProject, selectedProjectId]);
+
     const emptyState = useMemo(() => (
         <div className="text-center py-5 my-5">
             <div className="avatar-xl mx-auto mb-4">
@@ -257,9 +329,27 @@ const Projects = () => {
                             <h5 className="fs-16 mb-0">Tus Proyectos</h5>
                             <p className="text-muted mb-0">Listado de proyectos y equipos activos.</p>
                         </div>
-                        <Button color="success" className="btn btn-success" onClick={toggleModal}>
-                            <i className="ri-add-line align-bottom me-1"></i> Crear Proyecto
-                        </Button>
+                        <div className="d-flex align-items-center gap-2">
+                            <div className="btn-group" role="group">
+                                <Button 
+                                    color={viewMode === 'grid' ? "primary" : "light"}
+                                    onClick={() => setViewMode('grid')}
+                                    title="Vista de Tarjetas"
+                                >
+                                    <i className="ri-grid-fill"></i>
+                                </Button>
+                                <Button 
+                                    color={viewMode === 'table' ? "primary" : "light"}
+                                    onClick={() => setViewMode('table')}
+                                    title="Vista de Tabla"
+                                >
+                                    <i className="ri-list-unordered"></i>
+                                </Button>
+                            </div>
+                            <Button color="success" className="btn btn-success" onClick={toggleModal}>
+                                <i className="ri-add-line align-bottom me-1"></i> Crear Proyecto
+                            </Button>
+                        </div>
                     </div>
 
                     {isLoading ? (
@@ -271,6 +361,21 @@ const Projects = () => {
                         <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
                     ) : projects.length === 0 ? (
                         emptyState
+                    ) : viewMode === 'table' ? (
+                        <Card>
+                            <CardBody>
+                                <TableContainer
+                                    columns={columns}
+                                    data={projects || []}
+                                    isGlobalFilter={true}
+                                    customPageSize={10}
+                                    divClass="table-responsive table-card mb-3"
+                                    tableClass="align-middle table-nowrap mb-0"
+                                    theadClass="table-light text-muted"
+                                    SearchPlaceholder="Buscar proyecto..."
+                                />
+                            </CardBody>
+                        </Card>
                     ) : (
                         <Row>
                             {projects.map((project: any) => (
