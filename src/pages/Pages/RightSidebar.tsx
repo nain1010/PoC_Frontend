@@ -62,7 +62,7 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
     };
 
     return (
-        <div className="d-flex flex-column h-100 border-start bg-white" style={{ width: '300px', flexShrink: 0, backgroundColor: 'var(--vz-card-bg-custom)' }}>
+        <div className="d-flex flex-column h-100 border-start" style={{ width: '300px', flexShrink: 0, backgroundColor: 'var(--vz-card-bg-custom)' }}>
             {/* Tabs Header */}
             <div className="p-2 border-bottom">
                 <Nav pills className="nav-custom-pills nav-justified gap-1">
