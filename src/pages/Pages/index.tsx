@@ -217,7 +217,7 @@ const Pages = () => {
 
     if (!activeProjectId) {
         return (
-            <div className="page-content p-0 d-flex flex-column align-items-center justify-content-center" style={{ height: '100vh', paddingTop: '70px', backgroundColor: 'var(--vz-body-bg)' }}>
+            <div className="page-content d-flex flex-column align-items-center justify-content-center" style={{ height: '100vh', padding: '70px 0 0 0', backgroundColor: 'var(--vz-body-bg)' }}>
                 <div className="text-center text-muted">
                     <i className="ri-file-text-line display-1 mb-3 d-inline-block"></i>
                     <h4>Selecciona un proyecto para ver sus documentos</h4>
@@ -228,7 +228,7 @@ const Pages = () => {
 
     return (
         <React.Fragment>
-            <div className="page-content p-0 d-flex overflow-hidden" style={{ height: '100vh', paddingTop: '70px', backgroundColor: 'var(--vz-body-bg)' }}>
+            <div className="page-content d-flex overflow-hidden" style={{ height: '100vh', padding: '70px 0 0 0', backgroundColor: 'var(--vz-body-bg)' }}>
                 
                 {/* ======= Sidebar (Left): Pages Tree ======= */}
                 <div className="border-end" style={{ width: '260px', flexShrink: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--vz-card-bg-custom)' }}>

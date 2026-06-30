@@ -48,7 +48,7 @@ export const CommandList = forwardRef((props: any, ref) => {
     }));
 
     return (
-        <div className="dropdown-menu show shadow-lg border" style={{ position: 'relative', minWidth: '240px', borderRadius: '12px', overflow: 'hidden', backgroundColor: 'var(--vz-card-bg-custom)', padding: '0.5rem' }}>
+        <div className="dropdown-menu show shadow-lg border" style={{ position: 'relative', minWidth: '240px', maxHeight: '320px', overflowY: 'auto', borderRadius: '12px', backgroundColor: 'var(--vz-card-bg-custom)', padding: '0.5rem' }}>
             {props.items.length ? (
                 props.items.map((item, index) => (
                     <button
