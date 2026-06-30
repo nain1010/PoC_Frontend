@@ -9,6 +9,7 @@ const Navdata = () => {
     const [isPlanning, setIsPlanning] = useState<boolean>(false);
     const [isKanban, setIsKanban] = useState<boolean>(false);
     const [isAnalytics, setIsAnalytics] = useState<boolean>(false);
+    const [isDocs, setIsDocs] = useState<boolean>(false);
     const [isAuth, setIsAuth] = useState<boolean>(false);
     const [isPages, setIsPages] = useState<boolean>(false);
     const [isUsers, setIsUsers] = useState<boolean>(false);
@@ -37,6 +38,7 @@ const Navdata = () => {
         if (iscurrentState !== 'Planning') setIsPlanning(false);
         if (iscurrentState !== 'Kanban') setIsKanban(false);
         if (iscurrentState !== 'Analytics') setIsAnalytics(false);
+        if (iscurrentState !== 'Docs') setIsDocs(false);
         if (iscurrentState !== 'Auth') setIsAuth(false);
         if (iscurrentState !== 'Pages') setIsPages(false);
         if (iscurrentState !== 'Users') setIsUsers(false);
@@ -48,6 +50,7 @@ const Navdata = () => {
         isPlanning,
         isKanban,
         isAnalytics,
+        isDocs,
         isAuth,
         isPages,
         isUsers,
@@ -129,6 +132,20 @@ const Navdata = () => {
                 setIscurrentState('Analytics');
                 updateIconSidebar(e);
                 history("/analytics");
+            },
+        },
+        {
+            id: "docs",
+            label: "Documentación",
+            icon: "ri-file-text-line",
+            link: "/pages",
+            stateVariables: isDocs,
+            click: function (e: any) {
+                e.preventDefault();
+                setIsDocs(!isDocs);
+                setIscurrentState('Docs');
+                updateIconSidebar(e);
+                history("/pages");
             },
         },
         ...(isAdmin ? [

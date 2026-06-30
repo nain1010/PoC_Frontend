@@ -18,6 +18,7 @@ const Kanban = React.lazy(() => import("../pages/Kanban"));
 const Analytics = React.lazy(() => import("../pages/Analytics"));
 const UserManagement = React.lazy(() => import("../pages/Users"));
 const Chat = React.lazy(() => import("../pages/Chat"));
+const Pages = React.lazy(() => import("../pages/Pages"));
 
 
 const authProtectedRoutes = [
@@ -28,6 +29,7 @@ const authProtectedRoutes = [
   { path: "/kanban", component: <Kanban /> },
   { path: "/analytics", component: <Analytics /> },
   { path: "/users", component: <UserManagement /> },
+  { path: "/pages", component: <Pages /> },
 
   //User Profile
   { path: "/profile", component: <UserProfile /> },
