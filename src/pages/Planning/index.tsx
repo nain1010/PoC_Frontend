@@ -9,6 +9,7 @@ import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Select from "react-select";
+import TableContainer from '../../Components/Common/TableContainer';
 
 const api = APIClient;
 
@@ -123,6 +124,10 @@ const Planning = () => {
     const [sprintToDelete, setSprintToDelete] = useState<any>(null);
     const [deleteMemberModalState, setDeleteMemberModalState] = useState<boolean>(false);
     const [memberToDelete, setMemberToDelete] = useState<any>(null);
+
+    // View modes
+    const [backlogViewMode, setBacklogViewMode] = useState<'grid' | 'table'>('grid');
+    const [sprintViewMode, setSprintViewMode] = useState<'grid' | 'table'>('grid');
 
     const toggleStoryModal = useCallback(() => {
         if (storyModal) {
@@ -631,6 +636,91 @@ const Planning = () => {
         [projectDetails?.sprints]
     );
 
+    const backlogColumns = useMemo(() => [
+        {
+            header: 'Código',
+            accessorKey: 'correlativo',
+            enableColumnFilter: false,
+            cell: (cell: any) => <span className="badge bg-soft-info text-info fs-11">{cell.getValue()}</span>
+        },
+        {
+            header: 'Historia',
+            accessorKey: 'titulo',
+            enableColumnFilter: false,
+            cell: (cell: any) => <div className="fw-semibold text-body text-truncate" style={{maxWidth: '150px'}}>{cell.getValue()}</div>
+        },
+        {
+            header: 'Pts',
+            accessorKey: 'esfuerzo_estimado',
+            enableColumnFilter: false,
+            cell: (cell: any) => <span className="fw-bold">{cell.getValue() || '-'}</span>
+        },
+        {
+            header: 'Estado',
+            accessorKey: 'estado',
+            enableColumnFilter: false,
+            cell: (cell: any) => <span className="badge bg-light text-muted border">{cell.getValue()}</span>
+        },
+        {
+            header: 'Acciones',
+            accessorKey: 'acciones',
+            enableColumnFilter: false,
+            cell: (cell: any) => {
+                const story = cell.row.original;
+                return (
+                    <div className="d-flex gap-1">
+                        <Button color="light" size="sm" onClick={() => handleOpenEditStory(story)} title="Editar"><i className="ri-pencil-line"></i></Button>
+                        <Button color="danger" outline size="sm" onClick={() => handleDeleteStory(story.id)} title="Eliminar"><i className="ri-delete-bin-line"></i></Button>
+                    </div>
+                );
+            }
+        }
+    ], [handleOpenEditStory, handleDeleteStory]);
+
+    const sprintColumns = useMemo(() => [
+        {
+            header: 'Sprint',
+            accessorKey: 'nombre',
+            enableColumnFilter: false,
+            cell: (cell: any) => <div className="fw-semibold text-body text-truncate" style={{maxWidth: '200px'}}>{cell.getValue()}</div>
+        },
+        {
+            header: 'Estado',
+            accessorKey: 'estado',
+            enableColumnFilter: false,
+            cell: (cell: any) => {
+                const estado = cell.getValue();
+                const color = estado === 'Planificacion' ? 'warning' : estado === 'Activo' ? 'success' : 'secondary';
+                return <span className={`badge bg-${color}`}>{estado}</span>;
+            }
+        },
+        {
+            header: 'Progreso',
+            accessorKey: 'velocidad_realizada',
+            enableColumnFilter: false,
+            cell: (cell: any) => {
+                const sprint = cell.row.original;
+                const sprintStories = projectDetails?.historias_usuario?.filter((s:any) => s.sprint_id === sprint.id) || [];
+                const totalPoints = sprintStories.reduce((acc: number, item: any) => acc + (item.esfuerzo_estimado || 0), 0);
+                return <span className="fw-medium">{sprint.velocidad_realizada || 0} / {totalPoints} pts</span>;
+            }
+        },
+        {
+            header: 'Acciones',
+            accessorKey: 'acciones',
+            enableColumnFilter: false,
+            cell: (cell: any) => {
+                const sprint = cell.row.original;
+                return (
+                    <div className="d-flex gap-1">
+                        <Button color="light" size="sm" onClick={() => handleOpenEditSprint(sprint)} title="Editar"><i className="ri-pencil-line"></i></Button>
+                        <Button color="danger" outline size="sm" onClick={() => handleDeleteSprint(sprint.id)} title="Eliminar"><i className="ri-delete-bin-line"></i></Button>
+                    </div>
+                );
+            }
+        }
+    ], [handleOpenEditSprint, handleDeleteSprint, projectDetails]);
+
     document.title = `Planificación | Luma - ${activeProjectName || 'Scrum'}`;
 
     if (!activeProjectId) {
@@ -685,9 +775,15 @@ const Planning = () => {
                                         <h6 className="card-title mb-0 fw-bold text-muted">
                                             Product Backlog ({backlogStories.length})
                                         </h6>
-                                        <Button color="success" size="sm" className="btn-sm" onClick={handleOpenCreateStory}>
-                                            <i className="ri-add-line align-middle me-1"></i> Crear Historia
-                                        </Button>
+                                        <div className="d-flex gap-2">
+                                            <div className="btn-group" role="group">
+                                                <Button color={backlogViewMode === 'grid' ? "primary" : "light"} size="sm" onClick={() => setBacklogViewMode('grid')}><i className="ri-grid-fill"></i></Button>
+                                                <Button color={backlogViewMode === 'table' ? "primary" : "light"} size="sm" onClick={() => setBacklogViewMode('table')}><i className="ri-list-unordered"></i></Button>
+                                            </div>
+                                            <Button color="success" size="sm" className="btn-sm" onClick={handleOpenCreateStory}>
+                                                <i className="ri-add-line align-middle me-1"></i> Crear
+                                            </Button>
+                                        </div>
                                     </div>
                                     <CardBody className="p-3" style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
                                         {backlogStories.length === 0 ? (
@@ -696,6 +792,17 @@ const Planning = () => {
                                                 <p className="mb-0">El backlog está vacío.</p>
                                                 <small>Crea historias de usuario para comenzar.</small>
                                             </div>
+                                        ) : backlogViewMode === 'table' ? (
+                                            <TableContainer
+                                                columns={backlogColumns}
+                                                data={backlogStories || []}
+                                                isGlobalFilter={true}
+                                                customPageSize={10}
+                                                divClass="table-responsive table-card mb-0"
+                                                tableClass="align-middle table-nowrap mb-0"
+                                                theadClass="table-light text-muted"
+                                                SearchPlaceholder="Buscar historia..."
+                                            />
                                         ) : (
                                             backlogStories.map((story: any) => (
                                                 <BacklogStoryCard
@@ -719,8 +826,12 @@ const Planning = () => {
                                     <div className="card-header bg-light border-0 d-flex justify-content-between align-items-center p-3">
                                         <h6 className="card-title mb-0 fw-bold text-muted">Planificación de Sprints</h6>
                                         <div className="d-flex gap-2">
+                                            <div className="btn-group" role="group">
+                                                <Button color={sprintViewMode === 'grid' ? "primary" : "light"} size="sm" onClick={() => setSprintViewMode('grid')}><i className="ri-grid-fill"></i></Button>
+                                                <Button color={sprintViewMode === 'table' ? "primary" : "light"} size="sm" onClick={() => setSprintViewMode('table')}><i className="ri-list-unordered"></i></Button>
+                                            </div>
                                             <Button color="soft-primary" size="sm" className="btn-sm" onClick={toggleMemberModal}>
-                                                <i className="ri-group-line align-middle me-1"></i> Gestionar Miembros
+                                                <i className="ri-group-line align-middle me-1"></i> Miembros
                                             </Button>
                                             <Button color="success" size="sm" className="btn-sm" onClick={handleOpenCreateSprint}>
                                                 <i className="ri-add-line align-middle me-1"></i> Crear Sprint
@@ -734,6 +845,17 @@ const Planning = () => {
                                                 <p className="mb-0">No hay Sprints planificados.</p>
                                                 <small>Crea un Sprint para asignar historias de usuario.</small>
                                             </div>
+                                        ) : sprintViewMode === 'table' ? (
+                                            <TableContainer
+                                                columns={sprintColumns}
+                                                data={planningSprints || []}
+                                                isGlobalFilter={true}
+                                                customPageSize={5}
+                                                divClass="table-responsive table-card mb-0"
+                                                tableClass="align-middle table-nowrap mb-0"
+                                                theadClass="table-light text-muted"
+                                                SearchPlaceholder="Buscar sprint..."
+                                            />
                                         ) : (
                                             planningSprints.map((sprint: any) => {
                                                 const sprintStories = projectDetails?.historias_usuario?.filter((s: any) => s.sprint_id === sprint.id) || [];
