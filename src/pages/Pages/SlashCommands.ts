@@ -29,15 +29,15 @@ export default Extension.create({
 export const getSuggestionItems = () => {
     return [
         {
-            title: 'Texto',
-            description: 'Empezar a escribir texto plano.',
-            icon: 'ri-paragraph',
+            title: 'Text',
+            description: 'Escribir texto plano.',
+            icon: 'ri-text',
             command: ({ editor, range }) => {
                 editor.chain().focus().deleteRange(range).setNode('paragraph').run();
             },
         },
         {
-            title: 'Encabezado 1',
+            title: 'Heading 1',
             description: 'Título de sección principal.',
             icon: 'ri-h-1',
             command: ({ editor, range }) => {
@@ -45,7 +45,7 @@ export const getSuggestionItems = () => {
             },
         },
         {
-            title: 'Encabezado 2',
+            title: 'Heading 2',
             description: 'Subtítulo.',
             icon: 'ri-h-2',
             command: ({ editor, range }) => {
@@ -53,35 +53,99 @@ export const getSuggestionItems = () => {
             },
         },
         {
-            title: 'Lista con viñetas',
-            description: 'Crear una lista simple.',
+            title: 'Heading 3',
+            description: 'Título de subsección.',
+            icon: 'ri-h-3',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
+            },
+        },
+        {
+            title: 'Heading 4',
+            description: 'Título menor 4.',
+            icon: 'ri-h-4',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setNode('heading', { level: 4 }).run();
+            },
+        },
+        {
+            title: 'Heading 5',
+            description: 'Título menor 5.',
+            icon: 'ri-h-5',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setNode('heading', { level: 5 }).run();
+            },
+        },
+        {
+            title: 'Heading 6',
+            description: 'Título menor 6.',
+            icon: 'ri-h-6',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setNode('heading', { level: 6 }).run();
+            },
+        },
+        {
+            title: 'Bullet List',
+            description: 'Lista desordenada.',
             icon: 'ri-list-unordered',
             command: ({ editor, range }) => {
                 editor.chain().focus().deleteRange(range).toggleBulletList().run();
             },
         },
         {
-            title: 'Lista de tareas',
-            description: 'Rastrear tareas con checkboxes.',
-            icon: 'ri-checkbox-line',
+            title: 'Numbered List',
+            description: 'Lista ordenada.',
+            icon: 'ri-list-ordered',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).toggleOrderedList().run();
+            },
+        },
+        {
+            title: 'To-do List',
+            description: 'Casillas de verificación.',
+            icon: 'ri-list-check-2',
             command: ({ editor, range }) => {
                 editor.chain().focus().deleteRange(range).toggleTaskList().run();
             },
         },
         {
-            title: 'Bloque de código',
-            description: 'Capturar un bloque de código.',
+            title: 'Code Block',
+            description: 'Caja para código fuente.',
             icon: 'ri-code-box-line',
             command: ({ editor, range }) => {
                 editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
             },
         },
         {
-            title: 'Cita',
-            description: 'Bloque de cita enfatizado.',
+            title: 'Quote',
+            description: 'Cita enfatizada.',
             icon: 'ri-double-quotes-l',
             command: ({ editor, range }) => {
                 editor.chain().focus().deleteRange(range).toggleBlockquote().run();
+            },
+        },
+        {
+            title: 'Divider',
+            description: 'Línea horizontal divisoria.',
+            icon: 'ri-separator',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setHorizontalRule().run();
+            },
+        },
+        {
+            title: 'Table',
+            description: 'Insertar tabla 3x3.',
+            icon: 'ri-table-line',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+            },
+        },
+        {
+            title: 'Callout',
+            description: 'Bloque de alerta con icono.',
+            icon: 'ri-information-line',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'callout', content: [{ type: 'text', text: ' ' }] }).run();
             },
         },
         {

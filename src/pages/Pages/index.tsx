@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Button, Input, Spinner, Offcanvas, OffcanvasHeader, OffcanvasBody } from 'reactstrap';
+import { Button, Input, Spinner } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
@@ -9,8 +9,22 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
-import AttachmentPanel from '../../Components/Common/AttachmentPanel';
+
+// Nuevas extensiones avanzadas
+import { Table } from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import TextAlign from '@tiptap/extension-text-align';
+import Underline from '@tiptap/extension-underline';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
+import Highlight from '@tiptap/extension-highlight';
+import CalloutExtension from './CalloutExtension';
+
 import SlashCommands, { getSuggestionItems, renderItems } from './SlashCommands';
+import TopToolbar from './TopToolbar';
+import RightSidebar from './RightSidebar';
 import { APIClient } from '../../helpers/api_helper';
 import config from '../../config';
 import { toast } from 'react-toastify';
@@ -25,7 +39,6 @@ const Pages = () => {
 
     const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
     const [titleValue, setTitleValue] = useState("");
-    const [isAssetsOpen, setIsAssetsOpen] = useState(false);
     const saveTimerRef = useRef<any>(null);
 
     // ---- Queries ----
@@ -61,15 +74,6 @@ const Pages = () => {
         },
     });
 
-    const deletePageMutation = useMutation({
-        mutationFn: (pageId: string) => api.delete(`/projects/${activeProjectId}/pages/${pageId}`),
-        onSuccess: (_, pageId) => {
-            queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
-            if (selectedPageId === pageId) setSelectedPageId(null);
-            toast.success("Página eliminada.", { position: "top-right" });
-        },
-    });
-
     // ---- Image Upload Handler ----
     const uploadImage = async (file: File): Promise<string | null> => {
         if (!activeProjectId || !selectedPageId) return null;
@@ -101,7 +105,17 @@ const Pages = () => {
             TaskList,
             TaskItem.configure({ nested: true }),
             Image.configure({ inline: false, allowBase64: true }),
-            Link.configure({ openOnClick: true }),
+            Link.configure({ openOnClick: true, linkOnPaste: true }),
+            Table.configure({ resizable: true }),
+            TableRow,
+            TableHeader,
+            TableCell,
+            TextAlign.configure({ types: ['heading', 'paragraph'] }),
+            Underline,
+            TextStyle,
+            Color,
+            Highlight.configure({ multicolor: true }),
+            CalloutExtension,
             SlashCommands.configure({
                 suggestion: {
                     items: ({ query }) => {
@@ -174,7 +188,6 @@ const Pages = () => {
         if (pageContent && editor && pageContent.id === selectedPageId) {
             setTitleValue(pageContent.titulo || "Sin título");
             
-            // Si el contenido existe, intentamos parsearlo como JSON. Si falla, asumimos que es el viejo HTML.
             if (pageContent.contenido) {
                 try {
                     const jsonContent = JSON.parse(pageContent.contenido);
@@ -217,10 +230,10 @@ const Pages = () => {
         <React.Fragment>
             <div className="page-content p-0 d-flex overflow-hidden" style={{ height: 'calc(100vh - 70px)', backgroundColor: 'var(--vz-body-bg)' }}>
                 
-                {/* ======= Sidebar: Pages Tree ======= */}
-                <div className="border-end" style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--vz-light)' }}>
+                {/* ======= Sidebar (Left): Pages Tree ======= */}
+                <div className="border-end" style={{ width: '260px', flexShrink: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--vz-card-bg-custom)' }}>
                     <div className="p-3 border-bottom d-flex align-items-center justify-content-between">
-                        <span className="fw-semibold text-uppercase fs-12 text-muted">
+                        <span className="fw-semibold text-uppercase fs-11 text-muted">
                             {activeProjectName}
                         </span>
                         <div className="d-flex gap-1">
@@ -248,7 +261,7 @@ const Pages = () => {
                                         onClick={() => setSelectedPageId(page.id)}
                                         style={{ cursor: 'pointer' }}
                                     >
-                                        <span className="fs-14">{page.icono || "📝"}</span>
+                                        <span className="fs-14 opacity-75">{page.icono || "📝"}</span>
                                         <span className="flex-grow-1 text-truncate fs-13">
                                             {page.titulo}
                                         </span>
@@ -263,7 +276,7 @@ const Pages = () => {
                 <div className="flex-grow-1 d-flex flex-column position-relative" style={{ overflowY: 'auto', overflowX: 'hidden', backgroundColor: 'var(--vz-body-bg)' }}>
                     {!selectedPageId ? (
                         <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
-                            <i className="ri-draft-line display-1 mb-3"></i>
+                            <i className="ri-draft-line display-1 mb-3 opacity-50"></i>
                             <h5 className="text-muted fw-normal">Selecciona o crea una página para comenzar</h5>
                             <Button color="primary" className="mt-3 rounded-pill px-4" onClick={handleCreatePage}>
                                 Crear página
@@ -275,200 +288,116 @@ const Pages = () => {
                         </div>
                     ) : (
                         <>
-                            {/* Toolbar (Only for Assets now, hidden from main view and moved to top right) */}
-                            <div className="position-absolute top-0 end-0 p-3 d-flex align-items-center gap-3 z-1">
-                                <span className="text-muted fs-12 fw-medium">
-                                    {updatePageMutation.isPending ? 'Guardando...' : 'Guardado'}
-                                </span>
-                                <Button color="light" className="bg-transparent border-0 text-muted p-1" onClick={() => setIsAssetsOpen(true)} title="Recursos">
-                                    <i className="ri-attachment-2 fs-18"></i>
-                                </Button>
-                                <Button color="danger" outline className="border-0 p-1 bg-transparent hover-bg-soft-danger" onClick={() => {
-                                    if (window.confirm("¿Estás seguro de eliminar esta página permanentemente?")) {
-                                        deletePageMutation.mutate(selectedPageId);
-                                    }
-                                }} title="Eliminar página">
-                                    <i className="ri-delete-bin-line fs-18"></i>
-                                </Button>
-                            </div>
+                            {/* Plane-like Top Toolbar */}
+                            <TopToolbar editor={editor} />
                             
-                            <div className="d-flex justify-content-center w-100 flex-grow-1">
-                                <div className="editor-content-wrapper px-4 py-5 mt-4" style={{ width: '100%', maxWidth: '850px' }}>
-                                    
-                                    {/* Título Gigante */}
-                                    <Input
-                                        type="text"
-                                        value={titleValue}
-                                        onChange={(e) => setTitleValue(e.target.value)}
-                                        onBlur={handleTitleSave}
-                                        placeholder="Sin título"
-                                        className="fw-bold bg-transparent border-0 p-0 mb-4 text-body title-input-plane"
-                                        style={{ fontSize: '2.5rem', boxShadow: 'none', lineHeight: '1.2' }}
-                                    />
+                            <div className="d-flex flex-grow-1 w-100 h-100 overflow-hidden">
+                                {/* Editor Central Area */}
+                                <div className="flex-grow-1 d-flex justify-content-center overflow-auto" style={{ scrollBehavior: 'smooth' }}>
+                                    <div className="editor-content-wrapper px-4 py-5" style={{ width: '100%', maxWidth: '850px' }}>
+                                        
+                                        {/* Título Gigante */}
+                                        <Input
+                                            type="text"
+                                            value={titleValue}
+                                            onChange={(e) => setTitleValue(e.target.value)}
+                                            onBlur={handleTitleSave}
+                                            placeholder="Page Title"
+                                            className="fw-bold bg-transparent border-0 p-0 mb-4 text-body title-input-plane"
+                                            style={{ fontSize: '2.8rem', boxShadow: 'none', lineHeight: '1.2' }}
+                                        />
 
-                                    {/* Editor Principal */}
-                                    <div className="tiptap-plane-theme">
-                                        {editor && (
-                                            <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubble-menu shadow-sm rounded-pill overflow-hidden border">
-                                                <button
-                                                    onClick={() => editor.chain().focus().toggleBold().run()}
-                                                    className={editor.isActive('bold') ? 'is-active' : ''}
-                                                >
-                                                    <i className="ri-bold"></i>
-                                                </button>
-                                                <button
-                                                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                                                    className={editor.isActive('italic') ? 'is-active' : ''}
-                                                >
-                                                    <i className="ri-italic"></i>
-                                                </button>
-                                                <button
-                                                    onClick={() => editor.chain().focus().toggleStrike().run()}
-                                                    className={editor.isActive('strike') ? 'is-active' : ''}
-                                                >
-                                                    <i className="ri-strikethrough"></i>
-                                                </button>
-                                                <button
-                                                    onClick={() => editor.chain().focus().toggleCode().run()}
-                                                    className={editor.isActive('code') ? 'is-active' : ''}
-                                                >
-                                                    <i className="ri-code-line"></i>
-                                                </button>
-                                            </BubbleMenu>
-                                        )}
-                                        <EditorContent editor={editor} />
+                                        {/* Editor Principal */}
+                                        <div className="tiptap-plane-theme">
+                                            {editor && (
+                                                <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubble-menu shadow-sm rounded-pill overflow-hidden border">
+                                                    <button onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}><i className="ri-bold"></i></button>
+                                                    <button onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}><i className="ri-italic"></i></button>
+                                                    <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor.isActive('underline') ? 'is-active' : ''}><i className="ri-underline"></i></button>
+                                                    <button onClick={() => editor.chain().focus().toggleStrike().run()} className={editor.isActive('strike') ? 'is-active' : ''}><i className="ri-strikethrough"></i></button>
+                                                    <button onClick={() => editor.chain().focus().toggleCode().run()} className={editor.isActive('code') ? 'is-active' : ''}><i className="ri-code-line"></i></button>
+                                                </BubbleMenu>
+                                            )}
+                                            <EditorContent editor={editor} />
+                                        </div>
+                                        
+                                        {/* Hidden File Input for Image Upload */}
+                                        <input
+                                            type="file"
+                                            id="tiptap-image-upload"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    const file = e.target.files[0];
+                                                    uploadImage(file).then(url => {
+                                                        if (url && editor) {
+                                                            editor.chain().focus().setImage({ src: url }).run();
+                                                        }
+                                                        e.target.value = '';
+                                                    });
+                                                }
+                                            }}
+                                        />
                                     </div>
-                                    
-                                    {/* Hidden File Input for TipTap Slash Commands Image Upload */}
-                                    <input
-                                        type="file"
-                                        id="tiptap-image-upload"
-                                        accept="image/*"
-                                        style={{ display: 'none' }}
-                                        onChange={(e) => {
-                                            if (e.target.files && e.target.files[0]) {
-                                                const file = e.target.files[0];
-                                                uploadImage(file).then(url => {
-                                                    if (url && editor) {
-                                                        editor.chain().focus().setImage({ src: url }).run();
-                                                    }
-                                                    e.target.value = '';
-                                                });
-                                            }
-                                        }}
-                                    />
                                 </div>
+
+                                {/* Right Sidebar */}
+                                <RightSidebar editor={editor} projectId={activeProjectId} pageId={selectedPageId} pageContent={pageContent} />
                             </div>
                         </>
                     )}
                 </div>
             </div>
 
-            {/* ======= Offcanvas: Assets (Archivos) ======= */}
-            {selectedPageId && (
-                <Offcanvas
-                    isOpen={isAssetsOpen}
-                    direction="end"
-                    toggle={() => setIsAssetsOpen(!isAssetsOpen)}
-                    style={{ width: '400px', backgroundColor: 'var(--vz-card-bg-custom)' }}
-                >
-                    <OffcanvasHeader toggle={() => setIsAssetsOpen(!isAssetsOpen)} className="border-bottom">
-                        <i className="ri-folder-2-line me-2"></i> Recursos y Adjuntos
-                    </OffcanvasHeader>
-                    <OffcanvasBody className="p-0">
-                        <div className="p-3 border-bottom text-muted fs-13" style={{ backgroundColor: 'var(--vz-light)'}}>
-                            Sube PDFs, archivos ZIP o documentos. Las imágenes pegadas directamente en el editor se incrustan en el texto y no necesitan subirse aquí.
-                        </div>
-                        <div className="p-3">
-                            <AttachmentPanel
-                                projectId={activeProjectId}
-                                entityType="pagina"
-                                entityId={selectedPageId}
-                            />
-                        </div>
-                    </OffcanvasBody>
-                </Offcanvas>
-            )}
-
             {/* TipTap Plane/Notion Styles */}
             <style>{`
-                .title-input-plane::placeholder {
-                    color: var(--vz-text-muted) !important;
-                    opacity: 0.5;
-                }
-                .tiptap-plane-theme .tiptap {
-                    outline: none;
-                    min-height: 50vh;
-                    font-size: 1.05rem;
-                    line-height: 1.7;
-                    color: var(--vz-body-color);
-                    font-family: 'Inter', sans-serif;
-                }
+                .title-input-plane::placeholder { color: var(--vz-text-muted) !important; opacity: 0.5; }
+                .tiptap-plane-theme .tiptap { outline: none; min-height: 50vh; font-size: 1.05rem; line-height: 1.7; color: var(--vz-body-color); font-family: 'Inter', sans-serif; padding-bottom: 20vh; }
                 .tiptap-plane-theme .tiptap p { margin-bottom: 0.8em; }
-                .tiptap-plane-theme .tiptap h1 { font-size: 2em; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
-                .tiptap-plane-theme .tiptap h2 { font-size: 1.5em; font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
-                .tiptap-plane-theme .tiptap h3 { font-size: 1.25em; font-weight: 600; margin-top: 1em; color: var(--vz-heading-color); }
-                .tiptap-plane-theme .tiptap ul,
-                .tiptap-plane-theme .tiptap ol { padding-left: 1.5em; margin-bottom: 1em; }
-                .tiptap-plane-theme .tiptap code {
-                    background: var(--vz-light);
-                    color: var(--vz-danger);
-                    border-radius: 4px;
-                    padding: 0.2em 0.4em;
-                    font-size: 0.85em;
-                }
-                .tiptap-plane-theme .tiptap pre {
-                    background: var(--vz-light);
-                    color: var(--vz-body-color);
-                    border-radius: 6px;
-                    padding: 1.2em;
-                    overflow-x: auto;
-                    font-size: 0.9em;
-                }
+                .tiptap-plane-theme .tiptap h1 { font-size: 2.2em; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
+                .tiptap-plane-theme .tiptap h2 { font-size: 1.7em; font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
+                .tiptap-plane-theme .tiptap h3 { font-size: 1.3em; font-weight: 600; margin-top: 1em; color: var(--vz-heading-color); }
+                .tiptap-plane-theme .tiptap ul, .tiptap-plane-theme .tiptap ol { padding-left: 1.5em; margin-bottom: 1em; }
+                
+                /* Code */
+                .tiptap-plane-theme .tiptap code { background: var(--vz-light); color: var(--vz-danger); border-radius: 4px; padding: 0.2em 0.4em; font-size: 0.85em; }
+                .tiptap-plane-theme .tiptap pre { background: var(--vz-dark); color: #fff; border-radius: 6px; padding: 1.2em; overflow-x: auto; font-size: 0.9em; }
                 .tiptap-plane-theme .tiptap pre code { background: none; color: inherit; padding: 0; }
-                .tiptap-plane-theme .tiptap blockquote {
-                    border-left: 3px solid var(--vz-primary);
-                    padding-left: 1.2em;
-                    color: var(--vz-text-muted);
-                    font-style: italic;
-                    margin-left: 0; margin-right: 0;
-                    background: var(--vz-light);
-                    padding-top: 0.5em; padding-bottom: 0.5em;
-                    border-radius: 0 4px 4px 0;
-                }
-                .tiptap-plane-theme .tiptap img {
-                    max-width: 100%; border-radius: 8px; display: block; margin: 2em auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                }
+                
+                /* Blockquote */
+                .tiptap-plane-theme .tiptap blockquote { border-left: 3px solid var(--vz-primary); padding-left: 1.2em; color: var(--vz-text-muted); font-style: italic; margin-left: 0; margin-right: 0; padding-top: 0.5em; padding-bottom: 0.5em; }
+                
+                /* Images */
+                .tiptap-plane-theme .tiptap img { max-width: 100%; border-radius: 8px; display: block; margin: 2em auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
                 .tiptap-plane-theme .tiptap img.ProseMirror-selectednode { outline: 3px solid var(--vz-primary); }
+                
+                /* Task List */
                 .tiptap-plane-theme .tiptap ul[data-type="taskList"] { list-style: none; padding-left: 0; }
                 .tiptap-plane-theme .tiptap ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5em; margin-bottom: 0.2em; }
-                .tiptap-plane-theme .tiptap p.is-editor-empty:first-child::before {
-                    color: var(--vz-text-muted); content: attr(data-placeholder); float: left; height: 0; pointer-events: none;
-                }
+                
+                /* Tables */
+                .tiptap-plane-theme .tiptap table { border-collapse: collapse; margin: 0; overflow: hidden; table-layout: fixed; width: 100%; margin-bottom: 1em; }
+                .tiptap-plane-theme .tiptap table td, .tiptap-plane-theme .tiptap table th { border: 1px solid var(--vz-border-color); box-sizing: border-box; min-width: 1em; padding: 8px 12px; position: relative; vertical-align: top; }
+                .tiptap-plane-theme .tiptap table th { background-color: var(--vz-light); font-weight: bold; text-align: left; }
+                .tiptap-plane-theme .tiptap table .selectedCell:after { background: var(--vz-primary); content: ""; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; position: absolute; z-index: 2; opacity: 0.1; }
+                .tiptap-plane-theme .tiptap table .column-resize-handle { background-color: var(--vz-primary); bottom: -2px; pointer-events: none; position: absolute; right: -1px; top: 0; width: 2px; z-index: 5; }
+
+                /* Horizontal Rule */
+                .tiptap-plane-theme .tiptap hr { border: none; border-top: 1px solid var(--vz-border-color); margin: 2rem 0; }
+
+                /* Placeholder */
+                .tiptap-plane-theme .tiptap p.is-editor-empty:first-child::before { color: var(--vz-text-muted); content: attr(data-placeholder); float: left; height: 0; pointer-events: none; }
+                
+                /* Hover Utilities */
                 .hover-bg-soft-danger:hover { background-color: var(--vz-danger-bg-subtle) !important; }
                 .hover-bg-soft-primary:hover { background-color: var(--vz-primary-bg-subtle) !important; color: var(--vz-primary) !important; }
                 .hover-bg-soft-light:hover { background-color: var(--vz-light) !important; }
                 
                 /* Bubble Menu */
-                .bubble-menu {
-                    display: flex;
-                    background-color: var(--vz-card-bg-custom);
-                    padding: 0.2rem;
-                }
-                .bubble-menu button {
-                    background: none;
-                    border: none;
-                    padding: 0.25rem 0.6rem;
-                    border-radius: 20px;
-                    color: var(--vz-body-color);
-                    font-size: 14px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .bubble-menu button:hover, .bubble-menu button.is-active {
-                    background-color: var(--vz-light);
-                    color: var(--vz-primary);
-                }
+                .bubble-menu { display: flex; background-color: var(--vz-card-bg-custom); padding: 0.2rem; }
+                .bubble-menu button { background: none; border: none; padding: 0.25rem 0.6rem; border-radius: 20px; color: var(--vz-body-color); font-size: 14px; cursor: pointer; transition: all 0.2s; }
+                .bubble-menu button:hover, .bubble-menu button.is-active { background-color: var(--vz-light); color: var(--vz-primary); }
             `}</style>
         </React.Fragment>
     );
