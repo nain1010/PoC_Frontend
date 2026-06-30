@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Button, Input, Spinner } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEditor, EditorContent } from '@tiptap/react';
+// @ts-ignore
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -24,7 +25,7 @@ import CalloutExtension from './CalloutExtension';
 
 import SlashCommands, { getSuggestionItems, renderItems } from './SlashCommands';
 import TopToolbar from './TopToolbar';
-import RightSidebar from './RightSidebar';
+import TableBubbleMenu from './TableBubbleMenu';
 import { APIClient } from '../../helpers/api_helper';
 import config from '../../config';
 import { toast } from 'react-toastify';
@@ -310,13 +311,16 @@ const Pages = () => {
                                         {/* Editor Principal */}
                                         <div className="tiptap-plane-theme">
                                             {editor && (
-                                                <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubble-menu shadow-sm rounded-pill overflow-hidden border">
-                                                    <button onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}><i className="ri-bold"></i></button>
-                                                    <button onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}><i className="ri-italic"></i></button>
-                                                    <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor.isActive('underline') ? 'is-active' : ''}><i className="ri-underline"></i></button>
-                                                    <button onClick={() => editor.chain().focus().toggleStrike().run()} className={editor.isActive('strike') ? 'is-active' : ''}><i className="ri-strikethrough"></i></button>
-                                                    <button onClick={() => editor.chain().focus().toggleCode().run()} className={editor.isActive('code') ? 'is-active' : ''}><i className="ri-code-line"></i></button>
-                                                </BubbleMenu>
+                                                <>
+                                                    <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubble-menu shadow-sm rounded-pill overflow-hidden border">
+                                                        <button onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}><i className="ri-bold"></i></button>
+                                                        <button onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}><i className="ri-italic"></i></button>
+                                                        <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor.isActive('underline') ? 'is-active' : ''}><i className="ri-underline"></i></button>
+                                                        <button onClick={() => editor.chain().focus().toggleStrike().run()} className={editor.isActive('strike') ? 'is-active' : ''}><i className="ri-strikethrough"></i></button>
+                                                        <button onClick={() => editor.chain().focus().toggleCode().run()} className={editor.isActive('code') ? 'is-active' : ''}><i className="ri-code-line"></i></button>
+                                                    </BubbleMenu>
+                                                    <TableBubbleMenu editor={editor} />
+                                                </>
                                             )}
                                             <EditorContent editor={editor} />
                                         </div>
@@ -341,9 +345,6 @@ const Pages = () => {
                                         />
                                     </div>
                                 </div>
-
-                                {/* Right Sidebar */}
-                                <RightSidebar editor={editor} projectId={activeProjectId} pageId={selectedPageId} pageContent={pageContent} />
                             </div>
                         </>
                     )}
