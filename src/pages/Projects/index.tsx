@@ -59,10 +59,10 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = React.memo<ProjectCardProps>(({ project, selectedProjectId, onSelect, onDelete }) => {
-  const roleBadgeClass = project.mi_rol === 'Product Owner' ? 'bg-soft-primary text-primary' :
-    project.mi_rol === 'Scrum Master' ? 'bg-soft-success text-success' :
-    project.mi_rol === 'Developer' ? 'bg-soft-info text-info' :
-    'bg-soft-secondary text-secondary';
+  const roleBadgeClass = project.mi_rol === 'Product Owner' ? 'bg-primary' :
+    project.mi_rol === 'Scrum Master' ? 'bg-success' :
+    project.mi_rol === 'Developer' ? 'bg-info' :
+    'bg-secondary';
 
   return (
     <Col lg={4} md={6} className="mb-4">
@@ -88,7 +88,7 @@ const ProjectCard = React.memo<ProjectCardProps>(({ project, selectedProjectId, 
                 </button>
               </div>
             </div>
-            <h5 className="fs-16 text-mute fw-bold mb-2">{project.nombre}</h5>
+            <h5 className="fs-16 text-body fw-bold mb-2">{project.nombre}</h5>
             <p className="text-muted text-truncate-two-lines fs-14 mb-3" style={{ minHeight: "42px" }}>
               {project.descripcion || "Sin descripción proporcionada."}
             </p>
@@ -104,7 +104,7 @@ const ProjectCard = React.memo<ProjectCardProps>(({ project, selectedProjectId, 
             </div>
             <Button
               color="primary"
-              className="w-100 btn-soft-primary"
+              className="w-100"
               onClick={() => onSelect(project)}
               disabled={selectedProjectId !== null}
             >
