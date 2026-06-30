@@ -135,7 +135,7 @@ const Pages = () => {
 
     const deletePageMutation = useMutation({
         mutationFn: (pageId: string) => api.delete(`/projects/${activeProjectId}/pages/${pageId}`),
-        onSuccess: () => {
+        onSuccess: (_, pageId) => {
             queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
             if (selectedPageId === pageId) setSelectedPageId(null);
             toast.success("Página eliminada.", { position: "top-right" });
