@@ -176,10 +176,10 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                             <span className="fw-bold fs-13 text-truncate d-block" style={{ maxWidth: "180px" }}>{activeProjectName}</span>
                                         </div>
                                         <span className={`badge ${
-                                            activeProjectRole === 'Product Owner' ? 'bg-soft-primary text-primary' :
-                                            activeProjectRole === 'Scrum Master' ? 'bg-soft-success text-success' :
-                                            activeProjectRole === 'Developer' ? 'bg-soft-info text-info' :
-                                            'bg-soft-secondary text-secondary'
+                                            activeProjectRole === 'Product Owner' ? 'bg-primary' :
+                                            activeProjectRole === 'Scrum Master' ? 'bg-success' :
+                                            activeProjectRole === 'Developer' ? 'bg-info' :
+                                            'bg-secondary'
                                         } fs-11 py-1 px-2 border border-opacity-10 rounded-pill`}>
                                             <span>{activeProjectRole || 'Sin rol'}</span>
                                         </span>
@@ -197,7 +197,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                                     className="d-flex justify-content-between align-items-center py-2 px-3 rounded mb-1"
                                                 >
                                                     <div className="text-truncate me-2" style={{ maxWidth: "160px" }}>
-                                                        <div className="fw-semibold text-dark fs-13 text-truncate">{proj.nombre}</div>
+                                                        <div className="fw-semibold text-body fs-13 text-truncate">{proj.nombre}</div>
                                                         <small className="text-muted fs-11">{proj.mi_rol || 'Sin rol'}</small>
                                                     </div>
                                                     {proj.id === localStorage.getItem("activeProjectId") && (
