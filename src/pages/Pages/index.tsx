@@ -26,6 +26,7 @@ import CalloutExtension from './CalloutExtension';
 import SlashCommands, { getSuggestionItems, renderItems } from './SlashCommands';
 import TopToolbar from './TopToolbar';
 import TableBubbleMenu from './TableBubbleMenu';
+import RightSidebar from './RightSidebar';
 import { APIClient } from '../../helpers/api_helper';
 import config from '../../config';
 import { toast } from 'react-toastify';
@@ -345,6 +346,9 @@ const Pages = () => {
                                         />
                                     </div>
                                 </div>
+
+                                {/* Right Sidebar */}
+                                <RightSidebar editor={editor} projectId={activeProjectId} pageId={selectedPageId} pageContent={pageContent} />
                             </div>
                         </>
                     )}

@@ -123,22 +123,6 @@ const TopToolbar = ({ editor }: { editor: any }) => {
                 </div>
             </div>
 
-            {/* Right Zone: Page Actions (UI Only) */}
-            <div className="d-flex align-items-center gap-2">
-                <Button color="primary" size="sm" className="px-3 rounded-pill fw-medium fs-12">Upgrade to publish</Button>
-                
-                <div className="d-flex gap-1 ms-1">
-                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 text-muted" title="Page is Private (You only)"><i className="ri-lock-line fs-15"></i></button>
-                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 text-muted" title="Share"><i className="ri-share-line fs-15"></i></button>
-                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 text-muted" title="Add to Favorites"><i className="ri-star-line fs-15"></i></button>
-                    <Dropdown isOpen={false} toggle={() => {}}>
-                        <DropdownToggle className="btn btn-sm btn-ghost-secondary px-2 py-1 text-muted">
-                            <i className="ri-more-fill fs-15"></i>
-                        </DropdownToggle>
-                        {/* More menu would go here */}
-                    </Dropdown>
-                </div>
-            </div>
         </div>
     );
 };
