@@ -1,7 +1,8 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { Container, Row, Col, Button, Input, Spinner, Offcanvas, OffcanvasHeader, OffcanvasBody } from 'reactstrap';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Button, Input, Spinner, Offcanvas, OffcanvasHeader, OffcanvasBody } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
@@ -9,6 +10,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import AttachmentPanel from '../../Components/Common/AttachmentPanel';
+import SlashCommands, { getSuggestionItems, renderItems } from './SlashCommands';
 import { APIClient } from '../../helpers/api_helper';
 import config from '../../config';
 import { toast } from 'react-toastify';
@@ -16,80 +18,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const api = APIClient;
 
-// ========== TipTap Editor Toolbar ==========
-const MenuBar = ({ editor, onOpenAssets }: { editor: any, onOpenAssets: () => void }) => {
-    if (!editor) return null;
-
-    const btnClass = (active: boolean) =>
-        `btn btn-sm ${active ? 'btn-soft-primary text-primary' : 'btn-ghost-secondary'} rounded-2`;
-
-    const addImage = () => {
-        const url = window.prompt('URL de la imagen:');
-        if (url) {
-            editor.chain().focus().setImage({ src: url }).run();
-        }
-    };
-
-    return (
-        <div className="d-flex align-items-center gap-1 p-2 sticky-top border-bottom z-1" style={{ top: 0, marginTop: '-1px', backgroundColor: 'var(--vz-card-bg-custom)' }}>
-            <div className="d-flex rounded p-1">
-                <button className={btnClass(editor.isActive('bold'))} onClick={() => editor.chain().focus().toggleBold().run()} title="Negrita">
-                    <i className="ri-bold"></i>
-                </button>
-                <button className={btnClass(editor.isActive('italic'))} onClick={() => editor.chain().focus().toggleItalic().run()} title="Cursiva">
-                    <i className="ri-italic"></i>
-                </button>
-                <button className={btnClass(editor.isActive('strike'))} onClick={() => editor.chain().focus().toggleStrike().run()} title="Tachado">
-                    <i className="ri-strikethrough"></i>
-                </button>
-                <button className={btnClass(editor.isActive('codeBlock'))} onClick={() => editor.chain().focus().toggleCodeBlock().run()} title="Bloque de Código">
-                    <i className="ri-code-box-line"></i>
-                </button>
-            </div>
-            
-            <div className="d-flex rounded p-1 ms-2 border-start border-end px-2">
-                <button className={btnClass(editor.isActive('heading', { level: 1 }))} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="H1">
-                    <i className="ri-h-1"></i>
-                </button>
-                <button className={btnClass(editor.isActive('heading', { level: 2 }))} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="H2">
-                    <i className="ri-h-2"></i>
-                </button>
-            </div>
-
-            <div className="d-flex rounded p-1 ms-2">
-                <button className={btnClass(editor.isActive('bulletList'))} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Lista">
-                    <i className="ri-list-unordered"></i>
-                </button>
-                <button className={btnClass(editor.isActive('taskList'))} onClick={() => editor.chain().focus().toggleTaskList().run()} title="Checklist">
-                    <i className="ri-checkbox-line"></i>
-                </button>
-                <button className={btnClass(editor.isActive('blockquote'))} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Cita">
-                    <i className="ri-double-quotes-l"></i>
-                </button>
-            </div>
-
-            <div className="d-flex rounded p-1 ms-2 border-start px-2">
-                <button className="btn btn-sm btn-ghost-secondary rounded-2" onClick={addImage} title="Insertar imagen por URL">
-                    <i className="ri-image-add-line"></i>
-                </button>
-                <button className="btn btn-sm btn-ghost-secondary rounded-2" onClick={onOpenAssets} title="Abrir Recursos (Archivos adjuntos)">
-                    <i className="ri-attachment-2"></i>
-                </button>
-            </div>
-            
-            <div className="ms-auto d-flex rounded p-1">
-                <button className="btn btn-sm btn-ghost-secondary rounded-2" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
-                    <i className="ri-arrow-go-back-line"></i>
-                </button>
-                <button className="btn btn-sm btn-ghost-secondary rounded-2" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
-                    <i className="ri-arrow-go-forward-line"></i>
-                </button>
-            </div>
-        </div>
-    );
-};
-
-// ========== Page Component ==========
 const Pages = () => {
     const queryClient = useQueryClient();
     const activeProjectId = localStorage.getItem('activeProjectId');
@@ -158,8 +86,6 @@ const Pages = () => {
                 const data = await res.json();
                 queryClient.invalidateQueries({ queryKey: ['attachments', activeProjectId, 'pagina', selectedPageId] });
                 return data.url_publica;
-            } else {
-                toast.error("Error del servidor al subir la imagen.");
             }
         } catch (e: any) {
             toast.error(`Error subiendo imagen: ${e.message}`);
@@ -176,16 +102,24 @@ const Pages = () => {
             TaskItem.configure({ nested: true }),
             Image.configure({ inline: false, allowBase64: true }),
             Link.configure({ openOnClick: true }),
+            SlashCommands.configure({
+                suggestion: {
+                    items: ({ query }) => {
+                        return getSuggestionItems().filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
+                    },
+                    render: renderItems,
+                },
+            }),
         ],
         content: '',
         onUpdate: ({ editor }) => {
-            // Debounced auto-save
+            // Debounced auto-save storing JSON
             if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
             saveTimerRef.current = setTimeout(() => {
                 if (selectedPageId) {
                     updatePageMutation.mutate({
                         id: selectedPageId,
-                        contenido: editor.getHTML(),
+                        contenido: JSON.stringify(editor.getJSON()),
                     });
                 }
             }, 1500);
@@ -238,8 +172,20 @@ const Pages = () => {
     // Set editor content when page changes
     useEffect(() => {
         if (pageContent && editor && pageContent.id === selectedPageId) {
-            editor.commands.setContent(pageContent.contenido || '');
             setTitleValue(pageContent.titulo || "Sin título");
+            
+            // Si el contenido existe, intentamos parsearlo como JSON. Si falla, asumimos que es el viejo HTML.
+            if (pageContent.contenido) {
+                try {
+                    const jsonContent = JSON.parse(pageContent.contenido);
+                    editor.commands.setContent(jsonContent);
+                } catch (e) {
+                    // Fallback para HTML (retrocompatibilidad)
+                    editor.commands.setContent(pageContent.contenido);
+                }
+            } else {
+                editor.commands.setContent('');
+            }
         }
     }, [pageContent, editor, selectedPageId]);
 
@@ -272,17 +218,19 @@ const Pages = () => {
             <div className="page-content p-0 d-flex overflow-hidden" style={{ height: 'calc(100vh - 70px)', backgroundColor: 'var(--vz-body-bg)' }}>
                 
                 {/* ======= Sidebar: Pages Tree ======= */}
-                <div className="border-end" style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--vz-card-bg-custom)' }}>
+                <div className="border-end" style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--vz-light)' }}>
                     <div className="p-3 border-bottom d-flex align-items-center justify-content-between">
                         <span className="fw-semibold text-uppercase fs-12 text-muted">
                             {activeProjectName}
                         </span>
-                        <Button color="light" size="sm" className="btn-icon p-0 bg-transparent border-0 text-muted" onClick={handleCreatePage}>
-                            <i className="ri-add-box-line fs-18"></i>
-                        </Button>
+                        <div className="d-flex gap-1">
+                            <Button color="light" size="sm" className="btn-icon p-0 bg-transparent border-0 text-muted hover-bg-soft-primary rounded" onClick={handleCreatePage}>
+                                <i className="ri-add-line fs-18"></i>
+                            </Button>
+                        </div>
                     </div>
                     
-                    <div className="flex-grow-1 overflow-auto py-2">
+                    <div className="flex-grow-1 overflow-auto py-2 px-2">
                         {isLoading ? (
                             <div className="text-center py-4"><Spinner size="sm" color="primary" /></div>
                         ) : pages.length === 0 ? (
@@ -294,14 +242,14 @@ const Pages = () => {
                                 {pages.map((page: any) => (
                                     <div
                                         key={page.id}
-                                        className={`list-group-item list-group-item-action d-flex align-items-center gap-2 border-0 px-3 py-2 ${
-                                            selectedPageId === page.id ? 'bg-soft-primary text-primary fw-medium' : 'bg-transparent text-body'
+                                        className={`list-group-item list-group-item-action d-flex align-items-center gap-2 border-0 px-2 py-1 mb-1 rounded ${
+                                            selectedPageId === page.id ? 'bg-soft-primary text-primary fw-semibold' : 'bg-transparent text-body hover-bg-soft-light'
                                         }`}
                                         onClick={() => setSelectedPageId(page.id)}
-                                        style={{ cursor: 'pointer', borderRadius: '4px', margin: '0 8px', marginBottom: '2px' }}
+                                        style={{ cursor: 'pointer' }}
                                     >
                                         <span className="fs-14">{page.icono || "📝"}</span>
-                                        <span className="flex-grow-1 text-truncate fs-14">
+                                        <span className="flex-grow-1 text-truncate fs-13">
                                             {page.titulo}
                                         </span>
                                     </div>
@@ -327,22 +275,26 @@ const Pages = () => {
                         </div>
                     ) : (
                         <>
-                            <MenuBar editor={editor} onOpenAssets={() => setIsAssetsOpen(true)} />
+                            {/* Toolbar (Only for Assets now, hidden from main view and moved to top right) */}
+                            <div className="position-absolute top-0 end-0 p-3 d-flex align-items-center gap-3 z-1">
+                                <span className="text-muted fs-12 fw-medium">
+                                    {updatePageMutation.isPending ? 'Guardando...' : 'Guardado'}
+                                </span>
+                                <Button color="light" className="bg-transparent border-0 text-muted p-1" onClick={() => setIsAssetsOpen(true)} title="Recursos">
+                                    <i className="ri-attachment-2 fs-18"></i>
+                                </Button>
+                                <Button color="danger" outline className="border-0 p-1 bg-transparent hover-bg-soft-danger" onClick={() => {
+                                    if (window.confirm("¿Estás seguro de eliminar esta página permanentemente?")) {
+                                        deletePageMutation.mutate(selectedPageId);
+                                    }
+                                }} title="Eliminar página">
+                                    <i className="ri-delete-bin-line fs-18"></i>
+                                </Button>
+                            </div>
                             
                             <div className="d-flex justify-content-center w-100 flex-grow-1">
-                                <div className="editor-content-wrapper px-4 py-5" style={{ width: '100%', maxWidth: '850px' }}>
+                                <div className="editor-content-wrapper px-4 py-5 mt-4" style={{ width: '100%', maxWidth: '850px' }}>
                                     
-                                    {/* Indicador de guardado flotante */}
-                                    <div className="position-absolute top-0 end-0 p-3 mt-5">
-                                        <span className="text-muted fs-12 fw-medium px-2 py-1 rounded-pill" style={{backgroundColor: 'var(--vz-light)'}}>
-                                            {updatePageMutation.isPending ? (
-                                                <><Spinner size="sm" className="me-1" style={{width: 10, height: 10}}/> Guardando...</>
-                                            ) : (
-                                                <><i className="ri-cloud-line me-1"></i> Sincronizado</>
-                                            )}
-                                        </span>
-                                    </div>
-
                                     {/* Título Gigante */}
                                     <Input
                                         type="text"
@@ -350,24 +302,41 @@ const Pages = () => {
                                         onChange={(e) => setTitleValue(e.target.value)}
                                         onBlur={handleTitleSave}
                                         placeholder="Sin título"
-                                        className="fw-bold bg-transparent border-0 p-0 mb-4 text-body"
-                                        style={{ fontSize: '3rem', boxShadow: 'none', lineHeight: '1.2' }}
+                                        className="fw-bold bg-transparent border-0 p-0 mb-4 text-body title-input-plane"
+                                        style={{ fontSize: '2.5rem', boxShadow: 'none', lineHeight: '1.2' }}
                                     />
 
                                     {/* Editor Principal */}
                                     <div className="tiptap-plane-theme">
+                                        {editor && (
+                                            <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubble-menu shadow-sm rounded-pill overflow-hidden border">
+                                                <button
+                                                    onClick={() => editor.chain().focus().toggleBold().run()}
+                                                    className={editor.isActive('bold') ? 'is-active' : ''}
+                                                >
+                                                    <i className="ri-bold"></i>
+                                                </button>
+                                                <button
+                                                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                                                    className={editor.isActive('italic') ? 'is-active' : ''}
+                                                >
+                                                    <i className="ri-italic"></i>
+                                                </button>
+                                                <button
+                                                    onClick={() => editor.chain().focus().toggleStrike().run()}
+                                                    className={editor.isActive('strike') ? 'is-active' : ''}
+                                                >
+                                                    <i className="ri-strikethrough"></i>
+                                                </button>
+                                                <button
+                                                    onClick={() => editor.chain().focus().toggleCode().run()}
+                                                    className={editor.isActive('code') ? 'is-active' : ''}
+                                                >
+                                                    <i className="ri-code-line"></i>
+                                                </button>
+                                            </BubbleMenu>
+                                        )}
                                         <EditorContent editor={editor} />
-                                    </div>
-
-                                    {/* Botón flotante para eliminar página al fondo */}
-                                    <div className="mt-5 pt-5 border-top border-dashed">
-                                        <Button color="danger" outline size="sm" className="rounded-pill border-0 mt-4 hover-bg-soft-danger" onClick={() => {
-                                            if (window.confirm("¿Estás seguro de eliminar esta página permanentemente?")) {
-                                                deletePageMutation.mutate(selectedPageId);
-                                            }
-                                        }}>
-                                            <i className="ri-delete-bin-line me-1"></i> Eliminar página
-                                        </Button>
                                     </div>
                                 </div>
                             </div>
@@ -404,23 +373,22 @@ const Pages = () => {
 
             {/* TipTap Plane/Notion Styles */}
             <style>{`
+                .title-input-plane::placeholder {
+                    color: var(--vz-text-muted) !important;
+                    opacity: 0.5;
+                }
                 .tiptap-plane-theme .tiptap {
                     outline: none;
                     min-height: 50vh;
-                    font-size: 1.15rem;
-                    line-height: 1.8;
+                    font-size: 1.05rem;
+                    line-height: 1.7;
                     color: var(--vz-body-color);
                     font-family: 'Inter', sans-serif;
                 }
-                .tiptap-plane-theme .tiptap p {
-                    margin-bottom: 1.2em;
-                }
-                .tiptap-plane-theme .tiptap > * + * {
-                    margin-top: 0.5em;
-                }
-                .tiptap-plane-theme .tiptap h1 { font-size: 2.2em; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
-                .tiptap-plane-theme .tiptap h2 { font-size: 1.6em; font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
-                .tiptap-plane-theme .tiptap h3 { font-size: 1.3em; font-weight: 600; margin-top: 1em; color: var(--vz-heading-color); }
+                .tiptap-plane-theme .tiptap p { margin-bottom: 0.8em; }
+                .tiptap-plane-theme .tiptap h1 { font-size: 2em; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
+                .tiptap-plane-theme .tiptap h2 { font-size: 1.5em; font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; color: var(--vz-heading-color); }
+                .tiptap-plane-theme .tiptap h3 { font-size: 1.25em; font-weight: 600; margin-top: 1em; color: var(--vz-heading-color); }
                 .tiptap-plane-theme .tiptap ul,
                 .tiptap-plane-theme .tiptap ol { padding-left: 1.5em; margin-bottom: 1em; }
                 .tiptap-plane-theme .tiptap code {
@@ -438,55 +406,49 @@ const Pages = () => {
                     overflow-x: auto;
                     font-size: 0.9em;
                 }
-                .tiptap-plane-theme .tiptap pre code {
-                    background: none;
-                    color: inherit;
-                    padding: 0;
-                }
+                .tiptap-plane-theme .tiptap pre code { background: none; color: inherit; padding: 0; }
                 .tiptap-plane-theme .tiptap blockquote {
                     border-left: 3px solid var(--vz-primary);
                     padding-left: 1.2em;
                     color: var(--vz-text-muted);
                     font-style: italic;
-                    margin-left: 0;
-                    margin-right: 0;
+                    margin-left: 0; margin-right: 0;
                     background: var(--vz-light);
-                    padding-top: 0.5em;
-                    padding-bottom: 0.5em;
+                    padding-top: 0.5em; padding-bottom: 0.5em;
                     border-radius: 0 4px 4px 0;
                 }
                 .tiptap-plane-theme .tiptap img {
-                    max-width: 100%;
-                    border-radius: 8px;
-                    display: block;
-                    margin: 2em auto;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    max-width: 100%; border-radius: 8px; display: block; margin: 2em auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                 }
-                .tiptap-plane-theme .tiptap img.ProseMirror-selectednode {
-                    outline: 3px solid var(--vz-primary);
-                }
-                .tiptap-plane-theme .tiptap ul[data-type="taskList"] {
-                    list-style: none;
-                    padding-left: 0;
-                }
-                .tiptap-plane-theme .tiptap ul[data-type="taskList"] li {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 0.5em;
-                    margin-bottom: 0.2em;
-                }
-                .tiptap-plane-theme .tiptap ul[data-type="taskList"] li label {
-                    margin-top: 0.2em;
-                }
+                .tiptap-plane-theme .tiptap img.ProseMirror-selectednode { outline: 3px solid var(--vz-primary); }
+                .tiptap-plane-theme .tiptap ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+                .tiptap-plane-theme .tiptap ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5em; margin-bottom: 0.2em; }
                 .tiptap-plane-theme .tiptap p.is-editor-empty:first-child::before {
-                    color: var(--vz-text-muted);
-                    content: attr(data-placeholder);
-                    float: left;
-                    height: 0;
-                    pointer-events: none;
+                    color: var(--vz-text-muted); content: attr(data-placeholder); float: left; height: 0; pointer-events: none;
                 }
-                .hover-bg-soft-danger:hover {
-                    background-color: var(--vz-danger-bg-subtle) !important;
+                .hover-bg-soft-danger:hover { background-color: var(--vz-danger-bg-subtle) !important; }
+                .hover-bg-soft-primary:hover { background-color: var(--vz-primary-bg-subtle) !important; color: var(--vz-primary) !important; }
+                .hover-bg-soft-light:hover { background-color: var(--vz-light) !important; }
+                
+                /* Bubble Menu */
+                .bubble-menu {
+                    display: flex;
+                    background-color: var(--vz-card-bg-custom);
+                    padding: 0.2rem;
+                }
+                .bubble-menu button {
+                    background: none;
+                    border: none;
+                    padding: 0.25rem 0.6rem;
+                    border-radius: 20px;
+                    color: var(--vz-body-color);
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .bubble-menu button:hover, .bubble-menu button.is-active {
+                    background-color: var(--vz-light);
+                    color: var(--vz-primary);
                 }
             `}</style>
         </React.Fragment>
