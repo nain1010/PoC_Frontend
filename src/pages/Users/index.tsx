@@ -12,6 +12,37 @@ import TableContainer from '../../Components/Common/TableContainer';
 
 const api = APIClient;
 
+const UserCard = React.memo(({ user, onEdit, onDelete }: { user: any, onEdit: (u: any) => void, onDelete: (u: any) => void }) => {
+    return (
+        <Col xl={3} lg={4} md={6} className="mb-4">
+            <Card className="shadow-sm border-0 ribbon-box ribbon-fill right h-100">
+                {user.rol_global === 'Administrador' ? (
+                    <div className="ribbon ribbon-danger"><i className="ri-shield-star-line"></i> Admin</div>
+                ) : (
+                    <div className="ribbon ribbon-primary"><i className="ri-user-settings-line"></i> Miembro</div>
+                )}
+                <CardBody className="p-4 text-center d-flex flex-column">
+                    <div className="mx-auto avatar-md mb-3 mt-3">
+                        <div className="avatar-title bg-light text-primary rounded-circle fs-24">
+                            {user.nombre_completo ? user.nombre_completo.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                    </div>
+                    <h5 className="fs-16 mb-1 text-truncate">
+                        <span className="text-body fw-semibold">{user.nombre_completo}</span>
+                    </h5>
+                    <p className="text-muted mb-2 text-truncate">{user.email}</p>
+                    <div className="mt-auto pt-3">
+                        <div className="d-flex justify-content-center gap-2">
+                            <Button color="light" size="sm" onClick={() => onEdit(user)} title="Editar"><i className="ri-pencil-line"></i></Button>
+                            <Button color="danger" outline size="sm" onClick={() => onDelete(user)} title="Eliminar"><i className="ri-delete-bin-line"></i></Button>
+                        </div>
+                    </div>
+                </CardBody>
+            </Card>
+        </Col>
+    );
+});
+
 const UserManagement = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -23,6 +54,16 @@ const UserManagement = () => {
     const [selectedUser, setSelectedUser] = useState<any | null>(null);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [userToDelete, setUserToDelete] = useState<any | null>(null);
+
+    const [usersViewMode, setUsersViewMode] = useState<'grid' | 'table'>(
+        (localStorage.getItem("usersViewMode") as 'grid' | 'table') || 'grid'
+    );
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const handleUsersViewModeChange = (mode: 'grid' | 'table') => {
+        setUsersViewMode(mode);
+        localStorage.setItem("usersViewMode", mode);
+    };
 
     const checkAdminAccess = () => {
         const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
@@ -51,6 +92,16 @@ const UserManagement = () => {
         },
         select: (data: any) => data || [],
     });
+
+    const filteredUsers = useMemo(() => {
+        if (!searchQuery) return users;
+        const q = searchQuery.toLowerCase();
+        return users.filter((u: any) => 
+            u.nombre_completo?.toLowerCase().includes(q) || 
+            u.email?.toLowerCase().includes(q) ||
+            u.id?.toLowerCase().includes(q)
+        );
+    }, [users, searchQuery]);
 
     const invalidateUsers = useCallback(() => queryClient.invalidateQueries({ queryKey: ['users'] }), [queryClient]);
 
@@ -267,36 +318,83 @@ const UserManagement = () => {
                             <h5 className="fs-16 mb-0">Usuarios Registrados</h5>
                             <p className="text-muted mb-0">Administra los accesos y roles globales de la plataforma.</p>
                         </div>
-                        <Button color="success" className="btn btn-success" onClick={toggleCreateModal}>
-                            <i className="ri-user-add-line align-bottom me-1"></i> <span>Registrar Usuario</span>
-                        </Button>
+                        <div className="d-flex align-items-center gap-2">
+                            <div className="search-box me-2 d-none d-md-block">
+                                <input 
+                                    type="text" 
+                                    className="form-control" 
+                                    placeholder="Buscar usuario..." 
+                                    value={searchQuery} 
+                                    onChange={(e) => setSearchQuery(e.target.value)} 
+                                />
+                                <i className="ri-search-line search-icon"></i>
+                            </div>
+                            <div className="btn-group" role="group">
+                                <Button 
+                                    color={usersViewMode === 'grid' ? "primary" : "light"}
+                                    onClick={() => handleUsersViewModeChange('grid')}
+                                    title="Vista de Tarjetas"
+                                >
+                                    <i className="ri-grid-fill"></i>
+                                </Button>
+                                <Button 
+                                    color={usersViewMode === 'table' ? "primary" : "light"}
+                                    onClick={() => handleUsersViewModeChange('table')}
+                                    title="Vista de Tabla"
+                                >
+                                    <i className="ri-list-unordered"></i>
+                                </Button>
+                            </div>
+                            <Button color="success" className="btn btn-success" onClick={toggleCreateModal}>
+                                <i className="ri-user-add-line align-bottom me-1"></i> <span>Registrar</span>
+                            </Button>
+                        </div>
                     </div>
 
                     <Row className="mb-4">
                         <Col lg={12}>
-                            <Card className="shadow-sm border-0">
-                                <CardBody>
-                                    {isLoading ? (
-                                        <div className="text-center my-5">
-                                            <Spinner color="primary" />
-                                            <p className="text-muted mt-2"><span>Cargando usuarios...</span></p>
+                            {isLoading ? (
+                                <div className="text-center my-5">
+                                    <Spinner color="primary" />
+                                    <p className="text-muted mt-2"><span>Cargando usuarios...</span></p>
+                                </div>
+                            ) : error ? (
+                                <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
+                            ) : filteredUsers.length === 0 ? (
+                                <div className="text-center py-5 my-5">
+                                    <div className="avatar-xl mx-auto mb-4">
+                                        <div className="avatar-title bg-light text-primary rounded-circle display-4">
+                                            <i className="ri-user-search-line"></i>
                                         </div>
-                                    ) : error ? (
-                                        <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
-                                    ) : (
+                                    </div>
+                                    <h4>No se encontraron usuarios</h4>
+                                </div>
+                            ) : usersViewMode === 'table' ? (
+                                <Card className="shadow-sm border-0">
+                                    <CardBody>
                                         <TableContainer
                                             columns={columns}
-                                            data={users}
-                                            isGlobalFilter={true}
+                                            data={filteredUsers}
+                                            isGlobalFilter={false}
                                             customPageSize={10}
-                                            SearchPlaceholder="Buscar por nombre, email o ID..."
                                             tableClass="align-middle table-nowrap table-hover"
                                             theadClass="table-light"
                                             divClass="table-responsive"
                                         />
-                                    )}
-                                </CardBody>
-                            </Card>
+                                    </CardBody>
+                                </Card>
+                            ) : (
+                                <Row>
+                                    {filteredUsers.map((user: any) => (
+                                        <UserCard
+                                            key={user.id}
+                                            user={user}
+                                            onEdit={handleEditClick}
+                                            onDelete={handleDeleteUser}
+                                        />
+                                    ))}
+                                </Row>
+                            )}
                         </Col>
                     </Row>
                 </Container>

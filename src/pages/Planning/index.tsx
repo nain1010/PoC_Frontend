@@ -126,8 +126,25 @@ const Planning = () => {
     const [memberToDelete, setMemberToDelete] = useState<any>(null);
 
     // View modes
-    const [backlogViewMode, setBacklogViewMode] = useState<'grid' | 'table'>('grid');
-    const [sprintViewMode, setSprintViewMode] = useState<'grid' | 'table'>('grid');
+    const [backlogViewMode, setBacklogViewMode] = useState<'grid' | 'table'>(
+        (localStorage.getItem("backlogViewMode") as 'grid' | 'table') || 'grid'
+    );
+    const [sprintViewMode, setSprintViewMode] = useState<'grid' | 'table'>(
+        (localStorage.getItem("sprintViewMode") as 'grid' | 'table') || 'grid'
+    );
+
+    const [backlogSearchQuery, setBacklogSearchQuery] = useState("");
+    const [sprintSearchQuery, setSprintSearchQuery] = useState("");
+
+    const handleBacklogViewModeChange = (mode: 'grid' | 'table') => {
+        setBacklogViewMode(mode);
+        localStorage.setItem("backlogViewMode", mode);
+    };
+
+    const handleSprintViewModeChange = (mode: 'grid' | 'table') => {
+        setSprintViewMode(mode);
+        localStorage.setItem("sprintViewMode", mode);
+    };
 
     const toggleStoryModal = useCallback(() => {
         if (storyModal) {
@@ -636,6 +653,25 @@ const Planning = () => {
         [projectDetails?.sprints]
     );
 
+    const filteredBacklogStories = useMemo(() => {
+        if (!backlogSearchQuery) return backlogStories;
+        const q = backlogSearchQuery.toLowerCase();
+        return backlogStories.filter((s: any) => 
+            s.correlativo?.toLowerCase().includes(q) || 
+            s.titulo?.toLowerCase().includes(q) ||
+            s.estado?.toLowerCase().includes(q)
+        );
+    }, [backlogStories, backlogSearchQuery]);
+
+    const filteredSprints = useMemo(() => {
+        if (!sprintSearchQuery) return planningSprints;
+        const q = sprintSearchQuery.toLowerCase();
+        return planningSprints.filter((s: any) => 
+            s.nombre?.toLowerCase().includes(q) ||
+            s.estado?.toLowerCase().includes(q)
+        );
+    }, [planningSprints, sprintSearchQuery]);
+
     const backlogColumns = useMemo(() => [
         {
             header: 'Código',
@@ -775,10 +811,14 @@ const Planning = () => {
                                         <h6 className="card-title mb-0 fw-bold text-muted">
                                             Product Backlog ({backlogStories.length})
                                         </h6>
-                                        <div className="d-flex gap-2">
+                                        <div className="d-flex gap-2 align-items-center">
+                                            <div className="search-box me-1 d-none d-xl-block" style={{width: '150px'}}>
+                                                <input type="text" className="form-control form-control-sm" placeholder="Buscar..." value={backlogSearchQuery} onChange={(e) => setBacklogSearchQuery(e.target.value)} />
+                                                <i className="ri-search-line search-icon mt-n1"></i>
+                                            </div>
                                             <div className="btn-group" role="group">
-                                                <Button color={backlogViewMode === 'grid' ? "primary" : "light"} size="sm" onClick={() => setBacklogViewMode('grid')}><i className="ri-grid-fill"></i></Button>
-                                                <Button color={backlogViewMode === 'table' ? "primary" : "light"} size="sm" onClick={() => setBacklogViewMode('table')}><i className="ri-list-unordered"></i></Button>
+                                                <Button color={backlogViewMode === 'grid' ? "primary" : "light"} size="sm" onClick={() => handleBacklogViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
+                                                <Button color={backlogViewMode === 'table' ? "primary" : "light"} size="sm" onClick={() => handleBacklogViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
                                             </div>
                                             <Button color="success" size="sm" className="btn-sm" onClick={handleOpenCreateStory}>
                                                 <i className="ri-add-line align-middle me-1"></i> Crear
@@ -786,7 +826,7 @@ const Planning = () => {
                                         </div>
                                     </div>
                                     <CardBody className="p-3" style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
-                                        {backlogStories.length === 0 ? (
+                                        {filteredBacklogStories.length === 0 ? (
                                             <div className="text-center py-5 text-muted">
                                                 <i className="ri-inbox-line display-4 mb-2 d-inline-block"></i>
                                                 <p className="mb-0">El backlog está vacío.</p>
@@ -795,16 +835,15 @@ const Planning = () => {
                                         ) : backlogViewMode === 'table' ? (
                                             <TableContainer
                                                 columns={backlogColumns}
-                                                data={backlogStories || []}
-                                                isGlobalFilter={true}
+                                                data={filteredBacklogStories || []}
+                                                isGlobalFilter={false}
                                                 customPageSize={10}
                                                 divClass="table-responsive table-card mb-0"
                                                 tableClass="align-middle table-nowrap mb-0"
                                                 theadClass="table-light text-muted"
-                                                SearchPlaceholder="Buscar historia..."
                                             />
                                         ) : (
-                                            backlogStories.map((story: any) => (
+                                            filteredBacklogStories.map((story: any) => (
                                                 <BacklogStoryCard
                                                     key={story.id}
                                                     story={story}
@@ -825,10 +864,14 @@ const Planning = () => {
                                 <Card className="shadow-sm border-0 h-100">
                                     <div className="card-header bg-light border-0 d-flex justify-content-between align-items-center p-3">
                                         <h6 className="card-title mb-0 fw-bold text-muted">Planificación de Sprints</h6>
-                                        <div className="d-flex gap-2">
+                                        <div className="d-flex gap-2 align-items-center">
+                                            <div className="search-box me-1 d-none d-md-block" style={{width: '150px'}}>
+                                                <input type="text" className="form-control form-control-sm" placeholder="Buscar sprint..." value={sprintSearchQuery} onChange={(e) => setSprintSearchQuery(e.target.value)} />
+                                                <i className="ri-search-line search-icon mt-n1"></i>
+                                            </div>
                                             <div className="btn-group" role="group">
-                                                <Button color={sprintViewMode === 'grid' ? "primary" : "light"} size="sm" onClick={() => setSprintViewMode('grid')}><i className="ri-grid-fill"></i></Button>
-                                                <Button color={sprintViewMode === 'table' ? "primary" : "light"} size="sm" onClick={() => setSprintViewMode('table')}><i className="ri-list-unordered"></i></Button>
+                                                <Button color={sprintViewMode === 'grid' ? "primary" : "light"} size="sm" onClick={() => handleSprintViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
+                                                <Button color={sprintViewMode === 'table' ? "primary" : "light"} size="sm" onClick={() => handleSprintViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
                                             </div>
                                             <Button color="soft-primary" size="sm" className="btn-sm" onClick={toggleMemberModal}>
                                                 <i className="ri-group-line align-middle me-1"></i> Miembros
@@ -839,7 +882,7 @@ const Planning = () => {
                                         </div>
                                     </div>
                                     <CardBody className="p-3" style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
-                                        {planningSprints.length === 0 ? (
+                                        {filteredSprints.length === 0 ? (
                                             <div className="text-center py-5 text-muted">
                                                 <i className="ri-compass-line display-4 mb-2 d-inline-block"></i>
                                                 <p className="mb-0">No hay Sprints planificados.</p>
@@ -848,16 +891,15 @@ const Planning = () => {
                                         ) : sprintViewMode === 'table' ? (
                                             <TableContainer
                                                 columns={sprintColumns}
-                                                data={planningSprints || []}
-                                                isGlobalFilter={true}
+                                                data={filteredSprints || []}
+                                                isGlobalFilter={false}
                                                 customPageSize={5}
                                                 divClass="table-responsive table-card mb-0"
                                                 tableClass="align-middle table-nowrap mb-0"
                                                 theadClass="table-light text-muted"
-                                                SearchPlaceholder="Buscar sprint..."
                                             />
                                         ) : (
-                                            planningSprints.map((sprint: any) => {
+                                            filteredSprints.map((sprint: any) => {
                                                 const sprintStories = projectDetails?.historias_usuario?.filter((s: any) => s.sprint_id === sprint.id) || [];
                                                 const totalPoints = sprintStories.reduce((acc: number, item: any) => acc + (item.esfuerzo_estimado || 0), 0);
 

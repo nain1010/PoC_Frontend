@@ -134,13 +134,31 @@ const Projects = () => {
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [projectToDelete, setProjectToDelete] = useState<any>(null);
-    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>(
+        (localStorage.getItem("projectsViewMode") as 'grid' | 'table') || 'grid'
+    );
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const handleViewModeChange = (mode: 'grid' | 'table') => {
+        setViewMode(mode);
+        localStorage.setItem("projectsViewMode", mode);
+    };
 
     const { data: projects = [], isLoading, error } = useQuery({
         queryKey: ['projects'],
         queryFn: () => api.get("/projects"),
         select: (data: any) => data || [],
     });
+
+    const filteredProjects = useMemo(() => {
+        if (!searchQuery) return projects;
+        const q = searchQuery.toLowerCase();
+        return projects.filter((p: any) => 
+            p.nombre?.toLowerCase().includes(q) || 
+            p.descripcion?.toLowerCase().includes(q) ||
+            p.mi_rol?.toLowerCase().includes(q)
+        );
+    }, [projects, searchQuery]);
 
     const createMutation = useMutation({
         mutationFn: (values: any) => api.create("/projects", values),
@@ -330,17 +348,27 @@ const Projects = () => {
                             <p className="text-muted mb-0">Listado de proyectos y equipos activos.</p>
                         </div>
                         <div className="d-flex align-items-center gap-2">
+                            <div className="search-box me-2 d-none d-md-block">
+                                <input 
+                                    type="text" 
+                                    className="form-control" 
+                                    placeholder="Buscar proyecto..." 
+                                    value={searchQuery} 
+                                    onChange={(e) => setSearchQuery(e.target.value)} 
+                                />
+                                <i className="ri-search-line search-icon"></i>
+                            </div>
                             <div className="btn-group" role="group">
                                 <Button 
                                     color={viewMode === 'grid' ? "primary" : "light"}
-                                    onClick={() => setViewMode('grid')}
+                                    onClick={() => handleViewModeChange('grid')}
                                     title="Vista de Tarjetas"
                                 >
                                     <i className="ri-grid-fill"></i>
                                 </Button>
                                 <Button 
                                     color={viewMode === 'table' ? "primary" : "light"}
-                                    onClick={() => setViewMode('table')}
+                                    onClick={() => handleViewModeChange('table')}
                                     title="Vista de Tabla"
                                 >
                                     <i className="ri-list-unordered"></i>
@@ -359,26 +387,25 @@ const Projects = () => {
                         </div>
                     ) : error ? (
                         <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
-                    ) : projects.length === 0 ? (
+                    ) : filteredProjects.length === 0 ? (
                         emptyState
                     ) : viewMode === 'table' ? (
                         <Card>
                             <CardBody>
                                 <TableContainer
                                     columns={columns}
-                                    data={projects || []}
-                                    isGlobalFilter={true}
+                                    data={filteredProjects || []}
+                                    isGlobalFilter={false}
                                     customPageSize={10}
                                     divClass="table-responsive table-card mb-3"
                                     tableClass="align-middle table-nowrap mb-0"
                                     theadClass="table-light text-muted"
-                                    SearchPlaceholder="Buscar proyecto..."
                                 />
                             </CardBody>
                         </Card>
                     ) : (
                         <Row>
-                            {projects.map((project: any) => (
+                            {filteredProjects.map((project: any) => (
                                 <ProjectCard
                                     key={project.id}
                                     project={project}
