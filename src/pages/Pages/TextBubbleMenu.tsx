@@ -14,6 +14,27 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
     const queryClient = useQueryClient();
     const activeProjectId = localStorage.getItem('activeProjectId');
 
+    const convertToTaskMutation = useMutation({
+        mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/stories`, payload),
+        onSuccess: (res: any) => {
+            queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
+            if (editor) {
+                // Reemplazar texto seleccionado por el "chip" de la mención de TipTap
+                editor.chain().focus().insertContent({
+                    type: 'mention',
+                    attrs: {
+                        id: `[${res.correlativo}] ${res.titulo}`,
+                        label: `[${res.correlativo}] ${res.titulo}`,
+                    }
+                }).run();
+            }
+            toast.success("Historia/Tarea creada exitosamente", { position: "top-center" });
+        },
+        onError: () => {
+            toast.error("Error al crear la tarea.", { position: "top-center" });
+        }
+    });
+
     if (!editor) return null;
 
     const toggleDropdown = () => setDropdownOpen(prevState => !prevState);
@@ -34,25 +55,6 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
 
         editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     };
-
-    const convertToTaskMutation = useMutation({
-        mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/stories`, payload),
-        onSuccess: (res: any) => {
-            queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
-            // Reemplazar texto seleccionado por el "chip" de la mención de TipTap
-            editor.chain().focus().insertContent({
-                type: 'mention',
-                attrs: {
-                    id: `[${res.correlativo}] ${res.titulo}`,
-                    label: `[${res.correlativo}] ${res.titulo}`,
-                }
-            }).run();
-            toast.success("Historia/Tarea creada exitosamente", { position: "top-center" });
-        },
-        onError: () => {
-            toast.error("Error al crear la tarea.", { position: "top-center" });
-        }
-    });
 
     const handleConvertToTask = () => {
         if (!activeProjectId) {
