@@ -1,12 +1,46 @@
 import React from 'react';
 import { Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 
-const TopToolbar = ({ editor }: { editor: any }) => {
+const TopToolbar = ({ 
+    editor, 
+    isLocked, 
+    toggleLock, 
+    isFullWidth, 
+    toggleFullWidth 
+}: { 
+    editor: any, 
+    isLocked?: boolean, 
+    toggleLock?: () => void, 
+    isFullWidth?: boolean, 
+    toggleFullWidth?: () => void 
+}) => {
     const [blockDropdownOpen, setBlockDropdownOpen] = React.useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = React.useState(false);
     const [alignDropdownOpen, setAlignDropdownOpen] = React.useState(false);
 
     if (!editor) return null;
+
+    if (isLocked) {
+        return (
+            <div className="d-flex align-items-center justify-content-between p-2 border-bottom sticky-top z-3" style={{ backgroundColor: 'var(--vz-card-bg-custom)', top: 0, marginTop: '-1px' }}>
+                <div className="text-muted fs-13 d-flex align-items-center gap-2">
+                    <i className="ri-lock-2-line text-warning"></i> Página bloqueada (Solo lectura)
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                    {toggleFullWidth && (
+                        <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={toggleFullWidth} title={isFullWidth ? "Contraer" : "Ancho Completo"}>
+                            <i className={isFullWidth ? "ri-collapse-diagonal-line" : "ri-expand-diagonal-line"}></i>
+                        </button>
+                    )}
+                    {toggleLock && (
+                        <button className="btn btn-sm btn-soft-primary px-2 py-1" onClick={toggleLock} title="Desbloquear página">
+                            Desbloquear
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     const getActiveBlockName = () => {
         if (editor.isActive('heading', { level: 1 })) return 'Heading 1';
@@ -121,6 +155,20 @@ const TopToolbar = ({ editor }: { editor: any }) => {
                     <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={() => editor.chain().focus().toggleCodeBlock().run()} title="Code Block"><i className="ri-code-box-line"></i></button>
                     <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Table"><i className="ri-table-line"></i></button>
                 </div>
+            </div>
+
+            {/* Right Zone: View Controls */}
+            <div className="d-flex align-items-center gap-2">
+                {toggleFullWidth && (
+                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={toggleFullWidth} title={isFullWidth ? "Contraer" : "Ancho Completo"}>
+                        <i className={isFullWidth ? "ri-collapse-diagonal-line" : "ri-expand-diagonal-line"}></i>
+                    </button>
+                )}
+                {toggleLock && (
+                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 text-muted" onClick={toggleLock} title="Bloquear página">
+                        <i className="ri-lock-unlock-line"></i>
+                    </button>
+                )}
             </div>
 
         </div>

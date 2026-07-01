@@ -38,6 +38,57 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const api = APIClient;
 
+const PageTreeNode = ({ page, allPages, selectedPageId, onSelect, onCreateSubpage }: any) => {
+    const [expanded, setExpanded] = useState(true);
+    const children = allPages.filter((p: any) => p.padre_id === page.id).sort((a: any, b: any) => a.orden - b.orden);
+    const hasChildren = children.length > 0;
+    const isSelected = selectedPageId === page.id;
+
+    return (
+        <div className="w-100">
+            <div
+                className={`d-flex align-items-center gap-1 border-0 px-1 py-1 mb-1 rounded ${
+                    isSelected ? 'bg-soft-primary text-primary fw-semibold' : 'bg-transparent text-body hover-bg-soft-light'
+                }`}
+                style={{ cursor: 'pointer', paddingLeft: '4px' }}
+            >
+                <div 
+                    className="d-flex align-items-center justify-content-center text-muted" 
+                    style={{ width: '16px', cursor: 'pointer' }}
+                    onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                >
+                    {hasChildren ? (
+                        <i className={expanded ? "ri-arrow-down-s-line" : "ri-arrow-right-s-line"}></i>
+                    ) : <span style={{ width: '16px' }}></span>}
+                </div>
+                <div className="d-flex align-items-center gap-2 flex-grow-1 overflow-hidden" onClick={() => onSelect(page.id)}>
+                    <span className="fs-14 opacity-75">{page.icono || "📝"}</span>
+                    <span className="flex-grow-1 text-truncate fs-13">{page.titulo}</span>
+                </div>
+                <div className="page-actions d-flex align-items-center opacity-50 hover-opacity-100">
+                    <button className="btn btn-sm btn-link p-0 text-muted hover-text-primary" onClick={(e) => { e.stopPropagation(); setExpanded(true); onCreateSubpage(page.id); }} title="Añadir subpágina">
+                        <i className="ri-add-line fs-14"></i>
+                    </button>
+                </div>
+            </div>
+            {expanded && hasChildren && (
+                <div className="ms-3 border-start border-1 ps-1 border-light">
+                    {children.map((child: any) => (
+                        <PageTreeNode 
+                            key={child.id} 
+                            page={child} 
+                            allPages={allPages} 
+                            selectedPageId={selectedPageId} 
+                            onSelect={onSelect} 
+                            onCreateSubpage={onCreateSubpage} 
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const Pages = () => {
     const queryClient = useQueryClient();
     const activeProjectId = localStorage.getItem('activeProjectId');
@@ -45,7 +96,24 @@ const Pages = () => {
 
     const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
     const [titleValue, setTitleValue] = useState("");
+    const [isFullWidth, setIsFullWidth] = useState(() => localStorage.getItem('pages_full_width') === 'true');
     const saveTimerRef = useRef<any>(null);
+
+    const toggleFullWidth = () => {
+        setIsFullWidth(prev => {
+            const next = !prev;
+            localStorage.setItem('pages_full_width', String(next));
+            return next;
+        });
+    };
+
+    const toggleLock = () => {
+        if (!selectedPageId) return;
+        updatePageMutation.mutate({
+            id: selectedPageId,
+            is_locked: !pageContent?.is_locked,
+        });
+    };
 
     // ---- Queries ----
     const { data: pages = [], isLoading } = useQuery({
@@ -206,6 +274,9 @@ const Pages = () => {
         if (pageContent && editor && pageContent.id === selectedPageId) {
             setTitleValue(pageContent.titulo || "Sin título");
             
+            // Set editable state dynamically
+            editor.setEditable(!pageContent.is_locked);
+            
             if (pageContent.contenido) {
                 try {
                     const jsonContent = JSON.parse(pageContent.contenido);
@@ -221,8 +292,8 @@ const Pages = () => {
     }, [pageContent, editor, selectedPageId]);
 
     // ---- Handlers ----
-    const handleCreatePage = useCallback(() => {
-        createPageMutation.mutate({ titulo: "Nueva página", icono: "📝" });
+    const handleCreatePage = useCallback((parentId: string | null = null) => {
+        createPageMutation.mutate({ titulo: "Nueva página", icono: "📝", padre_id: typeof parentId === 'string' ? parentId : null });
     }, [createPageMutation]);
 
     const handleTitleSave = useCallback(() => {
@@ -233,7 +304,7 @@ const Pages = () => {
 
     document.title = `Documentación | Luma - ${activeProjectName || 'Scrum'}`;
 
-    if (!activeProjectId) {
+    if (false) {
         return (
             <div className="page-content d-flex flex-column align-items-center justify-content-center" style={{ height: '100vh', padding: '70px 0 0 0', backgroundColor: 'var(--vz-body-bg)' }}>
                 <div className="text-center text-muted">
@@ -270,20 +341,15 @@ const Pages = () => {
                             </div>
                         ) : (
                             <div className="list-group list-group-flush border-0">
-                                {pages.map((page: any) => (
-                                    <div
+                                {pages.filter((p: any) => !p.padre_id).sort((a: any, b: any) => a.orden - b.orden).map((page: any) => (
+                                    <PageTreeNode 
                                         key={page.id}
-                                        className={`list-group-item list-group-item-action d-flex align-items-center gap-2 border-0 px-2 py-1 mb-1 rounded ${
-                                            selectedPageId === page.id ? 'bg-soft-primary text-primary fw-semibold' : 'bg-transparent text-body hover-bg-soft-light'
-                                        }`}
-                                        onClick={() => setSelectedPageId(page.id)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <span className="fs-14 opacity-75">{page.icono || "📝"}</span>
-                                        <span className="flex-grow-1 text-truncate fs-13">
-                                            {page.titulo}
-                                        </span>
-                                    </div>
+                                        page={page}
+                                        allPages={pages}
+                                        selectedPageId={selectedPageId}
+                                        onSelect={setSelectedPageId}
+                                        onCreateSubpage={handleCreatePage}
+                                    />
                                 ))}
                             </div>
                         )}
@@ -307,12 +373,18 @@ const Pages = () => {
                     ) : (
                         <>
                             {/* Plane-like Top Toolbar */}
-                            <TopToolbar editor={editor} />
+                            <TopToolbar 
+                                editor={editor}
+                                isLocked={pageContent?.is_locked}
+                                toggleLock={toggleLock}
+                                isFullWidth={isFullWidth}
+                                toggleFullWidth={toggleFullWidth}
+                            />
                             
                             <div className="d-flex flex-grow-1 w-100 h-100 overflow-hidden">
                                 {/* Editor Central Area */}
                                 <div className="flex-grow-1 d-flex justify-content-center overflow-auto" style={{ scrollBehavior: 'smooth' }}>
-                                    <div className="editor-content-wrapper px-4 py-5" style={{ width: '100%', maxWidth: '850px' }}>
+                                    <div className="editor-content-wrapper px-4 py-5" style={{ width: '100%', maxWidth: isFullWidth ? '100%' : '850px', transition: 'max-width 0.3s ease' }}>
                                         
                                         {/* Título Gigante */}
                                         <Input
