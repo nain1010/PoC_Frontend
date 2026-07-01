@@ -15,8 +15,10 @@ import CalloutExtension from './Pages/CalloutExtension';
 import AttachmentExtension from './Pages/AttachmentExtension';
 import { ColumnExtensions } from './Pages/ColumnExtension';
 import VideoExtension from './Pages/VideoExtension';
-import { MathExtension } from './Pages/MathExtension';
-import { api } from '../helpers/api_helper';
+import { MathExtensions } from './Pages/MathExtension';
+import { APIClient } from '../helpers/api_helper';
+
+const api = APIClient;
 
 const PublicPage = () => {
     const { token } = useParams<{ token: string }>();
@@ -58,7 +60,7 @@ const PublicPage = () => {
             AttachmentExtension,
             ...ColumnExtensions,
             VideoExtension,
-            MathExtension,
+            ...MathExtensions,
         ],
         content: '',
         editable: false,
