@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Modal, ModalHeader, ModalBody, Button, Spinner } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from '../../helpers/api_helper';
-const api = APIClient;
 import { toast } from 'react-toastify';
 
+const api = APIClient;
 interface PageSelectorModalProps {
     isOpen: boolean;
     toggle: () => void;

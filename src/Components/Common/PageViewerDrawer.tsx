@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Offcanvas, OffcanvasHeader, OffcanvasBody, Button, Spinner } from 'reactstrap';
 import { useQuery } from '@tanstack/react-query';
 import { APIClient } from '../../helpers/api_helper';
-const api = APIClient;
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Table } from '@tiptap/extension-table';
@@ -23,6 +22,8 @@ import CustomImage from '../../pages/Pages/CustomImageExtension';
 import AttachmentExtension from '../../pages/Pages/AttachmentExtension';
 import VideoExtension from '../../pages/Pages/VideoExtension';
 import Link from '@tiptap/extension-link';
+
+const api = APIClient;
 
 interface PageViewerDrawerProps {
     isOpen: boolean;
