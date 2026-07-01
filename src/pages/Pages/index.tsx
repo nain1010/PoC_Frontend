@@ -135,42 +135,6 @@ const Pages = () => {
         enabled: !!selectedPageId && !!activeProjectId,
     });
 
-    // ---- Block Anchor Logic ----
-    const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
-    const [hoveredBlockPos, setHoveredBlockPos] = useState({ top: 0, left: 0 });
-    const isEditable = !pageContent?.is_locked;
-
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!editor || editor.isDestroyed || !isEditable) return;
-            
-            // Find closest block with an ID
-            const target = e.target as HTMLElement;
-            const block = target.closest('[id^="block-"]') as HTMLElement;
-            
-            if (block) {
-                const rect = block.getBoundingClientRect();
-                setHoveredBlockId(block.id);
-                setHoveredBlockPos({
-                    top: rect.top + window.scrollY,
-                    left: rect.left - 24, // 24px a la izquierda
-                });
-            } else {
-                setHoveredBlockId(null);
-            }
-        };
-
-        document.addEventListener('mousemove', handleMouseMove);
-        return () => document.removeEventListener('mousemove', handleMouseMove);
-    }, [editor, isEditable]);
-
-    const handleCopyAnchor = () => {
-        if (hoveredBlockId) {
-            const url = `${window.location.origin}${window.location.pathname}#${hoveredBlockId}`;
-            navigator.clipboard.writeText(url);
-            toast.success("Enlace del bloque copiado al portapapeles", { position: "top-center" });
-        }
-    };
 
     // ---- Mutations ----
     const createPageMutation = useMutation({
@@ -324,6 +288,43 @@ const Pages = () => {
             }
         }
     });
+
+    // ---- Block Anchor Logic ----
+    const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
+    const [hoveredBlockPos, setHoveredBlockPos] = useState({ top: 0, left: 0 });
+    const isEditable = !pageContent?.is_locked;
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!editor || editor.isDestroyed || !isEditable) return;
+            
+            // Find closest block with an ID
+            const target = e.target as HTMLElement;
+            const block = target.closest('[id^="block-"]') as HTMLElement;
+            
+            if (block) {
+                const rect = block.getBoundingClientRect();
+                setHoveredBlockId(block.id);
+                setHoveredBlockPos({
+                    top: rect.top + window.scrollY,
+                    left: rect.left - 24, // 24px a la izquierda
+                });
+            } else {
+                setHoveredBlockId(null);
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        return () => document.removeEventListener('mousemove', handleMouseMove);
+    }, [editor, isEditable]);
+
+    const handleCopyAnchor = () => {
+        if (hoveredBlockId) {
+            const url = `${window.location.origin}${window.location.pathname}#${hoveredBlockId}`;
+            navigator.clipboard.writeText(url);
+            toast.success("Enlace del bloque copiado al portapapeles", { position: "top-center" });
+        }
+    };
 
     // Set editor content when page changes
     useEffect(() => {
