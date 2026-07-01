@@ -62,16 +62,26 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
             return;
         }
         
-        const selection = editor.state.selection;
-        const text = editor.state.doc.textBetween(selection.from, selection.to, ' ');
-        if (!text || text.trim() === '') return;
+        const { from, to } = editor.state.selection;
+        const text = editor.state.doc.textBetween(from, to, ' ');
+        if (!text || text.trim().length === 0) {
+            toast.warning("Selecciona algún texto válido para convertir.");
+            return;
+        }
 
-        convertToTaskMutation.mutate({
-            correlativo: `DOC-${Math.floor(Math.random() * 10000)}`,
+        const payload = {
             titulo: text.substring(0, 50),
-            narrativa: text,
-            criterios_aceptacion: []
-        });
+            descripcion: text,
+        };
+        convertToTaskMutation.mutate(payload);
+    };
+
+    const handleAddComment = () => {
+        const commentId = `comment-${Math.random().toString(36).substr(2, 9)}`;
+        editor.chain().focus().setComment(commentId).run();
+        // Here we could emit an event to open the right sidebar
+        const event = new CustomEvent('open-comment-sidebar', { detail: { commentId } });
+        document.dispatchEvent(event);
     };
 
     const getActiveTextType = () => {
@@ -115,7 +125,18 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                 </DropdownMenu>
             </Dropdown>
 
-            <div className="vr opacity-25 mx-1" style={{ height: '16px', backgroundColor: '#fff' }}></div>
+            <div className="vr bg-secondary opacity-25 mx-1" style={{ width: '1px' }}></div>
+            
+            <button
+                type="button"
+                className="btn btn-sm btn-ghost-secondary px-2 text-white d-flex align-items-center gap-1"
+                onClick={handleAddComment}
+                title="Añadir comentario"
+            >
+                <i className="ri-chat-1-line fs-14"></i>
+            </button>
+
+            <div className="vr bg-secondary opacity-25 mx-1" style={{ width: '1px' }}></div>
 
             {/* Link */}
             <button 

@@ -7,6 +7,19 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
     const [headings, setHeadings] = useState<any[]>([]);
     const [stats, setStats] = useState({ words: 0, chars: 0, paragraphs: 0, readTime: 0 });
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const handleOpenComment = (e: any) => {
+            setActiveTab('comments');
+            setIsCollapsed(false);
+            if (e.detail?.commentId) {
+                setActiveCommentId(e.detail.commentId);
+            }
+        };
+        document.addEventListener('open-comment-sidebar', handleOpenComment);
+        return () => document.removeEventListener('open-comment-sidebar', handleOpenComment);
+    }, []);
 
     useEffect(() => {
         if (!editor) return;
@@ -99,6 +112,11 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
                     <NavItem>
                         <NavLink className={`px-2 py-1 fs-12 fw-medium ${activeTab === 'assets' ? 'active shadow-sm bg-white text-body' : 'text-muted bg-transparent'}`} onClick={() => setActiveTab('assets')} style={{ cursor: 'pointer', borderRadius: '4px' }}>
                             Assets
+                        </NavLink>
+                    </NavItem>
+                    <NavItem>
+                        <NavLink className={`px-2 py-1 fs-12 fw-medium ${activeTab === 'comments' ? 'active shadow-sm bg-white text-body' : 'text-muted bg-transparent'}`} onClick={() => setActiveTab('comments')} style={{ cursor: 'pointer', borderRadius: '4px' }}>
+                            <i className="ri-chat-3-line"></i>
                         </NavLink>
                     </NavItem>
                 </Nav>

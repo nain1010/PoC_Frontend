@@ -6,13 +6,19 @@ const TopToolbar = ({
     isLocked, 
     toggleLock, 
     isFullWidth, 
-    toggleFullWidth 
+    toggleFullWidth,
+    isPublic,
+    publicToken,
+    togglePublish
 }: { 
     editor: any, 
     isLocked?: boolean, 
     toggleLock?: () => void, 
     isFullWidth?: boolean, 
-    toggleFullWidth?: () => void 
+    toggleFullWidth?: () => void,
+    isPublic?: boolean,
+    publicToken?: string,
+    togglePublish?: () => void
 }) => {
     const [blockDropdownOpen, setBlockDropdownOpen] = React.useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = React.useState(false);
@@ -160,6 +166,32 @@ const TopToolbar = ({
 
             {/* Right Zone: View Controls */}
             <div className="d-flex align-items-center gap-2">
+                
+                {/* Publish to Web */}
+                {togglePublish && (
+                    <div className="d-flex align-items-center border-end pe-2 me-1">
+                        <button 
+                            className={`btn btn-sm px-2 py-1 d-flex align-items-center gap-1 ${isPublic ? 'btn-success text-white' : 'btn-ghost-secondary text-muted'}`} 
+                            onClick={togglePublish} 
+                            title={isPublic ? "Página pública" : "Publicar en la Web"}
+                        >
+                            <i className={isPublic ? "ri-global-line" : "ri-earth-line"}></i>
+                            <span className="fs-12 d-none d-sm-inline">{isPublic ? "Pública" : "Publicar"}</span>
+                        </button>
+                        {isPublic && publicToken && (
+                            <button 
+                                className="btn btn-sm btn-ghost-secondary px-2"
+                                title="Copiar enlace público"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(`${window.location.origin}/public/p/${publicToken}`);
+                                }}
+                            >
+                                <i className="ri-file-copy-line fs-14"></i>
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {toggleFullWidth && (
                     <button className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1" onClick={toggleFullWidth} title={isFullWidth ? "Contraer" : "Ancho Completo"}>
                         <i className={isFullWidth ? "ri-collapse-diagonal-line" : "ri-expand-diagonal-line"}></i>

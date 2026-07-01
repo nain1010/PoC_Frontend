@@ -13,14 +13,16 @@ import Link from '@tiptap/extension-link';
 // Nuevas extensiones avanzadas
 import { Table } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
-import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
-import Highlight from '@tiptap/extension-highlight';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { UniqueId } from './UniqueIdExtension';
+import { CommentMark } from './CommentMark';
 import CalloutExtension from './CalloutExtension';
+import Highlight from '@tiptap/extension-highlight';
 import AttachmentExtension from './AttachmentExtension';
 import { ColumnExtensions } from './ColumnExtension';
 import VideoExtension from './VideoExtension';
@@ -133,6 +135,43 @@ const Pages = () => {
         enabled: !!selectedPageId && !!activeProjectId,
     });
 
+    // ---- Block Anchor Logic ----
+    const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
+    const [hoveredBlockPos, setHoveredBlockPos] = useState({ top: 0, left: 0 });
+    const isEditable = !pageContent?.is_locked;
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!editor || editor.isDestroyed || !isEditable) return;
+            
+            // Find closest block with an ID
+            const target = e.target as HTMLElement;
+            const block = target.closest('[id^="block-"]') as HTMLElement;
+            
+            if (block) {
+                const rect = block.getBoundingClientRect();
+                setHoveredBlockId(block.id);
+                setHoveredBlockPos({
+                    top: rect.top + window.scrollY,
+                    left: rect.left - 24, // 24px a la izquierda
+                });
+            } else {
+                setHoveredBlockId(null);
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        return () => document.removeEventListener('mousemove', handleMouseMove);
+    }, [editor, isEditable]);
+
+    const handleCopyAnchor = () => {
+        if (hoveredBlockId) {
+            const url = `${window.location.origin}${window.location.pathname}#${hoveredBlockId}`;
+            navigator.clipboard.writeText(url);
+            toast.success("Enlace del bloque copiado al portapapeles", { position: "top-center" });
+        }
+    };
+
     // ---- Mutations ----
     const createPageMutation = useMutation({
         mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/pages`, payload),
@@ -193,6 +232,8 @@ const Pages = () => {
             TableRow,
             TableHeader,
             TableCell,
+            UniqueId,
+            CommentMark,
             TextAlign.configure({ types: ['heading', 'paragraph'] }),
             Underline,
             TextStyle,
@@ -298,13 +339,27 @@ const Pages = () => {
                         const jsonContent = JSON.parse(pageContent.contenido);
                         editor.commands.setContent(jsonContent);
                     } catch (e) {
-                        // Fallback para HTML (retrocompatibilidad)
                         editor.commands.setContent(pageContent.contenido);
                     }
                 } else {
                     editor.commands.setContent('');
                 }
                 lastLoadedPageId.current = selectedPageId;
+                
+                // Scroll to hash if present (Block Links)
+                setTimeout(() => {
+                    if (window.location.hash) {
+                        const id = window.location.hash.substring(1);
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            element.classList.add('bg-warning', 'bg-opacity-25');
+                            setTimeout(() => {
+                                element.classList.remove('bg-warning', 'bg-opacity-25');
+                            }, 2000);
+                        }
+                    }
+                }, 100);
             }
         }
     }, [pageContent, editor, selectedPageId]);
@@ -390,13 +445,15 @@ const Pages = () => {
                         </div>
                     ) : (
                         <>
-                            {/* Plane-like Top Toolbar */}
                             <TopToolbar 
-                                editor={editor}
+                                editor={editor} 
                                 isLocked={pageContent?.is_locked}
-                                toggleLock={toggleLock}
+                                toggleLock={() => updatePageMutation.mutate({ is_locked: !pageContent?.is_locked })}
                                 isFullWidth={isFullWidth}
-                                toggleFullWidth={toggleFullWidth}
+                                toggleFullWidth={() => setIsFullWidth(!isFullWidth)}
+                                isPublic={pageContent?.is_public}
+                                publicToken={pageContent?.public_token}
+                                togglePublish={() => updatePageMutation.mutate({ is_public: !pageContent?.is_public })}
                             />
                             
                             <div className="d-flex flex-grow-1 w-100 h-100 overflow-hidden">
@@ -421,9 +478,30 @@ const Pages = () => {
                                                 <>
                                                     <TextBubbleMenu editor={editor} />
                                                     <TableBubbleMenu editor={editor} />
+                                                    <EditorContent editor={editor} />
+                                                    
+                                                    {/* Block Anchor Icon */}
+                                                    {hoveredBlockId && isEditable && (
+                                                        <div 
+                                                            className="position-absolute"
+                                                            style={{
+                                                                top: hoveredBlockPos.top,
+                                                                left: hoveredBlockPos.left,
+                                                                cursor: 'pointer',
+                                                                zIndex: 50,
+                                                                opacity: 0.5,
+                                                                transition: 'opacity 0.2s',
+                                                            }}
+                                                            onClick={handleCopyAnchor}
+                                                            title="Copiar enlace a este bloque"
+                                                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+                                                        >
+                                                            <i className="ri-links-line fs-5"></i>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
-                                            <EditorContent editor={editor} />
                                         </div>
                                         
                                         {/* Hidden File Input for Image Upload */}

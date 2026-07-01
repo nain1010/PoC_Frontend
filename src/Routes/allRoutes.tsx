@@ -19,6 +19,7 @@ const Analytics = React.lazy(() => import("../pages/Analytics"));
 const UserManagement = React.lazy(() => import("../pages/Users"));
 const Chat = React.lazy(() => import("../pages/Chat"));
 const Pages = React.lazy(() => import("../pages/Pages"));
+const PublicPage = React.lazy(() => import("../pages/PublicPage"));
 
 
 const authProtectedRoutes = [
@@ -57,7 +58,9 @@ const publicRoutes = [
   { path: "/auth-404-alt", component: <Alt404 /> },
   { path: "/auth-500", component: <Error500 /> },
   { path: "/auth-offline", component: <Offlinepage /> },
-
+  
+  // Public Pages
+  { path: "/public/p/:token", component: <PublicPage /> },
 ];
 
 export { authProtectedRoutes, publicRoutes };
