@@ -100,6 +100,7 @@ const Pages = () => {
     const [titleValue, setTitleValue] = useState("");
     const [isFullWidth, setIsFullWidth] = useState(() => localStorage.getItem('pages_full_width') === 'true');
     const saveTimerRef = useRef<any>(null);
+    const lastLoadedPageId = useRef<string | null>(null);
 
     const toggleFullWidth = () => {
         setIsFullWidth(prev => {
@@ -291,16 +292,19 @@ const Pages = () => {
             // Set editable state dynamically
             editor.setEditable(!pageContent.is_locked);
             
-            if (pageContent.contenido) {
-                try {
-                    const jsonContent = JSON.parse(pageContent.contenido);
-                    editor.commands.setContent(jsonContent);
-                } catch (e) {
-                    // Fallback para HTML (retrocompatibilidad)
-                    editor.commands.setContent(pageContent.contenido);
+            if (lastLoadedPageId.current !== selectedPageId) {
+                if (pageContent.contenido) {
+                    try {
+                        const jsonContent = JSON.parse(pageContent.contenido);
+                        editor.commands.setContent(jsonContent);
+                    } catch (e) {
+                        // Fallback para HTML (retrocompatibilidad)
+                        editor.commands.setContent(pageContent.contenido);
+                    }
+                } else {
+                    editor.commands.setContent('');
                 }
-            } else {
-                editor.commands.setContent('');
+                lastLoadedPageId.current = selectedPageId;
             }
         }
     }, [pageContent, editor, selectedPageId]);
