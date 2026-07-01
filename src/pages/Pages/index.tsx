@@ -329,12 +329,11 @@ const Pages = () => {
     // Set editor content when page changes
     useEffect(() => {
         if (pageContent && editor && pageContent.id === selectedPageId) {
-            setTitleValue(pageContent.titulo || "Sin título");
-            
             // Set editable state dynamically
             editor.setEditable(!pageContent.is_locked);
             
             if (lastLoadedPageId.current !== selectedPageId) {
+                setTitleValue(pageContent.titulo || "Sin título");
                 if (pageContent.contenido) {
                     try {
                         const jsonContent = JSON.parse(pageContent.contenido);
