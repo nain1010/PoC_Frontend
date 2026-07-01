@@ -24,17 +24,18 @@ const TopToolbar = ({
         return (
             <div className="d-flex align-items-center justify-content-between p-2 border-bottom sticky-top z-3" style={{ backgroundColor: 'var(--vz-card-bg-custom)', top: 0, marginTop: '-1px' }}>
                 <div className="text-muted fs-13 d-flex align-items-center gap-2">
-                    <i className="ri-lock-2-line text-warning"></i> Página bloqueada (Solo lectura)
+                    <i className="ri-lock-2-line text-warning"></i> <span className="fw-medium text-body">Página bloqueada (Solo lectura)</span>
                 </div>
                 <div className="d-flex align-items-center gap-2">
                     {toggleFullWidth && (
-                        <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={toggleFullWidth} title={isFullWidth ? "Contraer" : "Ancho Completo"}>
+                        <button className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1" onClick={toggleFullWidth} title={isFullWidth ? "Contraer" : "Ancho Completo"}>
                             <i className={isFullWidth ? "ri-collapse-diagonal-line" : "ri-expand-diagonal-line"}></i>
+                            <span className="fs-12">{isFullWidth ? "Contraer ancho" : "Ancho completo"}</span>
                         </button>
                     )}
                     {toggleLock && (
-                        <button className="btn btn-sm btn-soft-primary px-2 py-1" onClick={toggleLock} title="Desbloquear página">
-                            Desbloquear
+                        <button className="btn btn-sm btn-outline-primary px-3 py-1 d-flex align-items-center gap-1" onClick={toggleLock} title="Desbloquear página">
+                            <i className="ri-lock-unlock-line"></i> Desbloquear
                         </button>
                     )}
                 </div>
@@ -160,13 +161,15 @@ const TopToolbar = ({
             {/* Right Zone: View Controls */}
             <div className="d-flex align-items-center gap-2">
                 {toggleFullWidth && (
-                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={toggleFullWidth} title={isFullWidth ? "Contraer" : "Ancho Completo"}>
+                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1" onClick={toggleFullWidth} title={isFullWidth ? "Contraer" : "Ancho Completo"}>
                         <i className={isFullWidth ? "ri-collapse-diagonal-line" : "ri-expand-diagonal-line"}></i>
+                        <span className="fs-12 d-none d-sm-inline">{isFullWidth ? "Contraer" : "Ancho completo"}</span>
                     </button>
                 )}
                 {toggleLock && (
-                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 text-muted" onClick={toggleLock} title="Bloquear página">
-                        <i className="ri-lock-unlock-line"></i>
+                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1 text-muted" onClick={toggleLock} title="Bloquear página">
+                        <i className="ri-lock-line"></i>
+                        <span className="fs-12 d-none d-sm-inline">Bloquear</span>
                     </button>
                 )}
             </div>

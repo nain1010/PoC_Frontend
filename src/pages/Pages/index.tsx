@@ -143,8 +143,14 @@ const Pages = () => {
 
     const updatePageMutation = useMutation({
         mutationFn: (payload: any) => api.put(`/projects/${activeProjectId}/pages/${payload.id}`, payload),
-        onSuccess: () => {
+        onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
+            if (variables.id === selectedPageId) {
+                queryClient.invalidateQueries({ queryKey: ['page', selectedPageId] });
+            }
+            if (variables.is_locked !== undefined) {
+                toast.info(variables.is_locked ? "Página bloqueada (Solo lectura)" : "Página desbloqueada", { position: "top-center" });
+            }
         },
     });
 
