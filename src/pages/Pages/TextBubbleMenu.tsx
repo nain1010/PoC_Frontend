@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 // @ts-ignore
 import { BubbleMenu } from '@tiptap/react/menus';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { APIClient } from '../../helpers/api_helper';
+import { toast } from 'react-toastify';
+
+const api = APIClient;
 
 const TextBubbleMenu = ({ editor }: { editor: any }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
+    const queryClient = useQueryClient();
+    const activeProjectId = localStorage.getItem('activeProjectId');
 
     if (!editor) return null;
 
@@ -26,6 +33,43 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
         }
 
         editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    };
+
+    const convertToTaskMutation = useMutation({
+        mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/stories`, payload),
+        onSuccess: (res: any) => {
+            queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
+            // Reemplazar texto seleccionado por el "chip" de la mención de TipTap
+            editor.chain().focus().insertContent({
+                type: 'mention',
+                attrs: {
+                    id: `[${res.correlativo}] ${res.titulo}`,
+                    label: `[${res.correlativo}] ${res.titulo}`,
+                }
+            }).run();
+            toast.success("Historia/Tarea creada exitosamente", { position: "top-center" });
+        },
+        onError: () => {
+            toast.error("Error al crear la tarea.", { position: "top-center" });
+        }
+    });
+
+    const handleConvertToTask = () => {
+        if (!activeProjectId) {
+            toast.warning("Debe haber un proyecto activo para crear tareas.");
+            return;
+        }
+        
+        const selection = editor.state.selection;
+        const text = editor.state.doc.textBetween(selection.from, selection.to, ' ');
+        if (!text || text.trim() === '') return;
+
+        convertToTaskMutation.mutate({
+            correlativo: `DOC-${Math.floor(Math.random() * 10000)}`,
+            titulo: text.substring(0, 50),
+            narrativa: text,
+            criterios_aceptacion: []
+        });
     };
 
     const getActiveTextType = () => {
@@ -127,6 +171,19 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                 <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`menu-btn rounded ${editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}`}><i className="ri-align-center"></i></button>
                 <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`menu-btn rounded ${editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}`}><i className="ri-align-right"></i></button>
             </div>
+
+            <div className="vr opacity-25 mx-1" style={{ height: '16px', backgroundColor: '#fff' }}></div>
+
+            {/* Convert to Task */}
+            <button
+                onClick={handleConvertToTask}
+                className="menu-btn rounded d-flex align-items-center gap-1 text-info"
+                title="Convertir a Tarea"
+                disabled={convertToTaskMutation.isPending}
+            >
+                {convertToTaskMutation.isPending ? <i className="ri-loader-4-line ri-spin"></i> : <i className="ri-task-line"></i>}
+                <span className="fs-12 d-none d-sm-inline">a Tarea</span>
+            </button>
 
             <style>{`
                 .hover-bg-dark:hover { background-color: rgba(255,255,255,0.1); }

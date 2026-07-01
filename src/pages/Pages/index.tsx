@@ -26,6 +26,8 @@ import { ColumnExtensions } from './ColumnExtension';
 import VideoExtension from './VideoExtension';
 import { MathExtensions } from './MathExtension';
 import EmojiCommands, { getEmojiSuggestionItems, renderEmojiItems } from './EmojiCommands';
+import Mention from '@tiptap/extension-mention';
+import { getSuggestionConfig } from './suggestion';
 
 import SlashCommands, { getSuggestionItems, renderItems } from './SlashCommands';
 import TopToolbar from './TopToolbar';
@@ -207,6 +209,12 @@ const Pages = () => {
                     },
                     render: renderEmojiItems,
                 },
+            }),
+            Mention.configure({
+                HTMLAttributes: {
+                    class: 'mention bg-soft-primary text-primary px-1 rounded fw-medium text-decoration-none',
+                },
+                suggestion: getSuggestionConfig(activeProjectId || ""),
             }),
             SlashCommands.configure({
                 suggestion: {
