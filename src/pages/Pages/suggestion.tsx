@@ -1,7 +1,7 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
-import APIClient from '../../helpers/api_helper';
+import { APIClient } from '../../helpers/api_helper';
 
 const api = APIClient;
 
