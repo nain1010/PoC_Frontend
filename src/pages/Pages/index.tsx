@@ -2,8 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Button, Input, Spinner } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEditor, EditorContent } from '@tiptap/react';
-// @ts-ignore
-import { BubbleMenu } from '@tiptap/react/menus';
+import TextBubbleMenu from './TextBubbleMenu';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
@@ -313,13 +312,7 @@ const Pages = () => {
                                         <div className="tiptap-plane-theme">
                                             {editor && (
                                                 <>
-                                                    <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bubble-menu shadow-sm rounded-pill overflow-hidden border">
-                                                        <button onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}><i className="ri-bold"></i></button>
-                                                        <button onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}><i className="ri-italic"></i></button>
-                                                        <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor.isActive('underline') ? 'is-active' : ''}><i className="ri-underline"></i></button>
-                                                        <button onClick={() => editor.chain().focus().toggleStrike().run()} className={editor.isActive('strike') ? 'is-active' : ''}><i className="ri-strikethrough"></i></button>
-                                                        <button onClick={() => editor.chain().focus().toggleCode().run()} className={editor.isActive('code') ? 'is-active' : ''}><i className="ri-code-line"></i></button>
-                                                    </BubbleMenu>
+                                                    <TextBubbleMenu editor={editor} />
                                                     <TableBubbleMenu editor={editor} />
                                                 </>
                                             )}
