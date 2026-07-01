@@ -61,11 +61,11 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                     {getActiveTextType()} <i className="ri-arrow-down-s-line fs-14"></i>
                 </DropdownToggle>
                 <DropdownMenu className="shadow-lg border-0 bg-dark p-1" style={{ minWidth: '150px' }}>
-                    <DropdownItem className="text-light hover-bg-soft-light rounded px-3 py-2" onClick={() => editor.chain().focus().setParagraph().run()}>Text</DropdownItem>
-                    <DropdownItem className="text-light hover-bg-soft-light rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>Heading 1</DropdownItem>
-                    <DropdownItem className="text-light hover-bg-soft-light rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>Heading 2</DropdownItem>
-                    <DropdownItem className="text-light hover-bg-soft-light rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>Heading 3</DropdownItem>
-                    <DropdownItem className="text-light hover-bg-soft-light rounded px-3 py-2" onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code Block</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().setParagraph().run()}>Text</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>Heading 1</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>Heading 2</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>Heading 3</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code Block</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
 
@@ -91,8 +91,8 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                     {colors.map(color => (
                         <div 
                             key={color.value}
-                            className="d-flex align-items-center gap-2 px-2 py-1 rounded hover-bg-soft-light"
-                            style={{ cursor: 'pointer', fontSize: '13px', color: '#e9ecef' }}
+                            className="d-flex align-items-center gap-2 px-2 py-1 rounded menu-dropdown-item"
+                            style={{ cursor: 'pointer', fontSize: '13px' }}
                             onClick={() => {
                                 if (color.value === 'inherit') {
                                     editor.chain().focus().unsetColor().run();
@@ -146,6 +146,15 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                 .menu-btn.is-active {
                     background-color: var(--vz-primary);
                     color: #ffffff;
+                }
+                .menu-dropdown-item {
+                    color: #d1d5db !important;
+                    background-color: transparent !important;
+                    transition: all 0.2s ease;
+                }
+                .menu-dropdown-item:hover {
+                    background-color: rgba(255,255,255,0.1) !important;
+                    color: #ffffff !important;
                 }
             `}</style>
         </BubbleMenu>

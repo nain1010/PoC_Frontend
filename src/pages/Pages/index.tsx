@@ -21,6 +21,11 @@ import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Highlight from '@tiptap/extension-highlight';
 import CalloutExtension from './CalloutExtension';
+import AttachmentExtension from './AttachmentExtension';
+import { ColumnExtensions } from './ColumnExtension';
+import VideoExtension from './VideoExtension';
+import { MathExtensions } from './MathExtension';
+import EmojiCommands, { getEmojiSuggestionItems, renderEmojiItems } from './EmojiCommands';
 
 import SlashCommands, { getSuggestionItems, renderItems } from './SlashCommands';
 import TopToolbar from './TopToolbar';
@@ -117,6 +122,18 @@ const Pages = () => {
             Color,
             Highlight.configure({ multicolor: true }),
             CalloutExtension,
+            AttachmentExtension,
+            ...ColumnExtensions,
+            VideoExtension,
+            ...MathExtensions,
+            EmojiCommands.configure({
+                suggestion: {
+                    items: ({ query }: any) => {
+                        return getEmojiSuggestionItems().filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
+                    },
+                    render: renderEmojiItems,
+                },
+            }),
             SlashCommands.configure({
                 suggestion: {
                     items: ({ query }) => {
@@ -332,9 +349,46 @@ const Pages = () => {
                                                         if (url && editor) {
                                                             editor.chain().focus().setImage({ src: url }).run();
                                                         }
-                                                        e.target.value = '';
                                                     });
                                                 }
+                                                e.target.value = '';
+                                            }}
+                                        />
+
+                                        {/* Hidden File Input for Generic Attachment */}
+                                        <input
+                                            type="file"
+                                            id="tiptap-file-upload"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    const file = e.target.files[0];
+                                                    uploadImage(file).then(url => {
+                                                        if (url && editor) {
+                                                            editor.chain().focus().setAttachment({ src: url, filename: file.name, filesize: file.size }).run();
+                                                        }
+                                                    });
+                                                }
+                                                e.target.value = '';
+                                            }}
+                                        />
+
+                                        {/* Hidden File Input for Video Upload */}
+                                        <input
+                                            type="file"
+                                            id="tiptap-video-upload"
+                                            accept="video/*"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    const file = e.target.files[0];
+                                                    uploadImage(file).then(url => {
+                                                        if (url && editor) {
+                                                            editor.chain().focus().setVideo({ src: url, isYouTube: false }).run();
+                                                        }
+                                                    });
+                                                }
+                                                e.target.value = '';
                                             }}
                                         />
                                     </div>

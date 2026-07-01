@@ -157,6 +157,56 @@ export const getSuggestionItems = () => {
                 document.getElementById('tiptap-image-upload')?.click();
             },
         },
+        {
+            title: 'Archivo Adjunto',
+            description: 'Subir archivo (PDF, DOCX, ZIP).',
+            icon: 'ri-attachment-line',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).run();
+                document.getElementById('tiptap-file-upload')?.click();
+            },
+        },
+        {
+            title: 'Video',
+            description: 'Subir video o enlazar.',
+            icon: 'ri-video-line',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).run();
+                document.getElementById('tiptap-video-upload')?.click();
+            },
+        },
+        {
+            title: '2 Columnas',
+            description: 'Layout en 2 columnas.',
+            icon: 'ri-layout-column-line',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setColumns(2).run();
+            },
+        },
+        {
+            title: '3 Columnas',
+            description: 'Layout en 3 columnas.',
+            icon: 'ri-layout-column-line',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setColumns(3).run();
+            },
+        },
+        {
+            title: '4 Columnas',
+            description: 'Layout en 4 columnas.',
+            icon: 'ri-layout-column-line',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setColumns(4).run();
+            },
+        },
+        {
+            title: 'Ecuación Matemática',
+            description: 'Insertar bloque LaTeX.',
+            icon: 'ri-functions',
+            command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setBlockEquation().run();
+            },
+        },
     ];
 };
 

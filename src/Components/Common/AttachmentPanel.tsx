@@ -72,7 +72,7 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
             formData.append('data', file);
 
             try {
-                await fetch(
+                const response = await fetch(
                     `${config.api.API_URL}/projects/${projectId}/attachments/?entity_type=${entityType}&entity_id=${entityId}`,
                     {
                         method: 'POST',
@@ -82,9 +82,17 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
                         body: formData,
                     }
                 );
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Upload error response:", response.status, errorText);
+                    throw new Error(`Error ${response.status}: ${errorText}`);
+                }
+                
                 setUploadProgress(Math.round(((i + 1) / acceptedFiles.length) * 100));
             } catch (err: any) {
-                toast.error(`Error subiendo ${file.name}`, { position: "top-right" });
+                console.error("Upload exception:", err);
+                toast.error(`Error subiendo ${file.name}: ${err.message}`, { position: "top-right" });
             }
         }
 
