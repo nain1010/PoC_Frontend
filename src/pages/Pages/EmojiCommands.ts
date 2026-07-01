@@ -3,6 +3,9 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import { EmojiList } from './EmojiList';
+import { PluginKey } from '@tiptap/pm/state';
+
+export const emojiSuggestionPluginKey = new PluginKey('emojiSuggestion');
 
 export default Extension.create({
     name: 'emojiCommands',
@@ -10,6 +13,7 @@ export default Extension.create({
         return {
             suggestion: {
                 char: ':',
+                pluginKey: emojiSuggestionPluginKey,
                 command: ({ editor, range, props }) => {
                     editor.chain().focus().deleteRange(range).insertContent(props.emoji).run();
                 },
