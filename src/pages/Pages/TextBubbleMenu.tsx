@@ -57,7 +57,7 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
             
             {/* Text Type Dropdown */}
             <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown} direction="down">
-                <DropdownToggle tag="div" className="d-flex align-items-center gap-1 px-2 py-1 rounded hover-bg-dark" style={{ cursor: 'pointer', fontSize: '13px' }}>
+                <DropdownToggle tag="div" className="menu-btn d-flex align-items-center gap-1 rounded" style={{ cursor: 'pointer' }}>
                     {getActiveTextType()} <i className="ri-arrow-down-s-line fs-14"></i>
                 </DropdownToggle>
                 <DropdownMenu className="shadow-lg border-0 bg-dark p-1" style={{ minWidth: '150px' }}>
@@ -74,8 +74,7 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
             {/* Link */}
             <button 
                 onClick={setLink} 
-                className={`btn btn-sm btn-ghost-light p-1 px-2 text-light rounded d-flex align-items-center gap-1 ${editor.isActive('link') ? 'bg-primary border-primary' : 'border-0'}`}
-                style={{ fontSize: '13px' }}
+                className={`menu-btn rounded d-flex align-items-center gap-1 ${editor.isActive('link') ? 'is-active' : ''}`}
             >
                 Link <i className="ri-links-line"></i>
             </button>
@@ -84,7 +83,7 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
 
             {/* Color */}
             <Dropdown isOpen={colorDropdownOpen} toggle={toggleColorDropdown} direction="down">
-                <DropdownToggle tag="div" className="btn btn-sm btn-ghost-light p-1 px-2 text-light rounded d-flex align-items-center gap-1 border-0" style={{ cursor: 'pointer', fontSize: '13px' }}>
+                <DropdownToggle tag="div" className="menu-btn rounded d-flex align-items-center gap-1" style={{ cursor: 'pointer' }}>
                     Color <i className="ri-font-color border border-secondary rounded px-1" style={{ fontSize: '11px', padding: '1px' }}></i>
                 </DropdownToggle>
                 <DropdownMenu className="shadow-lg border-0 bg-dark p-2" style={{ minWidth: '150px', zIndex: 1050 }}>
@@ -114,23 +113,40 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
 
             {/* Formatting */}
             <div className="d-flex align-items-center gap-1">
-                <button onClick={() => editor.chain().focus().toggleBold().run()} className={`btn btn-sm p-1 rounded border-0 ${editor.isActive('bold') ? 'btn-primary' : 'btn-ghost-light text-light'}`}><i className="ri-bold"></i></button>
-                <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`btn btn-sm p-1 rounded border-0 ${editor.isActive('italic') ? 'btn-primary' : 'btn-ghost-light text-light'}`}><i className="ri-italic"></i></button>
-                <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`btn btn-sm p-1 rounded border-0 ${editor.isActive('underline') ? 'btn-primary' : 'btn-ghost-light text-light'}`}><i className="ri-underline"></i></button>
-                <button onClick={() => editor.chain().focus().toggleStrike().run()} className={`btn btn-sm p-1 rounded border-0 ${editor.isActive('strike') ? 'btn-primary' : 'btn-ghost-light text-light'}`}><i className="ri-strikethrough"></i></button>
+                <button onClick={() => editor.chain().focus().toggleBold().run()} className={`menu-btn rounded ${editor.isActive('bold') ? 'is-active' : ''}`}><i className="ri-bold"></i></button>
+                <button onClick={() => editor.chain().focus().toggleItalic().run()} className={`menu-btn rounded ${editor.isActive('italic') ? 'is-active' : ''}`}><i className="ri-italic"></i></button>
+                <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={`menu-btn rounded ${editor.isActive('underline') ? 'is-active' : ''}`}><i className="ri-underline"></i></button>
+                <button onClick={() => editor.chain().focus().toggleStrike().run()} className={`menu-btn rounded ${editor.isActive('strike') ? 'is-active' : ''}`}><i className="ri-strikethrough"></i></button>
             </div>
 
             <div className="vr opacity-25 mx-1" style={{ height: '16px', backgroundColor: '#fff' }}></div>
 
             {/* Alignment */}
             <div className="d-flex align-items-center gap-1">
-                <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={`btn btn-sm p-1 rounded border-0 ${editor.isActive({ textAlign: 'left' }) ? 'btn-primary' : 'btn-ghost-light text-light'}`}><i className="ri-align-left"></i></button>
-                <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`btn btn-sm p-1 rounded border-0 ${editor.isActive({ textAlign: 'center' }) ? 'btn-primary' : 'btn-ghost-light text-light'}`}><i className="ri-align-center"></i></button>
-                <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`btn btn-sm p-1 rounded border-0 ${editor.isActive({ textAlign: 'right' }) ? 'btn-primary' : 'btn-ghost-light text-light'}`}><i className="ri-align-right"></i></button>
+                <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={`menu-btn rounded ${editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}`}><i className="ri-align-left"></i></button>
+                <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`menu-btn rounded ${editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}`}><i className="ri-align-center"></i></button>
+                <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`menu-btn rounded ${editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}`}><i className="ri-align-right"></i></button>
             </div>
 
             <style>{`
                 .hover-bg-dark:hover { background-color: rgba(255,255,255,0.1); }
+                .menu-btn {
+                    background: transparent;
+                    border: none;
+                    color: #d1d5db; /* Light gray */
+                    padding: 4px 8px;
+                    font-size: 13px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                .menu-btn:hover {
+                    background-color: rgba(255,255,255,0.1);
+                    color: #ffffff;
+                }
+                .menu-btn.is-active {
+                    background-color: var(--vz-primary);
+                    color: #ffffff;
+                }
             `}</style>
         </BubbleMenu>
     );
