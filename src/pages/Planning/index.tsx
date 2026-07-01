@@ -10,6 +10,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Select from "react-select";
 import TableContainer from '../../Components/Common/TableContainer';
+import PageSelectorModal from '../../Components/Common/PageSelectorModal';
+import PageViewerDrawer from '../../Components/Common/PageViewerDrawer';
 
 const api = APIClient;
 
@@ -82,6 +84,13 @@ const Planning = () => {
     // Edit states
     const [editStory, setEditStory] = useState<any>(null);
     const [editSprint, setEditSprint] = useState<any>(null);
+
+    // Pages Modals
+    const [pageSelector, setPageSelector] = useState<{ isOpen: boolean, type: 'historia'|'tarea', id: string }>({ isOpen: false, type: 'historia', id: '' });
+    const [pageViewer, setPageViewer] = useState<{ isOpen: boolean, pageId: string | null }>({ isOpen: false, pageId: null });
+
+    const openPageSelector = useCallback((id: string, type: 'historia'|'tarea') => setPageSelector({ isOpen: true, type, id }), []);
+    const openPageViewer = useCallback((pageId: string) => setPageViewer({ isOpen: true, pageId }), []);
 
     const nextCorrelativo = useMemo(() => {
         if (editStory) return editStory.correlativo;
@@ -852,6 +861,7 @@ const Planning = () => {
                                                     onPlan={handlePlanStory}
                                                     onEdit={handleOpenEditStory}
                                                     onDelete={handleDeleteStory}
+                                                    onOpenPageSelector={openPageSelector}
                                                 />
                                             ))
                                         )}
@@ -918,6 +928,7 @@ const Planning = () => {
                                                         onDeleteSprint={handleDeleteSprint}
                                                         onEditStory={handleOpenEditStory}
                                                         onDeleteStory={handleDeleteStory}
+                                                        onOpenPageSelector={openPageSelector}
                                                     />
                                                 );
                                             })
@@ -1293,18 +1304,38 @@ const Planning = () => {
                 </ModalFooter>
             </Modal>
 
+            {/* Modales de Páginas */}
+            {activeProjectId && (
+                <>
+                    <PageSelectorModal 
+                        isOpen={pageSelector.isOpen} 
+                        toggle={() => setPageSelector(prev => ({ ...prev, isOpen: false }))} 
+                        projectId={activeProjectId} 
+                        entityType={pageSelector.type} 
+                        entityId={pageSelector.id} 
+                    />
+                    <PageViewerDrawer 
+                        isOpen={pageViewer.isOpen} 
+                        toggle={() => setPageViewer(prev => ({ ...prev, isOpen: false }))} 
+                        pageId={pageViewer.pageId} 
+                        projectId={activeProjectId} 
+                    />
+                </>
+            )}
+
             <ToastContainer />
         </React.Fragment>
     );
 };
 
 // Backlog story card
-const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPlan, onEdit, onDelete }: {
+const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector }: {
     story: any; planningSprints: any[];
     onEstimate: (storyId: string, puntos: number) => void;
     onPlan: (storyId: string, sprintId: string) => void;
     onEdit: (story: any) => void;
     onDelete: (storyId: string) => void;
+    onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
 }) => {
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
     const handlePlan = useCallback((sprintId: string) => onPlan(story.id, sprintId), [story.id, onPlan]);
@@ -1317,6 +1348,16 @@ const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPla
                 <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="badge bg-soft-info text-info fs-11">{story.correlativo}</span>
                     <div className="d-flex gap-1 align-items-center">
+                        <Button 
+                            color="soft-info" 
+                            size="sm" 
+                            className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1 me-1"
+                            onClick={() => onOpenPageSelector(story.id, 'historia')}
+                            title="Adjuntar documentación"
+                        >
+                            <i className="ri-file-text-line"></i>
+                            <span className="fs-11">Docs</span>
+                        </Button>
                         <DropdownEstimate onSelect={handleEstimate} currentPoints={story.esfuerzo_estimado} />
                         <DropdownPlan sprints={planningSprints} onSelect={handlePlan} />
                         <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
@@ -1340,7 +1381,7 @@ const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPla
 });
 
 // Sprint card in planning column
-const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory }: {
+const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory, onOpenPageSelector }: {
     sprint: any; sprintStories: any[]; totalPoints: number; planningSprints: any[];
     onEstimate: (storyId: string, puntos: number) => void;
     onPlan: (storyId: string, sprintId: string) => void;
@@ -1350,6 +1391,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSpr
     onDeleteSprint: (sprintId: string) => void;
     onEditStory: (story: any) => void;
     onDeleteStory: (storyId: string) => void;
+    onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
 }) => {
     const handleActivate = useCallback(() => onActivate(sprint.id), [sprint.id, onActivate]);
     const handleClose = useCallback(() => onClose(sprint.id), [sprint.id, onClose]);
@@ -1430,6 +1472,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSpr
                                         onPlan={onPlan}
                                         onEdit={onEditStory}
                                         onDelete={onDeleteStory}
+                                        onOpenPageSelector={onOpenPageSelector}
                                     />
                                 ))
                             )}
@@ -1442,12 +1485,13 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSpr
 });
 
 // Sprint story row
-const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete }: {
+const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector }: {
     story: any; sprintId: string; planningSprints: any[];
     onEstimate: (storyId: string, puntos: number) => void;
     onPlan: (storyId: string, sprintId: string) => void;
     onEdit: (story: any) => void;
     onDelete: (storyId: string) => void;
+    onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
 }) => {
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
     const handlePlan = useCallback((targetSprintId: string) => onPlan(story.id, targetSprintId), [story.id, onPlan]);
@@ -1461,6 +1505,16 @@ const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimat
                 <span className="text-muted fw-medium fs-13">{story.titulo}</span>
             </div>
             <div className="d-flex align-items-center gap-2">
+                <Button 
+                    color="soft-info" 
+                    size="sm" 
+                    className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1"
+                    onClick={() => onOpenPageSelector(story.id, 'historia')}
+                    title="Adjuntar documentación"
+                >
+                    <i className="ri-file-text-line"></i>
+                    <span className="fs-11">Docs</span>
+                </Button>
                 <DropdownEstimate onSelect={handleEstimate} currentPoints={story.esfuerzo_estimado} />
                 <DropdownPlan sprints={planningSprints} currentSprintId={sprintId} onSelect={handlePlan} />
                 <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />

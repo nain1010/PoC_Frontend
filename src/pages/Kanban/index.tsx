@@ -8,6 +8,8 @@ import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import PageSelectorModal from '../../Components/Common/PageSelectorModal';
+import PageViewerDrawer from '../../Components/Common/PageViewerDrawer';
 
 const api = APIClient;
 
@@ -56,6 +58,13 @@ const Kanban = () => {
         setTaskModal(!taskModal);
         taskValidation.resetForm();
     };
+
+    // Pages Modals
+    const [pageSelector, setPageSelector] = useState<{ isOpen: boolean, type: 'historia'|'tarea', id: string }>({ isOpen: false, type: 'historia', id: '' });
+    const [pageViewer, setPageViewer] = useState<{ isOpen: boolean, pageId: string | null }>({ isOpen: false, pageId: null });
+
+    const openPageSelector = useCallback((id: string, type: 'historia'|'tarea') => setPageSelector({ isOpen: true, type, id }), []);
+    const openPageViewer = useCallback((pageId: string) => setPageViewer({ isOpen: true, pageId }), []);
 
     const openTaskModal = useCallback((storyId: string) => {
         setSelectedStoryId(storyId);
@@ -412,6 +421,8 @@ const Kanban = () => {
                                                         onOpenTaskModal={openTaskModal}
                                                         expanded={!!expandedStories[story.id]}
                                                         onToggleExpand={toggleStoryExpand}
+                                                        onOpenPageSelector={openPageSelector}
+                                                        onOpenPageViewer={openPageViewer}
                                                     />
                                                 ))
                                             )}
@@ -444,6 +455,8 @@ const Kanban = () => {
                                                         onOpenTaskModal={openTaskModal}
                                                         expanded={!!expandedStories[story.id]}
                                                         onToggleExpand={toggleStoryExpand}
+                                                        onOpenPageSelector={openPageSelector}
+                                                        onOpenPageViewer={openPageViewer}
                                                     />
                                                 ))
                                             )}
@@ -476,6 +489,8 @@ const Kanban = () => {
                                                         onOpenTaskModal={openTaskModal}
                                                         expanded={!!expandedStories[story.id]}
                                                         onToggleExpand={toggleStoryExpand}
+                                                        onOpenPageSelector={openPageSelector}
+                                                        onOpenPageViewer={openPageViewer}
                                                     />
                                                 ))
                                             )}
@@ -548,6 +563,25 @@ const Kanban = () => {
                 </Form>
             </Modal>
 
+            {/* Modales de Páginas */}
+            {activeProjectId && (
+                <>
+                    <PageSelectorModal 
+                        isOpen={pageSelector.isOpen} 
+                        toggle={() => setPageSelector(prev => ({ ...prev, isOpen: false }))} 
+                        projectId={activeProjectId} 
+                        entityType={pageSelector.type} 
+                        entityId={pageSelector.id} 
+                    />
+                    <PageViewerDrawer 
+                        isOpen={pageViewer.isOpen} 
+                        toggle={() => setPageViewer(prev => ({ ...prev, isOpen: false }))} 
+                        pageId={pageViewer.pageId} 
+                        projectId={activeProjectId} 
+                    />
+                </>
+            )}
+
             <ToastContainer />
         </React.Fragment>
     );
@@ -564,6 +598,8 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
     onOpenTaskModal: (storyId: string) => void;
     expanded: boolean;
     onToggleExpand: (storyId: string) => void;
+    onOpenPageSelector: (id: string, type: 'historia' | 'tarea') => void;
+    onOpenPageViewer: (pageId: string) => void;
 }) => {
     // Filter tasks for this story
     const storyTasks = useMemo(
@@ -642,12 +678,26 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                     {story.narrativa}
                 </p>
 
-                {/* Effort points */}
+                {/* Effort points and Actions */}
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                    <span className="text-muted fs-12">Esfuerzo:</span>
-                    <Badge color="soft-primary" className="text-primary rounded-pill">
-                        {story.esfuerzo_estimado || 0} Puntos
-                    </Badge>
+                    <div>
+                        <span className="text-muted fs-12 me-2">Esfuerzo:</span>
+                        <Badge color="soft-primary" className="text-primary rounded-pill">
+                            {story.esfuerzo_estimado || story.puntos_esfuerzo || 0} Pts
+                        </Badge>
+                    </div>
+                    <div>
+                        <Button 
+                            color="soft-info" 
+                            size="sm" 
+                            className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1"
+                            onClick={() => onOpenPageSelector(story.id, 'historia')}
+                            title="Adjuntar documentación"
+                        >
+                            <i className="ri-file-text-line"></i>
+                            <span className="fs-11">Docs</span>
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Progress bar of tasks */}
@@ -712,6 +762,8 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                         onTaskStatusChange={onTaskStatusChange}
                                         onTaskAssign={onTaskAssign}
                                         developers={projectDetails?.memberships?.filter((m: any) => m.rol === 'Developer') || []}
+                                        onOpenPageSelector={onOpenPageSelector}
+                                        onOpenPageViewer={onOpenPageViewer}
                                     />
                                 ))
                             )}
@@ -724,11 +776,13 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
 });
 
 // Task Row inside story card
-const KanbanTaskRow = React.memo(({ task, onTaskStatusChange, onTaskAssign, developers }: {
+const KanbanTaskRow = React.memo(({ task, onTaskStatusChange, onTaskAssign, developers, onOpenPageSelector, onOpenPageViewer }: {
     task: any;
     onTaskStatusChange: (taskId: string, status: string) => void;
     onTaskAssign: (taskId: string, usuarioId: string) => void;
     developers: any[];
+    onOpenPageSelector: (id: string, type: 'historia' | 'tarea') => void;
+    onOpenPageViewer: (pageId: string) => void;
 }) => {
     const [taskDropdownOpen, setTaskDropdownOpen] = useState(false);
     const toggleTaskDropdown = useCallback(() => setTaskDropdownOpen(prevState => !prevState), []);
@@ -755,12 +809,21 @@ const KanbanTaskRow = React.memo(({ task, onTaskStatusChange, onTaskAssign, deve
 
     return (
         <div className="p-2 border rounded bg-body mb-2 shadow-none border-light-subtle">
-            <div className="d-flex justify-content-between align-items-start">
+            <div className="d-flex justify-content-between align-items-start mb-2">
                 <span className="fw-semibold text-body fs-12 d-block text-truncate-two-lines" style={{ maxWidth: "55%" }}>
                     {task.titulo}
                 </span>
                 
                 <div className="d-flex align-items-center gap-1">
+                    <Button 
+                        color="soft-info" 
+                        size="sm" 
+                        className="btn-sm py-0 px-1 fs-12 me-1"
+                        onClick={() => onOpenPageSelector(task.id, 'tarea')}
+                        title="Adjuntar documentación"
+                    >
+                        <i className="ri-file-text-line"></i>
+                    </Button>
                     {/* Assign Dropdown */}
                     <Dropdown isOpen={assignDropdownOpen} toggle={toggleAssignDropdown} size="sm" strategy="fixed">
                         <DropdownToggle tag="button" className={`badge ${assignedDev ? 'bg-soft-info text-info' : 'bg-soft-warning text-warning'} border-0 py-0.5 px-1.5 fs-10`}>

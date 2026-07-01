@@ -1,44 +1,12 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Button, Input, Spinner } from 'reactstrap';
+import React, { useState, useCallback } from 'react';
+import { Button, Spinner } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEditor, EditorContent } from '@tiptap/react';
-import TextBubbleMenu from './TextBubbleMenu';
-import StarterKit from '@tiptap/starter-kit';
-import Placeholder from '@tiptap/extension-placeholder';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-import CustomImage from './CustomImageExtension';
-import Link from '@tiptap/extension-link';
-
-// Nuevas extensiones avanzadas
-import { Table } from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableHeader from '@tiptap/extension-table-header';
-import TextAlign from '@tiptap/extension-text-align';
-import Underline from '@tiptap/extension-underline';
-import Color from '@tiptap/extension-color';
-import { TextStyle } from '@tiptap/extension-text-style';
-import { TableCell } from '@tiptap/extension-table-cell';
-import { UniqueId } from './UniqueIdExtension';
-import { CommentMark } from './CommentMark';
-import CalloutExtension from './CalloutExtension';
-import Highlight from '@tiptap/extension-highlight';
-import AttachmentExtension from './AttachmentExtension';
-import { ColumnExtensions } from './ColumnExtension';
-import VideoExtension from './VideoExtension';
-import { MathExtensions } from './MathExtension';
-import EmojiCommands, { getEmojiSuggestionItems, renderEmojiItems } from './EmojiCommands';
-import Mention from '@tiptap/extension-mention';
-import { getSuggestionConfig } from './suggestion';
-
-import SlashCommands, { getSuggestionItems, renderItems } from './SlashCommands';
-import TopToolbar from './TopToolbar';
-import TableBubbleMenu from './TableBubbleMenu';
-import RightSidebar from './RightSidebar';
-import { APIClient } from '../../helpers/api_helper';
-import config from '../../config';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+import { APIClient } from '../../helpers/api_helper';
+import config from '../../config';
+import PageEditorWrapper from './PageEditor';
 
 const api = APIClient;
 
@@ -101,22 +69,11 @@ const Pages = () => {
     const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
     const [titleValue, setTitleValue] = useState("");
     const [isFullWidth, setIsFullWidth] = useState(() => localStorage.getItem('pages_full_width') === 'true');
-    const saveTimerRef = useRef<any>(null);
-    const lastLoadedPageId = useRef<string | null>(null);
-
     const toggleFullWidth = () => {
         setIsFullWidth(prev => {
             const next = !prev;
             localStorage.setItem('pages_full_width', String(next));
             return next;
-        });
-    };
-
-    const toggleLock = () => {
-        if (!selectedPageId) return;
-        updatePageMutation.mutate({
-            id: selectedPageId,
-            is_locked: !pageContent?.is_locked,
         });
     };
 
@@ -149,6 +106,24 @@ const Pages = () => {
 
     const updatePageMutation = useMutation({
         mutationFn: (payload: any) => api.put(`/projects/${activeProjectId}/pages/${payload.id}`, payload),
+        onMutate: async (payload) => {
+            await queryClient.cancelQueries({ queryKey: ['page', payload.id] });
+            const previousPage = queryClient.getQueryData(['page', payload.id]);
+            
+            // Optimistic update
+            queryClient.setQueryData(['page', payload.id], (old: any) => {
+                if (!old) return old;
+                return { ...old, ...payload };
+            });
+            
+            return { previousPage };
+        },
+        onError: (err, payload, context: any) => {
+            if (context?.previousPage) {
+                queryClient.setQueryData(['page', payload.id], context.previousPage);
+            }
+            toast.error("Error al actualizar la página.");
+        },
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
             if (variables.id === selectedPageId) {
@@ -156,6 +131,9 @@ const Pages = () => {
             }
             if (variables.is_locked !== undefined) {
                 toast.info(variables.is_locked ? "Página bloqueada (Solo lectura)" : "Página desbloqueada", { position: "top-center" });
+            }
+            if (variables.is_public !== undefined) {
+                toast.info(variables.is_public ? "Página publicada en la web" : "Página oculta", { position: "top-center" });
             }
         },
     });
@@ -183,186 +161,7 @@ const Pages = () => {
         return null;
     };
 
-    // ---- TipTap Editor ----
-    const editor = useEditor({
-        extensions: [
-            StarterKit,
-            Placeholder.configure({ placeholder: "Escribe '/' para comandos, o simplemente empieza a escribir..." }),
-            TaskList,
-            TaskItem.configure({ nested: true }),
-            CustomImage.configure({ inline: false, allowBase64: true }),
-            Link.configure({ openOnClick: true, linkOnPaste: true }),
-            Table.configure({ resizable: true }),
-            TableRow,
-            TableHeader,
-            TableCell,
-            UniqueId,
-            CommentMark,
-            TextAlign.configure({ types: ['heading', 'paragraph'] }),
-            Underline,
-            TextStyle,
-            Color,
-            Highlight.configure({ multicolor: true }),
-            CalloutExtension,
-            AttachmentExtension,
-            ...ColumnExtensions,
-            VideoExtension,
-            ...MathExtensions,
-            EmojiCommands.configure({
-                suggestion: {
-                    items: ({ query }: any) => {
-                        return getEmojiSuggestionItems().filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
-                    },
-                    render: renderEmojiItems,
-                },
-            }),
-            Mention.configure({
-                HTMLAttributes: {
-                    class: 'mention bg-soft-primary text-primary px-1 rounded fw-medium text-decoration-none',
-                },
-                suggestion: getSuggestionConfig(activeProjectId || ""),
-            }),
-            SlashCommands.configure({
-                suggestion: {
-                    items: ({ query }) => {
-                        return getSuggestionItems().filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
-                    },
-                    render: renderItems,
-                },
-            }),
-        ],
-        content: '',
-        onUpdate: ({ editor }) => {
-            // Debounced auto-save storing JSON
-            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-            saveTimerRef.current = setTimeout(() => {
-                if (selectedPageId) {
-                    updatePageMutation.mutate({
-                        id: selectedPageId,
-                        contenido: JSON.stringify(editor.getJSON()),
-                    });
-                }
-            }, 1500);
-        },
-        editorProps: {
-            attributes: {
-                class: 'prose prose-lg focus:outline-none w-100 max-w-none text-body',
-            },
-            handleDrop: function(view, event, slice, moved) {
-                if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
-                    const file = event.dataTransfer.files[0];
-                    if (file.type.startsWith('image/')) {
-                        event.preventDefault();
-                        const { schema } = view.state;
-                        const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
-                        
-                        uploadImage(file).then(url => {
-                            if (url && coordinates) {
-                                const node = schema.nodes.image.create({ src: url });
-                                const transaction = view.state.tr.insert(coordinates.pos, node);
-                                view.dispatch(transaction);
-                            }
-                        });
-                        return true;
-                    }
-                }
-                return false;
-            },
-            handlePaste: function(view, event, slice) {
-                if (event.clipboardData && event.clipboardData.files && event.clipboardData.files[0]) {
-                    const file = event.clipboardData.files[0];
-                    if (file.type.startsWith('image/')) {
-                        event.preventDefault();
-                        const { schema } = view.state;
-                        uploadImage(file).then(url => {
-                            if (url) {
-                                const node = schema.nodes.image.create({ src: url });
-                                const transaction = view.state.tr.replaceSelectionWith(node);
-                                view.dispatch(transaction);
-                            }
-                        });
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-    });
-
-    // ---- Block Anchor Logic ----
-    const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
-    const [hoveredBlockPos, setHoveredBlockPos] = useState({ top: 0, left: 0 });
-    const isEditable = !pageContent?.is_locked;
-
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!editor || editor.isDestroyed || !isEditable) return;
-            
-            // Find closest block with an ID
-            const target = e.target as HTMLElement;
-            const block = target.closest('[id^="block-"]') as HTMLElement;
-            
-            if (block) {
-                const rect = block.getBoundingClientRect();
-                setHoveredBlockId(block.id);
-                setHoveredBlockPos({
-                    top: rect.top + window.scrollY,
-                    left: rect.left - 24, // 24px a la izquierda
-                });
-            } else {
-                setHoveredBlockId(null);
-            }
-        };
-
-        document.addEventListener('mousemove', handleMouseMove);
-        return () => document.removeEventListener('mousemove', handleMouseMove);
-    }, [editor, isEditable]);
-
-    const handleCopyAnchor = () => {
-        if (hoveredBlockId) {
-            const url = `${window.location.origin}${window.location.pathname}#${hoveredBlockId}`;
-            navigator.clipboard.writeText(url);
-            toast.success("Enlace del bloque copiado al portapapeles", { position: "top-center" });
-        }
-    };
-
-    // Set editor content when page changes
-    useEffect(() => {
-        if (pageContent && editor && pageContent.id === selectedPageId) {
-            // Set editable state dynamically
-            editor.setEditable(!pageContent.is_locked);
-            
-            if (lastLoadedPageId.current !== selectedPageId) {
-                setTitleValue(pageContent.titulo || "Sin título");
-                if (pageContent.contenido) {
-                    try {
-                        const jsonContent = JSON.parse(pageContent.contenido);
-                        editor.commands.setContent(jsonContent);
-                    } catch (e) {
-                        editor.commands.setContent(pageContent.contenido);
-                    }
-                } else {
-                    editor.commands.setContent('');
-                }
-                lastLoadedPageId.current = selectedPageId;
-                
-                // Scroll to hash if present (Block Links)
-                setTimeout(() => {
-                    if (window.location.hash) {
-                        const id = window.location.hash.substring(1);
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            element.classList.add('bg-warning', 'bg-opacity-25');
-                            setTimeout(() => {
-                                element.classList.remove('bg-warning', 'bg-opacity-25');
-                            }, 2000);
-                        }
-                    }
-                }, 100);
-            }
-        }
-    }, [pageContent, editor, selectedPageId]);
+    // El editor y la lógica de bloques ahora se manejan en PageEditorWrapper
 
     // ---- Handlers ----
     const handleCreatePage = useCallback((parentId: string | null = null) => {
@@ -445,126 +244,19 @@ const Pages = () => {
                         </div>
                     ) : (
                         <>
-                            <TopToolbar 
-                                editor={editor} 
-                                isLocked={pageContent?.is_locked}
-                                toggleLock={() => updatePageMutation.mutate({ is_locked: !pageContent?.is_locked })}
-                                isFullWidth={isFullWidth}
-                                toggleFullWidth={() => setIsFullWidth(!isFullWidth)}
-                                isPublic={pageContent?.is_public}
-                                publicToken={pageContent?.public_token}
-                                togglePublish={() => updatePageMutation.mutate({ is_public: !pageContent?.is_public })}
-                            />
-                            
-                            <div className="d-flex flex-grow-1 w-100 h-100 overflow-hidden">
-                                {/* Editor Central Area */}
-                                <div className="flex-grow-1 d-flex justify-content-center overflow-auto" style={{ scrollBehavior: 'smooth' }}>
-                                    <div className="editor-content-wrapper px-4 py-5" style={{ width: '100%', maxWidth: isFullWidth ? '100%' : '850px', transition: 'max-width 0.3s ease' }}>
-                                        
-                                        {/* Título Gigante */}
-                                        <Input
-                                            type="text"
-                                            value={titleValue}
-                                            onChange={(e) => setTitleValue(e.target.value)}
-                                            onBlur={handleTitleSave}
-                                            placeholder="Page Title"
-                                            className="fw-bold bg-transparent border-0 p-0 mb-4 text-body title-input-plane"
-                                            style={{ fontSize: '2.8rem', boxShadow: 'none', lineHeight: '1.2' }}
-                                        />
-
-                                        {/* Editor Principal */}
-                                        <div className="tiptap-plane-theme">
-                                            {editor && (
-                                                <>
-                                                    <TextBubbleMenu editor={editor} />
-                                                    <TableBubbleMenu editor={editor} />
-                                                    <EditorContent editor={editor} />
-                                                    
-                                                    {/* Block Anchor Icon */}
-                                                    {hoveredBlockId && isEditable && (
-                                                        <div 
-                                                            className="position-absolute"
-                                                            style={{
-                                                                top: hoveredBlockPos.top,
-                                                                left: hoveredBlockPos.left,
-                                                                cursor: 'pointer',
-                                                                zIndex: 50,
-                                                                opacity: 0.5,
-                                                                transition: 'opacity 0.2s',
-                                                            }}
-                                                            onClick={handleCopyAnchor}
-                                                            title="Copiar enlace a este bloque"
-                                                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
-                                                        >
-                                                            <i className="ri-links-line fs-5"></i>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                        
-                                        {/* Hidden File Input for Image Upload */}
-                                        <input
-                                            type="file"
-                                            id="tiptap-image-upload"
-                                            accept="image/*"
-                                            style={{ display: 'none' }}
-                                            onChange={(e) => {
-                                                if (e.target.files && e.target.files[0]) {
-                                                    const file = e.target.files[0];
-                                                    uploadImage(file).then(url => {
-                                                        if (url && editor) {
-                                                            editor.chain().focus().setImage({ src: url }).run();
-                                                        }
-                                                    });
-                                                }
-                                                e.target.value = '';
-                                            }}
-                                        />
-
-                                        {/* Hidden File Input for Generic Attachment */}
-                                        <input
-                                            type="file"
-                                            id="tiptap-file-upload"
-                                            style={{ display: 'none' }}
-                                            onChange={(e) => {
-                                                if (e.target.files && e.target.files[0]) {
-                                                    const file = e.target.files[0];
-                                                    uploadImage(file).then(url => {
-                                                        if (url && editor) {
-                                                            editor.chain().focus().setAttachment({ src: url, filename: file.name, filesize: file.size }).run();
-                                                        }
-                                                    });
-                                                }
-                                                e.target.value = '';
-                                            }}
-                                        />
-
-                                        {/* Hidden File Input for Video Upload */}
-                                        <input
-                                            type="file"
-                                            id="tiptap-video-upload"
-                                            accept="video/*"
-                                            style={{ display: 'none' }}
-                                            onChange={(e) => {
-                                                if (e.target.files && e.target.files[0]) {
-                                                    const file = e.target.files[0];
-                                                    uploadImage(file).then(url => {
-                                                        if (url && editor) {
-                                                            editor.chain().focus().setVideo({ src: url, isYouTube: false }).run();
-                                                        }
-                                                    });
-                                                }
-                                                e.target.value = '';
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Right Sidebar */}
-                                <RightSidebar editor={editor} projectId={activeProjectId} pageId={selectedPageId} pageContent={pageContent} />
-                            </div>
+                        <PageEditorWrapper 
+                            key={selectedPageId}
+                            pageId={selectedPageId}
+                            pageContent={pageContent}
+                            titleValue={titleValue}
+                            setTitleValue={setTitleValue}
+                            updatePageMutation={updatePageMutation}
+                            isFullWidth={isFullWidth}
+                            setIsFullWidth={setIsFullWidth}
+                            activeProjectId={activeProjectId}
+                            uploadImage={uploadImage}
+                            handleTitleSave={handleTitleSave}
+                        />
                         </>
                     )}
                 </div>
