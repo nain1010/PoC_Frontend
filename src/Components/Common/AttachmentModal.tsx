@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from '../../helpers/api_helper';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import config from '../../config';
 
 const api = APIClient;
 
@@ -46,14 +47,27 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
         formData.append('data', file);
 
         try {
-            // Use api.post directly, it will use the correct baseUrl and Token interceptors
-            await api.post(`/projects/${projectId}/attachments?entity_type=${entityType}&entity_id=${entityId}`, formData);
+            const authUser = sessionStorage.getItem("authUser") || localStorage.getItem("authUser");
+            const token = authUser ? JSON.parse(authUser).token : null;
+
+            const response = await fetch(`${config.api.API_URL}/projects/${projectId}/attachments?entity_type=${entityType}&entity_id=${entityId}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || "Error interno del servidor");
+            }
 
             queryClient.invalidateQueries({ queryKey: ['attachments', entityType, entityId] });
             toast.success("Archivo subido exitosamente.");
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error("Error al subir el archivo.");
+            toast.error(error.message || "Error al subir el archivo.");
         } finally {
             setUploading(false);
             if (fileInputRef.current) {
