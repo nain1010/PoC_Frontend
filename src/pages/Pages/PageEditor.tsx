@@ -76,7 +76,8 @@ const PageEditorWrapper = ({
 
     // Configurar WebSocket Provider
     const provider = useMemo(() => {
-        const wsUrl = config.api.API_URL.replace('http', 'ws').replace('https', 'wss') + '/api/collab';
+        const baseUrl = config.api.API_URL.endsWith('/') ? config.api.API_URL.slice(0, -1) : config.api.API_URL;
+        const wsUrl = baseUrl.replace('http', 'ws').replace('https', 'wss') + '/api/collab';
         const wsProvider = new WebsocketProvider(wsUrl, pageId, ydoc);
         
         wsProvider.on('status', (event: any) => {
@@ -156,17 +157,6 @@ const PageEditorWrapper = ({
             }),
         ],
         editable: isEditable,
-        content: (() => {
-            if (pageContent?.contenido) {
-                try {
-                    const parsed = JSON.parse(pageContent.contenido);
-                    if (!parsed.crdt_b64) return parsed;
-                } catch(e) {
-                    return pageContent.contenido;
-                }
-            }
-            return '';
-        })(),
         onUpdate: ({ editor }) => {
             if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
             saveTimerRef.current = setTimeout(() => {
