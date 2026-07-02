@@ -47,11 +47,7 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
 
         try {
             // Use api.post directly, it will use the correct baseUrl and Token interceptors
-            await api.post(`/projects/${projectId}/attachments?entity_type=${entityType}&entity_id=${entityId}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            await api.post(`/projects/${projectId}/attachments?entity_type=${entityType}&entity_id=${entityId}`, formData);
 
             queryClient.invalidateQueries({ queryKey: ['attachments', entityType, entityId] });
             toast.success("Archivo subido exitosamente.");
