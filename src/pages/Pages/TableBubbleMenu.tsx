@@ -1,6 +1,6 @@
 import React from 'react';
 // @ts-ignore
-import { BubbleMenu } from '@tiptap/react/menus';
+import { BubbleMenu } from '@tiptap/react';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 
 const TableBubbleMenu = ({ editor }: { editor: any }) => {
