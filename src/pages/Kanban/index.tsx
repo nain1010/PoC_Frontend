@@ -571,7 +571,8 @@ const Kanban = () => {
                         toggle={() => setPageSelector(prev => ({ ...prev, isOpen: false }))} 
                         projectId={activeProjectId} 
                         entityType={pageSelector.type} 
-                        entityId={pageSelector.id} 
+                        entityId={pageSelector.id}
+                        onOpenPageViewer={(pageId) => setPageViewer({ isOpen: true, pageId })}
                     />
                     <PageViewerDrawer 
                         isOpen={pageViewer.isOpen} 
