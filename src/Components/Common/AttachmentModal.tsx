@@ -50,7 +50,7 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
             const authUser = sessionStorage.getItem("authUser") || localStorage.getItem("authUser");
             const token = authUser ? JSON.parse(authUser).token : null;
 
-            const response = await fetch(`${config.api.API_URL}/projects/${projectId}/attachments?entity_type=${entityType}&entity_id=${entityId}`, {
+            const response = await fetch(`${config.api.API_URL}/api/upload/${projectId}?entity_type=${entityType}&entity_id=${entityId}`, {
                 method: 'POST',
                 body: formData,
                 headers: {
