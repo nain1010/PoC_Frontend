@@ -162,7 +162,7 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
         return '#6b7280';
     };
 
-    const getFileUrl = (file: AttachmentFile) => `${config.api.API_URL}${file.url_publica}`;
+    const getFileUrl = (file: AttachmentFile) => file.url_publica.startsWith('http') ? file.url_publica : `${config.api.API_URL}${file.url_publica}`;
 
     const handleDownload = (file: AttachmentFile) => {
         const a = document.createElement('a');

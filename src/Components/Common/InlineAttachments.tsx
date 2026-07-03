@@ -63,7 +63,7 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
     if ((isLoading || attachments.length === 0) && (isLoadingPages || linkedPages.length === 0)) return null;
 
     const isImage = (mime: string) => mime?.startsWith('image/');
-    const getFileUrl = (file: AttachmentFile) => `${config.api.API_URL}${file.url_publica}`;
+    const getFileUrl = (file: AttachmentFile) => file.url_publica.startsWith('http') ? file.url_publica : `${config.api.API_URL}${file.url_publica}`;
 
     const handleDownload = (e: React.MouseEvent, file: AttachmentFile) => {
         e.stopPropagation();

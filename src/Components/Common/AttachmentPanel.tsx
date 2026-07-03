@@ -152,11 +152,14 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
                 </div>
             ) : (
                 <div className="vstack gap-2">
-                    {attachments.map((att: any) => (
+                    {attachments.map((att: any) => {
+                        const getFileUrl = (url: string) => url?.startsWith('http') ? url : `${config.api.API_URL}${url}`;
+                        const absoluteUrl = getFileUrl(att.url_publica);
+                        return (
                         <div key={att.id} className="d-flex align-items-center gap-2 p-2 rounded-2 border bg-light">
                             {att.tipo_mime?.startsWith('image') ? (
                                 <img
-                                    src={att.url_publica}
+                                    src={absoluteUrl}
                                     alt={att.nombre_archivo}
                                     className="rounded-1"
                                     style={{ width: 40, height: 40, objectFit: 'cover' }}
@@ -170,7 +173,7 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
                             )}
                             <div className="flex-grow-1 overflow-hidden">
                                 <a
-                                    href={att.url_publica}
+                                    href={absoluteUrl}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="text-body fw-medium text-truncate d-block fs-13"
@@ -194,7 +197,7 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
                                 </Button>
                             )}
                         </div>
-                    ))}
+                    })}
                 </div>
             )}
         </div>
