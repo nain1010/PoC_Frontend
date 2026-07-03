@@ -858,6 +858,7 @@ const Planning = () => {
                                                 <BacklogStoryCard
                                                     key={story.id}
                                                     story={story}
+                                                    activeProjectId={activeProjectId}
                                                     planningSprints={planningSprints}
                                                     onEstimate={handleEstimateStory}
                                                     onPlan={handlePlanStory}
@@ -922,6 +923,7 @@ const Planning = () => {
                                                         sprint={sprint}
                                                         sprintStories={sprintStories}
                                                         totalPoints={totalPoints}
+                                                        activeProjectId={activeProjectId}
                                                         planningSprints={planningSprints}
                                                         onEstimate={handleEstimateStory}
                                                         onPlan={handlePlanStory}
@@ -1341,8 +1343,9 @@ const Planning = () => {
 };
 
 // Backlog story card
-const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal }: {
+const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal }: {
     story: any;
+    activeProjectId: string;
     planningSprints: any[];
     onEstimate: (storyId: string, points: number) => void;
     onPlan: (storyId: string, sprintId: string) => void;
@@ -1397,17 +1400,18 @@ const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPla
                         </ul>
                     </div>
                 )}
-                <InlineAttachments projectId={story.proyecto_id} entityType="historia" entityId={story.id} />
+                <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} />
             </CardBody>
         </Card>
     );
 });
 
 // Sprint card in planning column
-const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory, onOpenPageSelector, onOpenAttachmentModal }: {
+const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProjectId, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory, onOpenPageSelector, onOpenAttachmentModal }: {
     sprint: any;
     sprintStories: any[];
     totalPoints: number;
+    activeProjectId: string;
     planningSprints: any[];
     onEstimate: (storyId: string, points: number) => void;
     onPlan: (storyId: string, sprintId: string) => void;
@@ -1493,6 +1497,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSpr
                                     <SprintStoryRow
                                         key={story.id}
                                         story={story}
+                                        activeProjectId={activeProjectId}
                                         sprintId={sprint.id}
                                         planningSprints={planningSprints}
                                         onEstimate={onEstimate}
@@ -1513,8 +1518,9 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSpr
 });
 
 // Sprint story row
-const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal }: {
+const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal }: {
     story: any;
+    activeProjectId: string;
     sprintId: string;
     planningSprints: any[];
     onEstimate: (storyId: string, points: number) => void;
@@ -1561,7 +1567,7 @@ const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimat
                     <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
                 </div>
             </div>
-            <InlineAttachments projectId={story.proyecto_id} entityType="historia" entityId={story.id} />
+            <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} />
         </div>
     );
 });
