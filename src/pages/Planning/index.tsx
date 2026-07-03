@@ -1345,7 +1345,7 @@ const Planning = () => {
 };
 
 // Backlog story card
-const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal }: {
+const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
     story: any;
     activeProjectId: string;
     planningSprints: any[];
@@ -1410,7 +1410,7 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
 });
 
 // Sprint card in planning column
-const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProjectId, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory, onOpenPageSelector, onOpenAttachmentModal }: {
+const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProjectId, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
     sprint: any;
     sprintStories: any[];
     totalPoints: number;
@@ -1523,7 +1523,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
 });
 
 // Sprint story row
-const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal }: {
+const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
     story: any;
     activeProjectId: string;
     sprintId: string;
