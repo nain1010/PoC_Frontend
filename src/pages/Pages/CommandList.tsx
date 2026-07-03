@@ -27,7 +27,7 @@ export const CommandList = forwardRef((props: any, ref) => {
     }, [props.items]);
 
     useImperativeHandle(ref, () => ({
-        onKeyDown: ({ event }) => {
+        onKeyDown: ({ event }: any) => {
             if (event.key === 'ArrowUp') {
                 upHandler();
                 return true;
@@ -50,7 +50,7 @@ export const CommandList = forwardRef((props: any, ref) => {
     return (
         <div className="dropdown-menu show shadow-lg border no-scrollbar" style={{ position: 'relative', minWidth: '240px', maxHeight: '320px', overflowY: 'auto', borderRadius: '12px', backgroundColor: 'var(--vz-dropdown-bg)', padding: '0.5rem' }}>
             {props.items.length ? (
-                props.items.map((item, index) => (
+                props.items.map((item: any, index: number) => (
                     <button
                         className={`d-flex align-items-center gap-3 py-2 px-3 w-100 border-0 text-start ${index === selectedIndex ? 'bg-soft-primary text-primary rounded' : 'bg-transparent text-body'}`}
                         key={index}

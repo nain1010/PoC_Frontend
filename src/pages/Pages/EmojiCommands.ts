@@ -14,7 +14,7 @@ export default Extension.create({
             suggestion: {
                 char: ':',
                 pluginKey: emojiSuggestionPluginKey,
-                command: ({ editor, range, props }) => {
+                command: ({ editor, range, props }: any) => {
                     editor.chain().focus().deleteRange(range).insertContent(props.emoji).run();
                 },
             },

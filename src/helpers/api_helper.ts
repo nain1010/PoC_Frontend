@@ -120,6 +120,10 @@ const apiClient = {
     return axios.post(url, data);
   },
 
+  post: (url: string, data: any, config?: AxiosRequestConfig): Promise<AxiosResponse> => {
+    return axios.post(url, data, config);
+  },
+
   update: (url: string, data: any): Promise<AxiosResponse> => {
     return axios.patch(url, data);
   },

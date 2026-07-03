@@ -109,8 +109,8 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
     ];
 
     return (
-        <BubbleMenu editor={editor} tippyOptions={{ duration: 100, placement: 'top' }} className="bubble-menu-advanced shadow-lg rounded d-flex align-items-center px-1 py-1" style={{ backgroundColor: '#262626', color: '#e9ecef', gap: '2px', border: '1px solid #333' }}>
-            
+        <BubbleMenu editor={editor} tippyOptions={{ duration: 100, placement: 'top' }} className="bubble-menu-advanced">
+            <div className="shadow-lg rounded d-flex align-items-center px-1 py-1" style={{ backgroundColor: '#262626', color: '#e9ecef', gap: '2px', border: '1px solid #333' }}>
             {/* Text Type Dropdown */}
             <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown} direction="down">
                 <DropdownToggle tag="div" className="menu-btn d-flex align-items-center gap-1 rounded" style={{ cursor: 'pointer' }}>
@@ -237,6 +237,7 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                     color: #ffffff !important;
                 }
             `}</style>
+            </div>
         </BubbleMenu>
     );
 };

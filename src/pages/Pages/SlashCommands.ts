@@ -14,7 +14,7 @@ export default Extension.create({
             suggestion: {
                 char: '/',
                 pluginKey: slashSuggestionPluginKey,
-                command: ({ editor, range, props }) => {
+                command: ({ editor, range, props }: any) => {
                     props.command({ editor, range });
                 },
             },
@@ -36,7 +36,7 @@ export const getSuggestionItems = () => {
             title: 'Text',
             description: 'Escribir texto plano.',
             icon: 'ri-text',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setNode('paragraph').run();
             },
         },
@@ -44,7 +44,7 @@ export const getSuggestionItems = () => {
             title: 'Heading 1',
             description: 'Título de sección principal.',
             icon: 'ri-h-1',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run();
             },
         },
@@ -52,7 +52,7 @@ export const getSuggestionItems = () => {
             title: 'Heading 2',
             description: 'Subtítulo.',
             icon: 'ri-h-2',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run();
             },
         },
@@ -60,7 +60,7 @@ export const getSuggestionItems = () => {
             title: 'Heading 3',
             description: 'Título de subsección.',
             icon: 'ri-h-3',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
             },
         },
@@ -68,7 +68,7 @@ export const getSuggestionItems = () => {
             title: 'Heading 4',
             description: 'Título menor 4.',
             icon: 'ri-h-4',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setNode('heading', { level: 4 }).run();
             },
         },
@@ -76,7 +76,7 @@ export const getSuggestionItems = () => {
             title: 'Heading 5',
             description: 'Título menor 5.',
             icon: 'ri-h-5',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setNode('heading', { level: 5 }).run();
             },
         },
@@ -84,7 +84,7 @@ export const getSuggestionItems = () => {
             title: 'Heading 6',
             description: 'Título menor 6.',
             icon: 'ri-h-6',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setNode('heading', { level: 6 }).run();
             },
         },
@@ -92,7 +92,7 @@ export const getSuggestionItems = () => {
             title: 'Bullet List',
             description: 'Lista desordenada.',
             icon: 'ri-list-unordered',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).toggleBulletList().run();
             },
         },
@@ -100,7 +100,7 @@ export const getSuggestionItems = () => {
             title: 'Numbered List',
             description: 'Lista ordenada.',
             icon: 'ri-list-ordered',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).toggleOrderedList().run();
             },
         },
@@ -108,7 +108,7 @@ export const getSuggestionItems = () => {
             title: 'To-do List',
             description: 'Casillas de verificación.',
             icon: 'ri-list-check-2',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).toggleTaskList().run();
             },
         },
@@ -116,7 +116,7 @@ export const getSuggestionItems = () => {
             title: 'Code Block',
             description: 'Caja para código fuente.',
             icon: 'ri-code-box-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
             },
         },
@@ -124,7 +124,7 @@ export const getSuggestionItems = () => {
             title: 'Quote',
             description: 'Cita enfatizada.',
             icon: 'ri-double-quotes-l',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).toggleBlockquote().run();
             },
         },
@@ -132,7 +132,7 @@ export const getSuggestionItems = () => {
             title: 'Divider',
             description: 'Línea horizontal divisoria.',
             icon: 'ri-separator',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setHorizontalRule().run();
             },
         },
@@ -140,7 +140,7 @@ export const getSuggestionItems = () => {
             title: 'Table',
             description: 'Insertar tabla 3x3.',
             icon: 'ri-table-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
             },
         },
@@ -148,7 +148,7 @@ export const getSuggestionItems = () => {
             title: 'Callout',
             description: 'Bloque de alerta con icono.',
             icon: 'ri-information-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).insertContent({ type: 'callout', content: [{ type: 'text', text: ' ' }] }).run();
             },
         },
@@ -156,7 +156,7 @@ export const getSuggestionItems = () => {
             title: 'Imagen',
             description: 'Insertar imagen (JPG, PNG).',
             icon: 'ri-image-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).run();
                 document.getElementById('tiptap-image-upload')?.click();
             },
@@ -165,7 +165,7 @@ export const getSuggestionItems = () => {
             title: 'Archivo Adjunto',
             description: 'Subir archivo (PDF, DOCX, ZIP).',
             icon: 'ri-attachment-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).run();
                 document.getElementById('tiptap-file-upload')?.click();
             },
@@ -174,7 +174,7 @@ export const getSuggestionItems = () => {
             title: 'Video',
             description: 'Subir video o enlazar.',
             icon: 'ri-video-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).run();
                 document.getElementById('tiptap-video-upload')?.click();
             },
@@ -183,7 +183,7 @@ export const getSuggestionItems = () => {
             title: '2 Columnas',
             description: 'Layout en 2 columnas.',
             icon: 'ri-layout-column-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setColumns(2).run();
             },
         },
@@ -191,7 +191,7 @@ export const getSuggestionItems = () => {
             title: '3 Columnas',
             description: 'Layout en 3 columnas.',
             icon: 'ri-layout-column-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setColumns(3).run();
             },
         },
@@ -199,7 +199,7 @@ export const getSuggestionItems = () => {
             title: '4 Columnas',
             description: 'Layout en 4 columnas.',
             icon: 'ri-layout-column-line',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setColumns(4).run();
             },
         },
@@ -207,7 +207,7 @@ export const getSuggestionItems = () => {
             title: 'Ecuación Matemática',
             description: 'Insertar bloque LaTeX.',
             icon: 'ri-functions',
-            command: ({ editor, range }) => {
+            command: ({ editor, range }: any) => {
                 editor.chain().focus().deleteRange(range).setBlockEquation().run();
             },
         },
@@ -215,11 +215,11 @@ export const getSuggestionItems = () => {
 };
 
 export const renderItems = () => {
-    let component;
-    let popup;
+    let component: any;
+    let popup: any;
 
     return {
-        onStart: props => {
+        onStart: (props: any) => {
             component = new ReactRenderer(CommandList, {
                 props,
                 editor: props.editor,
@@ -239,7 +239,7 @@ export const renderItems = () => {
                 placement: 'bottom-start',
             });
         },
-        onUpdate(props) {
+        onUpdate(props: any) {
             component.updateProps(props);
             if (!props.clientRect) {
                 return;
@@ -248,7 +248,7 @@ export const renderItems = () => {
                 getReferenceClientRect: props.clientRect,
             });
         },
-        onKeyDown(props) {
+        onKeyDown(props: any) {
             if (props.event.key === 'Escape') {
                 popup[0].hide();
                 return true;

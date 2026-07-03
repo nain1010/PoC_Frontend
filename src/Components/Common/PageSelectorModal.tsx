@@ -19,18 +19,20 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
     const [searchTerm, setSearchTerm] = useState("");
 
     // Fetch all project pages
-    const { data: pages = [], isLoading } = useQuery({
+    const { data: rawPages, isLoading } = useQuery({
         queryKey: ['pages', projectId],
         queryFn: () => api.get(`/projects/${projectId}/pages`),
         enabled: isOpen && !!projectId
     });
+    const pages: any[] = (rawPages as any) || [];
 
     // Fetch already linked pages
-    const { data: linkedPages = [], isLoading: isLoadingLinked } = useQuery({
+    const { data: rawLinkedPages, isLoading: isLoadingLinked } = useQuery({
         queryKey: ['entity_pages', entityType, entityId],
         queryFn: () => api.get(`/projects/${projectId}/entities/${entityType}/${entityId}/pages`),
         enabled: isOpen && !!projectId && !!entityId
     });
+    const linkedPages: any[] = (rawLinkedPages as any) || [];
 
     const linkMutation = useMutation({
         mutationFn: (pageId: string) => api.post(`/projects/${projectId}/entities/${entityType}/${entityId}/pages`, { pagina_id: pageId }),
@@ -52,7 +54,7 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
 
     const createAndLinkMutation = useMutation({
         mutationFn: async (titulo: string) => {
-            const newPage = await api.create(`/projects/${projectId}/pages`, { titulo, icono: "📄" });
+            const newPage: any = await api.create(`/projects/${projectId}/pages`, { titulo, icono: "📄" });
             await api.post(`/projects/${projectId}/entities/${entityType}/${entityId}/pages`, { pagina_id: newPage.id });
             return newPage;
         },

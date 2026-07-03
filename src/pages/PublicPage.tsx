@@ -29,7 +29,7 @@ const PublicPage = () => {
     useEffect(() => {
         const fetchPage = async () => {
             try {
-                const response = await api.get(`/public/pages/${token}`);
+                const response: any = await api.get(`/public/pages/${token}`);
                 if (response.error) {
                     setError(true);
                 } else {

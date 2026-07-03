@@ -170,12 +170,12 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
                             borderRadius: '6px',
                             fontSize: '12px'
                         }}>
-                            <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ cursor: 'pointer' }} onClick={() => onOpenPageViewer ? onOpenPageViewer(page.id) : null}>
+                            <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ cursor: 'pointer' }} onClick={() => { if (onOpenPageViewer) onOpenPageViewer(page.id); }}>
                                 <i className="ri-file-text-line fs-14 text-info"></i>
                                 <span className="text-truncate text-info fw-medium" style={{ maxWidth: '150px' }}>{page.titulo}</span>
                             </div>
                             <div className="d-flex gap-1">
-                                <button onClick={(e) => { e.stopPropagation(); onOpenPageViewer ? onOpenPageViewer(page.id) : null; }} className="btn btn-sm btn-link text-info p-0" title="Ver">
+                                <button onClick={(e) => { e.stopPropagation(); if (onOpenPageViewer) onOpenPageViewer(page.id); }} className="btn btn-sm btn-link text-info p-0" title="Ver">
                                     <i className="ri-eye-line"></i>
                                 </button>
                                 <button onClick={(e) => { e.stopPropagation(); unlinkPageMutation.mutate(page.id); }} className="btn btn-sm btn-link text-danger p-0" title="Desvincular">

@@ -15,7 +15,6 @@ const TableBubbleMenu = ({ editor }: { editor: any }) => {
             tippyOptions={{ duration: 100, placement: 'top' }} 
             shouldShow={({ editor }) => editor.isActive('table')}
             className="shadow-sm border rounded bg-white p-1 d-flex gap-1 align-items-center"
-            style={{ backgroundColor: 'var(--vz-card-bg-custom)' }}
         >
             <Dropdown isOpen={menuOpen} toggle={() => setMenuOpen(!menuOpen)}>
                 <DropdownToggle className="btn btn-sm btn-ghost-secondary px-2 py-1 fs-12 fw-medium d-flex align-items-center gap-1">

@@ -33,11 +33,12 @@ interface PageViewerDrawerProps {
 }
 
 const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawerProps) => {
-    const { data: pageContent, isLoading } = useQuery({
+    const { data: rawPageContent, isLoading } = useQuery({
         queryKey: ['page', pageId],
         queryFn: () => api.get(`/projects/${projectId}/pages/${pageId}`),
         enabled: isOpen && !!pageId && !!projectId
     });
+    const pageContent: any = rawPageContent;
 
     const editor = useEditor({
         editable: false,

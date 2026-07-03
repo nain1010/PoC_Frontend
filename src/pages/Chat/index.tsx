@@ -189,12 +189,13 @@ const Chat = () => {
       const reply = res.reply || '';
       try {
         let jsonStr = null;
-        const themeMatch = reply.match(/```(?:theme|json)?\n?([\s\S]*?)```/);
+        let rawJsonMatch: any = null;
+        const themeMatch = reply.match(/```json\n([\s\S]*?)\n```/);
         
         if (themeMatch && themeMatch[1].includes("dark_mode")) {
           jsonStr = themeMatch[1];
         } else {
-          const rawJsonMatch = reply.match(/\{[^{}]*"dark_mode"[^{}]*\}/);
+          rawJsonMatch = reply.match(/\{[^{}]*"dark_mode"[^{}]*\}/);
           if (rawJsonMatch) jsonStr = rawJsonMatch[0];
         }
 
