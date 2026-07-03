@@ -165,7 +165,7 @@ const Pages = () => {
         try {
             const token = JSON.parse(sessionStorage.getItem('authUser') || localStorage.getItem('authUser') || '{}').token;
             const res = await fetch(
-                `${config.api.API_URL}/projects/${activeProjectId}/attachments/?entity_type=pagina&entity_id=${selectedPageId}`,
+                `${config.api.API_URL}/api/upload/${activeProjectId}?entity_type=pagina&entity_id=${selectedPageId}`,
                 { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData }
             );
             if (res.ok) {
