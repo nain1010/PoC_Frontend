@@ -11,8 +11,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import Select from "react-select";
 import TableContainer from '../../Components/Common/TableContainer';
 import PageSelectorModal from '../../Components/Common/PageSelectorModal';
+import AttachmentModal from '../../Components/Common/AttachmentModal';
 import PageViewerDrawer from '../../Components/Common/PageViewerDrawer';
-
+import InlineAttachments from '../../Components/Common/InlineAttachments';
 const api = APIClient;
 
 const getProjectPrefix = (name: string) => {
@@ -86,7 +87,8 @@ const Planning = () => {
     const [editSprint, setEditSprint] = useState<any>(null);
 
     // Pages Modals
-    const [pageSelector, setPageSelector] = useState<{ isOpen: boolean, type: 'historia'|'tarea', id: string }>({ isOpen: false, type: 'historia', id: '' });
+    const [pageSelector, setPageSelector] = useState<{isOpen: boolean, type: 'historia'|'tarea', id: string}>({isOpen: false, type: 'historia', id: ''});
+    const [attachmentModal, setAttachmentModal] = useState<{isOpen: boolean, type: 'historia'|'tarea', id: string}>({isOpen: false, type: 'historia', id: ''});
     const [pageViewer, setPageViewer] = useState<{ isOpen: boolean, pageId: string | null }>({ isOpen: false, pageId: null });
 
     const openPageSelector = useCallback((id: string, type: 'historia'|'tarea') => setPageSelector({ isOpen: true, type, id }), []);
@@ -862,6 +864,7 @@ const Planning = () => {
                                                     onEdit={handleOpenEditStory}
                                                     onDelete={handleDeleteStory}
                                                     onOpenPageSelector={openPageSelector}
+                                                    onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, type, id})}
                                                 />
                                             ))
                                         )}
@@ -929,6 +932,7 @@ const Planning = () => {
                                                         onEditStory={handleOpenEditStory}
                                                         onDeleteStory={handleDeleteStory}
                                                         onOpenPageSelector={openPageSelector}
+                                                        onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, type, id})}
                                                     />
                                                 );
                                             })
@@ -1315,6 +1319,13 @@ const Planning = () => {
                         entityId={pageSelector.id}
                         onOpenPageViewer={(pageId) => setPageViewer({ isOpen: true, pageId })}
                     />
+                    <AttachmentModal 
+                        isOpen={attachmentModal.isOpen} 
+                        toggle={() => setAttachmentModal(prev => ({ ...prev, isOpen: false }))} 
+                        projectId={activeProjectId} 
+                        entityType={attachmentModal.type} 
+                        entityId={attachmentModal.id}
+                    />
                     <PageViewerDrawer 
                         isOpen={pageViewer.isOpen} 
                         toggle={() => setPageViewer(prev => ({ ...prev, isOpen: false }))} 
@@ -1330,13 +1341,15 @@ const Planning = () => {
 };
 
 // Backlog story card
-const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector }: {
-    story: any; planningSprints: any[];
-    onEstimate: (storyId: string, puntos: number) => void;
+const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal }: {
+    story: any;
+    planningSprints: any[];
+    onEstimate: (storyId: string, points: number) => void;
     onPlan: (storyId: string, sprintId: string) => void;
     onEdit: (story: any) => void;
     onDelete: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
+    onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => void;
 }) => {
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
     const handlePlan = useCallback((sprintId: string) => onPlan(story.id, sprintId), [story.id, onPlan]);
@@ -1353,11 +1366,19 @@ const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPla
                             color="soft-info" 
                             size="sm" 
                             className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1 me-1"
+                            onClick={() => onOpenAttachmentModal(story.id, 'historia')}
+                            title="Archivos adjuntos"
+                        >
+                            <i className="ri-attachment-2"></i>
+                        </Button>
+                        <Button 
+                            color="soft-info" 
+                            size="sm" 
+                            className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1 me-1"
                             onClick={() => onOpenPageSelector(story.id, 'historia')}
                             title="Adjuntar documentación"
                         >
                             <i className="ri-file-text-line"></i>
-                            <span className="fs-11">Docs</span>
                         </Button>
                         <DropdownEstimate onSelect={handleEstimate} currentPoints={story.esfuerzo_estimado} />
                         <DropdownPlan sprints={planningSprints} onSelect={handlePlan} />
@@ -1376,15 +1397,19 @@ const BacklogStoryCard = React.memo(({ story, planningSprints, onEstimate, onPla
                         </ul>
                     </div>
                 )}
+                <InlineAttachments projectId={story.proyecto_id} entityType="historia" entityId={story.id} />
             </CardBody>
         </Card>
     );
 });
 
 // Sprint card in planning column
-const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory, onOpenPageSelector }: {
-    sprint: any; sprintStories: any[]; totalPoints: number; planningSprints: any[];
-    onEstimate: (storyId: string, puntos: number) => void;
+const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSprints, onEstimate, onPlan, onActivate, onClose, onEditSprint, onDeleteSprint, onEditStory, onDeleteStory, onOpenPageSelector, onOpenAttachmentModal }: {
+    sprint: any;
+    sprintStories: any[];
+    totalPoints: number;
+    planningSprints: any[];
+    onEstimate: (storyId: string, points: number) => void;
     onPlan: (storyId: string, sprintId: string) => void;
     onActivate: (sprintId: string) => void;
     onClose: (sprintId: string) => void;
@@ -1393,6 +1418,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSpr
     onEditStory: (story: any) => void;
     onDeleteStory: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
+    onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => void;
 }) => {
     const handleActivate = useCallback(() => onActivate(sprint.id), [sprint.id, onActivate]);
     const handleClose = useCallback(() => onClose(sprint.id), [sprint.id, onClose]);
@@ -1474,6 +1500,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSpr
                                         onEdit={onEditStory}
                                         onDelete={onDeleteStory}
                                         onOpenPageSelector={onOpenPageSelector}
+                                        onOpenAttachmentModal={onOpenAttachmentModal}
                                     />
                                 ))
                             )}
@@ -1486,13 +1513,16 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, planningSpr
 });
 
 // Sprint story row
-const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector }: {
-    story: any; sprintId: string; planningSprints: any[];
-    onEstimate: (storyId: string, puntos: number) => void;
+const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal }: {
+    story: any;
+    sprintId: string;
+    planningSprints: any[];
+    onEstimate: (storyId: string, points: number) => void;
     onPlan: (storyId: string, sprintId: string) => void;
     onEdit: (story: any) => void;
     onDelete: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
+    onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => void;
 }) => {
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
     const handlePlan = useCallback((targetSprintId: string) => onPlan(story.id, targetSprintId), [story.id, onPlan]);
@@ -1500,26 +1530,38 @@ const SprintStoryRow = React.memo(({ story, sprintId, planningSprints, onEstimat
     const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
     return (
-        <div className="d-flex justify-content-between align-items-center p-2 border rounded mb-2 bg-light">
-            <div>
-                <span className="badge bg-soft-muted text-muted me-2">{story.correlativo}</span>
-                <span className="text-muted fw-medium fs-13">{story.titulo}</span>
+        <div className="p-2 border rounded mb-2 bg-light">
+            <div className="d-flex justify-content-between align-items-center">
+                <div>
+                    <span className="badge bg-soft-muted text-muted me-2">{story.correlativo}</span>
+                    <span className="text-muted fw-medium fs-13">{story.titulo}</span>
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                    <Button 
+                        color="soft-info" 
+                        size="sm" 
+                        className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1 me-1"
+                        onClick={() => onOpenAttachmentModal(story.id, 'historia')}
+                        title="Archivos adjuntos"
+                    >
+                        <i className="ri-attachment-2"></i>
+                    </Button>
+                    <Button 
+                        color="soft-info" 
+                        size="sm" 
+                        className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1 me-2"
+                        onClick={() => onOpenPageSelector(story.id, 'historia')}
+                        title="Adjuntar documentación"
+                    >
+                        <i className="ri-file-text-line"></i>
+                        <span className="fs-11">Docs</span>
+                    </Button>
+                    <DropdownEstimate onSelect={handleEstimate} currentPoints={story.esfuerzo_estimado} />
+                    <DropdownPlan sprints={planningSprints} currentSprintId={sprintId} onSelect={handlePlan} />
+                    <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
+                </div>
             </div>
-            <div className="d-flex align-items-center gap-2">
-                <Button 
-                    color="soft-info" 
-                    size="sm" 
-                    className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1"
-                    onClick={() => onOpenPageSelector(story.id, 'historia')}
-                    title="Adjuntar documentación"
-                >
-                    <i className="ri-file-text-line"></i>
-                    <span className="fs-11">Docs</span>
-                </Button>
-                <DropdownEstimate onSelect={handleEstimate} currentPoints={story.esfuerzo_estimado} />
-                <DropdownPlan sprints={planningSprints} currentSprintId={sprintId} onSelect={handlePlan} />
-                <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
-            </div>
+            <InlineAttachments projectId={story.proyecto_id} entityType="historia" entityId={story.id} />
         </div>
     );
 });

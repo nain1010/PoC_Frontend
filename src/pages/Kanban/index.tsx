@@ -9,8 +9,9 @@ import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PageSelectorModal from '../../Components/Common/PageSelectorModal';
+import AttachmentModal from '../../Components/Common/AttachmentModal';
 import PageViewerDrawer from '../../Components/Common/PageViewerDrawer';
-
+import InlineAttachments from '../../Components/Common/InlineAttachments';
 const api = APIClient;
 
 const Kanban = () => {
@@ -61,6 +62,7 @@ const Kanban = () => {
 
     // Pages Modals
     const [pageSelector, setPageSelector] = useState<{ isOpen: boolean, type: 'historia'|'tarea', id: string }>({ isOpen: false, type: 'historia', id: '' });
+    const [attachmentModal, setAttachmentModal] = useState<{isOpen: boolean, type: 'historia'|'tarea', id: string}>({isOpen: false, type: 'historia', id: ''});
     const [pageViewer, setPageViewer] = useState<{ isOpen: boolean, pageId: string | null }>({ isOpen: false, pageId: null });
 
     const openPageSelector = useCallback((id: string, type: 'historia'|'tarea') => setPageSelector({ isOpen: true, type, id }), []);
@@ -422,6 +424,7 @@ const Kanban = () => {
                                                         expanded={!!expandedStories[story.id]}
                                                         onToggleExpand={toggleStoryExpand}
                                                         onOpenPageSelector={openPageSelector}
+                                                        onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, id, type})}
                                                         onOpenPageViewer={openPageViewer}
                                                     />
                                                 ))
@@ -456,6 +459,7 @@ const Kanban = () => {
                                                         expanded={!!expandedStories[story.id]}
                                                         onToggleExpand={toggleStoryExpand}
                                                         onOpenPageSelector={openPageSelector}
+                                                        onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, id, type})}
                                                         onOpenPageViewer={openPageViewer}
                                                     />
                                                 ))
@@ -490,6 +494,7 @@ const Kanban = () => {
                                                         expanded={!!expandedStories[story.id]}
                                                         onToggleExpand={toggleStoryExpand}
                                                         onOpenPageSelector={openPageSelector}
+                                                        onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, id, type})}
                                                         onOpenPageViewer={openPageViewer}
                                                     />
                                                 ))
@@ -574,6 +579,13 @@ const Kanban = () => {
                         entityId={pageSelector.id}
                         onOpenPageViewer={(pageId) => setPageViewer({ isOpen: true, pageId })}
                     />
+                    <AttachmentModal 
+                        isOpen={attachmentModal.isOpen} 
+                        toggle={() => setAttachmentModal(prev => ({ ...prev, isOpen: false }))} 
+                        projectId={activeProjectId} 
+                        entityType={attachmentModal.type} 
+                        entityId={attachmentModal.id}
+                    />
                     <PageViewerDrawer 
                         isOpen={pageViewer.isOpen} 
                         toggle={() => setPageViewer(prev => ({ ...prev, isOpen: false }))} 
@@ -589,7 +601,7 @@ const Kanban = () => {
 };
 
 // Story Card sub-component
-const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, onOpenTaskModal, expanded, onToggleExpand }: {
+const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, onOpenTaskModal, expanded, onToggleExpand, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
     story: any;
     projectDetails: any;
     memberFilter: string | null;
@@ -600,6 +612,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
     expanded: boolean;
     onToggleExpand: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia' | 'tarea') => void;
+    onOpenAttachmentModal: (id: string, type: 'historia' | 'tarea') => void;
     onOpenPageViewer: (pageId: string) => void;
 }) => {
     // Filter tasks for this story
@@ -687,16 +700,12 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                             {story.esfuerzo_estimado || story.puntos_esfuerzo || 0} Pts
                         </Badge>
                     </div>
-                    <div>
-                        <Button 
-                            color="soft-info" 
-                            size="sm" 
-                            className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1"
-                            onClick={() => onOpenPageSelector(story.id, 'historia')}
-                            title="Adjuntar documentación"
-                        >
-                            <i className="ri-file-text-line"></i>
-                            <span className="fs-11">Docs</span>
+                    <div className="d-flex gap-1">
+                        <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenAttachmentModal(story.id, 'historia'); }} title="Archivos adjuntos">
+                            <i className="ri-attachment-2 fs-16 align-middle"></i>
+                        </Button>
+                        <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenPageSelector(story.id, 'historia'); }} title="Documentos Adjuntos">
+                            <i className="ri-file-text-line fs-16 align-middle"></i>
                         </Button>
                     </div>
                 </div>
@@ -718,6 +727,9 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                         ></div>
                     </div>
                 </div>
+
+                <InlineAttachments projectId={story.proyecto_id} entityType="historia" entityId={story.id} />
+
 
                 {/* Actions */}
                 <div className="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
@@ -760,10 +772,12 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                     <KanbanTaskRow 
                                         key={task.id} 
                                         task={task} 
+                                        projectId={story.proyecto_id}
                                         onTaskStatusChange={onTaskStatusChange}
                                         onTaskAssign={onTaskAssign}
-                                        developers={projectDetails?.memberships?.filter((m: any) => m.rol === 'Developer') || []}
+                                        developers={projectDetails?.integrantes?.filter((m: any) => m.rol === 'Desarrollador') || []}
                                         onOpenPageSelector={onOpenPageSelector}
+                                        onOpenAttachmentModal={onOpenAttachmentModal}
                                         onOpenPageViewer={onOpenPageViewer}
                                     />
                                 ))
@@ -777,12 +791,14 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
 });
 
 // Task Row inside story card
-const KanbanTaskRow = React.memo(({ task, onTaskStatusChange, onTaskAssign, developers, onOpenPageSelector, onOpenPageViewer }: {
+const KanbanTaskRow = React.memo(({ task, projectId, onTaskStatusChange, onTaskAssign, developers, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
     task: any;
+    projectId: string;
     onTaskStatusChange: (taskId: string, status: string) => void;
     onTaskAssign: (taskId: string, usuarioId: string) => void;
     developers: any[];
     onOpenPageSelector: (id: string, type: 'historia' | 'tarea') => void;
+    onOpenAttachmentModal: (id: string, type: 'historia' | 'tarea') => void;
     onOpenPageViewer: (pageId: string) => void;
 }) => {
     const [taskDropdownOpen, setTaskDropdownOpen] = useState(false);
@@ -816,14 +832,11 @@ const KanbanTaskRow = React.memo(({ task, onTaskStatusChange, onTaskAssign, deve
                 </span>
                 
                 <div className="d-flex align-items-center gap-1">
-                    <Button 
-                        color="soft-info" 
-                        size="sm" 
-                        className="btn-sm py-0 px-1 fs-12 me-1"
-                        onClick={() => onOpenPageSelector(task.id, 'tarea')}
-                        title="Adjuntar documentación"
-                    >
-                        <i className="ri-file-text-line"></i>
+                    <Button size="sm" color="light" className="text-muted p-0 px-1 border-0" onClick={() => onOpenAttachmentModal(task.id, 'tarea')} title="Archivos de la Tarea">
+                        <i className="ri-attachment-2 fs-14 align-middle"></i>
+                    </Button>
+                    <Button size="sm" color="light" className="text-muted p-0 px-1 border-0" onClick={() => onOpenPageSelector(task.id, 'tarea')} title="Documentos de la Tarea">
+                        <i className="ri-file-text-line fs-14 align-middle"></i>
                     </Button>
                     {/* Assign Dropdown */}
                     <Dropdown isOpen={assignDropdownOpen} toggle={toggleAssignDropdown} size="sm" strategy="fixed">
@@ -878,6 +891,7 @@ const KanbanTaskRow = React.memo(({ task, onTaskStatusChange, onTaskAssign, deve
             {task.descripcion && (
                 <p className="text-muted fs-11 mb-0 mt-1"><span>{task.descripcion}</span></p>
             )}
+            <InlineAttachments projectId={projectId} entityType="tarea" entityId={task.id} />
         </div>
     );
 });
