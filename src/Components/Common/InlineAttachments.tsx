@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from '../../helpers/api_helper';
 import { toast } from 'react-toastify';
@@ -188,18 +189,18 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
             )}
 
             {/* Lightbox for images */}
-            {previewFile && (
+            {previewFile && ReactDOM.createPortal(
                 <div
                     onClick={(e) => { e.stopPropagation(); setPreviewFile(null); }}
                     style={{
-                        position: 'fixed', inset: 0, zIndex: 1060,
+                        position: 'fixed', inset: 0, zIndex: 9999,
                         background: 'rgba(0,0,0,0.9)',
                         display: 'flex', flexDirection: 'column',
                         alignItems: 'center', justifyContent: 'center',
                         cursor: 'zoom-out',
                     }}
                 >
-                    <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8, zIndex: 1061 }}>
+                    <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 8, zIndex: 10000 }}>
                         <button onClick={(e) => handleDownload(e, previewFile)}
                             style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 10, padding: '8px 16px', color: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}>
                             <i className="ri-download-2-line me-1"></i> Descargar
@@ -223,7 +224,8 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
                             boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
                         }}
                     />
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

@@ -728,7 +728,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                     </div>
                 </div>
 
-                <InlineAttachments projectId={projectDetails.id} entityType="historia" entityId={story.id} />
+                <InlineAttachments projectId={projectDetails.id} entityType="historia" entityId={story.id} onOpenPageViewer={onOpenPageViewer} />
 
 
                 {/* Actions */}
@@ -891,7 +891,7 @@ const KanbanTaskRow = React.memo(({ task, projectId, onTaskStatusChange, onTaskA
             {task.descripcion && (
                 <p className="text-muted fs-11 mb-0 mt-1"><span>{task.descripcion}</span></p>
             )}
-            <InlineAttachments projectId={projectId} entityType="tarea" entityId={task.id} />
+            <InlineAttachments projectId={projectId} entityType="tarea" entityId={task.id} onOpenPageViewer={onOpenPageViewer} />
         </div>
     );
 });
