@@ -127,8 +127,8 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
                                 gap: '4px',
                                 opacity: 0,
                                 transition: 'opacity 0.2s ease'
-                            }}>
-                                <button onClick={(e) => handleDownload(e, file)}
+                            }} onClick={(e) => { e.stopPropagation(); setPreviewFile(file); }}>
+                                <button onClick={(e) => { e.stopPropagation(); handleDownload(e, file); }}
                                     style={{ background: 'transparent', border: 'none', color: '#fff', padding: '2px' }} title="Descargar">
                                     <i className="ri-download-2-line fs-14"></i>
                                 </button>
