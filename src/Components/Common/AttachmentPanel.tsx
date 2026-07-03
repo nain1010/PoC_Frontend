@@ -197,6 +197,7 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
                                 </Button>
                             )}
                         </div>
+                        );
                     })}
                 </div>
             )}
