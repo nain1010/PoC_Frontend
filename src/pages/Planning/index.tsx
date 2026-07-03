@@ -866,6 +866,7 @@ const Planning = () => {
                                                     onDelete={handleDeleteStory}
                                                     onOpenPageSelector={openPageSelector}
                                                     onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, type, id})}
+                                                    onOpenPageViewer={openPageViewer}
                                                 />
                                             ))
                                         )}
@@ -935,6 +936,7 @@ const Planning = () => {
                                                         onDeleteStory={handleDeleteStory}
                                                         onOpenPageSelector={openPageSelector}
                                                         onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, type, id})}
+                                                        onOpenPageViewer={openPageViewer}
                                                     />
                                                 );
                                             })
@@ -1353,6 +1355,7 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
     onDelete: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
     onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => void;
+    onOpenPageViewer: (pageId: string) => void;
 }) => {
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
     const handlePlan = useCallback((sprintId: string) => onPlan(story.id, sprintId), [story.id, onPlan]);
@@ -1400,7 +1403,7 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
                         </ul>
                     </div>
                 )}
-                <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} />
+                <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} onOpenPageViewer={onOpenPageViewer} />
             </CardBody>
         </Card>
     );
@@ -1423,6 +1426,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
     onDeleteStory: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
     onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => void;
+    onOpenPageViewer: (pageId: string) => void;
 }) => {
     const handleActivate = useCallback(() => onActivate(sprint.id), [sprint.id, onActivate]);
     const handleClose = useCallback(() => onClose(sprint.id), [sprint.id, onClose]);
@@ -1506,6 +1510,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
                                         onDelete={onDeleteStory}
                                         onOpenPageSelector={onOpenPageSelector}
                                         onOpenAttachmentModal={onOpenAttachmentModal}
+                                        onOpenPageViewer={onOpenPageViewer}
                                     />
                                 ))
                             )}
@@ -1529,6 +1534,7 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
     onDelete: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
     onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => void;
+    onOpenPageViewer: (pageId: string) => void;
 }) => {
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
     const handlePlan = useCallback((targetSprintId: string) => onPlan(story.id, targetSprintId), [story.id, onPlan]);
@@ -1567,7 +1573,7 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
                     <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
                 </div>
             </div>
-            <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} />
+            <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} onOpenPageViewer={onOpenPageViewer} />
         </div>
     );
 });

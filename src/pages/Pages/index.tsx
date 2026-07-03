@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button, Spinner } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
@@ -92,6 +92,14 @@ const Pages = () => {
         enabled: !!selectedPageId && !!activeProjectId,
     });
 
+    useEffect(() => {
+        if (pageContent && pageContent.titulo) {
+            setTitleValue(pageContent.titulo);
+        } else {
+            setTitleValue("");
+        }
+    }, [pageContent, selectedPageId]);
+
 
     // ---- Mutations ----
     const createPageMutation = useMutation({
@@ -138,6 +146,16 @@ const Pages = () => {
         },
     });
 
+    const deletePageMutation = useMutation({
+        mutationFn: (id: string) => api.delete(`/projects/${activeProjectId}/pages/${id}`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
+            setSelectedPageId(null);
+            toast.success("Página eliminada.");
+        },
+        onError: () => toast.error("Error al eliminar la página.")
+    });
+
     // ---- Image Upload Handler ----
     const uploadImage = async (file: File): Promise<string | null> => {
         if (!activeProjectId || !selectedPageId) return null;
@@ -164,8 +182,9 @@ const Pages = () => {
     // El editor y la lógica de bloques ahora se manejan en PageEditorWrapper
 
     // ---- Handlers ----
-    const handleCreatePage = useCallback((parentId: string | null = null) => {
-        createPageMutation.mutate({ titulo: "Nueva página", icono: "📝", padre_id: typeof parentId === 'string' ? parentId : null });
+    const handleCreatePage = useCallback((parentId: string | null | any = null) => {
+        const id = typeof parentId === 'string' ? parentId : null;
+        createPageMutation.mutate({ titulo: "Nueva página", icono: "📝", padre_id: id });
     }, [createPageMutation]);
 
     const handleTitleSave = useCallback(() => {
@@ -173,6 +192,24 @@ const Pages = () => {
             updatePageMutation.mutate({ id: selectedPageId, titulo: titleValue.trim() });
         }
     }, [selectedPageId, titleValue, pageContent, updatePageMutation]);
+
+    const handleDownloadPage = useCallback(() => {
+        if (!pageContent) return;
+        const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${pageContent.titulo}</title></head><body><h1>${pageContent.titulo}</h1>${pageContent.contenido}</body></html>`;
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${pageContent.titulo || 'documento'}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }, [pageContent]);
+
+    const confirmDeletePage = useCallback(() => {
+        if (window.confirm("¿Estás seguro de que deseas eliminar esta página y todo su contenido?")) {
+            if (selectedPageId) deletePageMutation.mutate(selectedPageId);
+        }
+    }, [selectedPageId, deletePageMutation]);
 
     document.title = `Documentación | Luma - ${activeProjectName || 'Scrum'}`;
 
@@ -198,7 +235,7 @@ const Pages = () => {
                             {activeProjectName}
                         </span>
                         <div className="d-flex gap-1">
-                            <Button color="light" size="sm" className="btn-icon p-0 bg-transparent border-0 text-muted hover-bg-soft-primary rounded" onClick={handleCreatePage}>
+                            <Button color="light" size="sm" className="btn-icon p-0 bg-transparent border-0 text-muted hover-bg-soft-primary rounded" onClick={() => handleCreatePage()}>
                                 <i className="ri-add-line fs-18"></i>
                             </Button>
                         </div>
@@ -234,7 +271,7 @@ const Pages = () => {
                         <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
                             <i className="ri-draft-line display-1 mb-3 opacity-50"></i>
                             <h5 className="text-muted fw-normal">Selecciona o crea una página para comenzar</h5>
-                            <Button color="primary" className="mt-3 rounded-pill px-4" onClick={handleCreatePage}>
+                            <Button color="primary" className="mt-3 rounded-pill px-4" onClick={() => handleCreatePage()}>
                                 Crear página
                             </Button>
                         </div>
@@ -256,6 +293,8 @@ const Pages = () => {
                             activeProjectId={activeProjectId}
                             uploadImage={uploadImage}
                             handleTitleSave={handleTitleSave}
+                            onDeletePage={confirmDeletePage}
+                            onDownloadPage={handleDownloadPage}
                         />
                         </>
                     )}

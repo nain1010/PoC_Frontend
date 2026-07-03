@@ -9,7 +9,9 @@ const TopToolbar = ({
     toggleFullWidth,
     isPublic,
     publicToken,
-    togglePublish
+    togglePublish,
+    onDeletePage,
+    onDownloadPage
 }: { 
     editor: any, 
     isLocked?: boolean, 
@@ -18,7 +20,9 @@ const TopToolbar = ({
     toggleFullWidth?: () => void,
     isPublic?: boolean,
     publicToken?: string,
-    togglePublish?: () => void
+    togglePublish?: () => void,
+    onDeletePage?: () => void,
+    onDownloadPage?: () => void
 }) => {
     const [blockDropdownOpen, setBlockDropdownOpen] = React.useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = React.useState(false);
@@ -202,6 +206,16 @@ const TopToolbar = ({
                     <button className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1 text-muted" onClick={toggleLock} title="Bloquear página">
                         <i className="ri-lock-line"></i>
                         <span className="fs-12 d-none d-sm-inline">Bloquear</span>
+                    </button>
+                )}
+                {onDownloadPage && (
+                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1 text-muted" onClick={onDownloadPage} title="Descargar página">
+                        <i className="ri-download-2-line"></i>
+                    </button>
+                )}
+                {onDeletePage && (
+                    <button className="btn btn-sm btn-ghost-danger px-2 py-1 d-flex align-items-center gap-1 text-danger" onClick={onDeletePage} title="Eliminar página">
+                        <i className="ri-delete-bin-line"></i>
                     </button>
                 )}
             </div>

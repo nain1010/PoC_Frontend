@@ -51,7 +51,9 @@ const PageEditorWrapper = ({
     setIsFullWidth,
     activeProjectId,
     uploadImage,
-    handleTitleSave
+    handleTitleSave,
+    onDeletePage,
+    onDownloadPage
 }: any) => {
     const saveTimerRef = useRef<any>(null);
     const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
@@ -145,11 +147,11 @@ const PageEditorWrapper = ({
                 HTMLAttributes: {
                     class: 'mention bg-soft-primary text-primary px-1 rounded fw-medium text-decoration-none',
                 },
-                suggestion: getSuggestionConfig(activeProjectId || ""),
+                suggestion: getSuggestionConfig(activeProjectId || "") as any,
             }),
             SlashCommands.configure({
                 suggestion: {
-                    items: ({ query }) => {
+                    items: ({ query }: any) => {
                         return getSuggestionItems().filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
                     },
                     render: renderItems,
@@ -160,7 +162,7 @@ const PageEditorWrapper = ({
         onUpdate: ({ editor }) => {
             if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
             saveTimerRef.current = setTimeout(() => {
-                const b64Crdt = btoa(String.fromCharCode(...Y.encodeStateAsUpdate(ydoc)));
+                const b64Crdt = btoa(String.fromCharCode(...Array.from(Y.encodeStateAsUpdate(ydoc))));
                 const jsonToSave = {
                     ...editor.getJSON(),
                     crdt_b64: b64Crdt
@@ -273,6 +275,8 @@ const PageEditorWrapper = ({
                 isPublic={pageContent?.is_public}
                 publicToken={pageContent?.public_token}
                 togglePublish={() => updatePageMutation.mutate({ id: pageId, is_public: !pageContent?.is_public })}
+                onDeletePage={onDeletePage}
+                onDownloadPage={onDownloadPage}
             />
             
             <div className="d-flex flex-grow-1 w-100 h-100 overflow-hidden">

@@ -10,6 +10,7 @@ interface InlineAttachmentsProps {
     projectId: string;
     entityType: 'historia' | 'tarea' | 'proyecto';
     entityId: string;
+    onOpenPageViewer?: (pageId: string) => void;
 }
 
 interface AttachmentFile {
@@ -22,7 +23,7 @@ interface AttachmentFile {
     url_publica: string;
 }
 
-const InlineAttachments = ({ projectId, entityType, entityId }: InlineAttachmentsProps) => {
+const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }: InlineAttachmentsProps) => {
     const queryClient = useQueryClient();
     const [previewFile, setPreviewFile] = useState<AttachmentFile | null>(null);
 
@@ -31,8 +32,14 @@ const InlineAttachments = ({ projectId, entityType, entityId }: InlineAttachment
         queryFn: () => api.get(`/projects/${projectId}/attachments?entity_type=${entityType}&entity_id=${entityId}`),
         enabled: !!projectId && !!entityId
     });
-
     const attachments: AttachmentFile[] = (rawData as any) || [];
+
+    const { data: rawPages, isLoading: isLoadingPages } = useQuery({
+        queryKey: ['entity_pages', entityType, entityId],
+        queryFn: () => api.get(`/projects/${projectId}/entities/${entityType}/${entityId}/pages`),
+        enabled: !!projectId && !!entityId
+    });
+    const linkedPages: any[] = (rawPages as any) || [];
 
     const deleteMutation = useMutation({
         mutationFn: (attachmentId: string) => api.delete(`/projects/${projectId}/attachments/${attachmentId}`),
@@ -43,7 +50,16 @@ const InlineAttachments = ({ projectId, entityType, entityId }: InlineAttachment
         onError: () => toast.error("Error al eliminar el archivo.")
     });
 
-    if (isLoading || attachments.length === 0) return null;
+    const unlinkPageMutation = useMutation({
+        mutationFn: (pageId: string) => api.delete(`/projects/${projectId}/entities/${entityType}/${entityId}/pages/${pageId}`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['entity_pages', entityType, entityId] });
+            toast.success("Página desvinculada.");
+        },
+        onError: () => toast.error("Error al desvincular página.")
+    });
+
+    if ((isLoading || attachments.length === 0) && (isLoadingPages || linkedPages.length === 0)) return null;
 
     const isImage = (mime: string) => mime?.startsWith('image/');
     const getFileUrl = (file: AttachmentFile) => `${config.api.API_URL}${file.url_publica}`;
@@ -125,8 +141,8 @@ const InlineAttachments = ({ projectId, entityType, entityId }: InlineAttachment
                 </div>
             )}
             
-            {docFiles.length > 0 && (
-                <div className="d-flex flex-column gap-1">
+            {(docFiles.length > 0 || linkedPages.length > 0) && (
+                <div className="d-flex flex-column gap-1 mt-1">
                     {docFiles.map(file => (
                         <div key={file.id} className="d-flex align-items-center justify-content-between p-1 px-2" style={{
                             background: 'var(--vz-light)',
@@ -143,6 +159,27 @@ const InlineAttachments = ({ projectId, entityType, entityId }: InlineAttachment
                                 </button>
                                 <button onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(file.id); }} className="btn btn-sm btn-link text-danger p-0" title="Eliminar">
                                     <i className="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    
+                    {linkedPages.map((page: any) => (
+                        <div key={page.id} className="d-flex align-items-center justify-content-between p-1 px-2 border border-info border-opacity-25" style={{
+                            background: 'var(--vz-info-bg-subtle)',
+                            borderRadius: '6px',
+                            fontSize: '12px'
+                        }}>
+                            <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ cursor: 'pointer' }} onClick={() => onOpenPageViewer ? onOpenPageViewer(page.id) : null}>
+                                <i className="ri-file-text-line fs-14 text-info"></i>
+                                <span className="text-truncate text-info fw-medium" style={{ maxWidth: '150px' }}>{page.titulo}</span>
+                            </div>
+                            <div className="d-flex gap-1">
+                                <button onClick={(e) => { e.stopPropagation(); onOpenPageViewer ? onOpenPageViewer(page.id) : null; }} className="btn btn-sm btn-link text-info p-0" title="Ver">
+                                    <i className="ri-eye-line"></i>
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); unlinkPageMutation.mutate(page.id); }} className="btn btn-sm btn-link text-danger p-0" title="Desvincular">
+                                    <i className="ri-link-unlink-m"></i>
                                 </button>
                             </div>
                         </div>
