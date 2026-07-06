@@ -277,6 +277,7 @@ const PageEditorWrapper = ({
                 togglePublish={() => updatePageMutation.mutate({ id: pageId, is_public: !pageContent?.is_public })}
                 onDeletePage={onDeletePage}
                 onDownloadPage={onDownloadPage}
+                pageTitle={pageContent?.titulo}
             />
             
             <div className="d-flex flex-grow-1 w-100 h-100 overflow-hidden">

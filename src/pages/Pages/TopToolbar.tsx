@@ -12,7 +12,8 @@ const TopToolbar = ({
     publicToken,
     togglePublish,
     onDeletePage,
-    onDownloadPage
+    onDownloadPage,
+    pageTitle
 }: { 
     editor: any, 
     isLocked?: boolean, 
@@ -23,7 +24,8 @@ const TopToolbar = ({
     publicToken?: string,
     togglePublish?: () => void,
     onDeletePage?: () => void,
-    onDownloadPage?: (html?: string) => void
+    onDownloadPage?: (html?: string) => void,
+    pageTitle?: string
 }) => {
     const [blockDropdownOpen, useState] = React.useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = React.useState(false);
@@ -228,7 +230,7 @@ const TopToolbar = ({
                 isOpen={exportModalOpen} 
                 toggle={() => setExportModalOpen(!exportModalOpen)} 
                 editor={editor}
-                pageTitle={document.title.split('|')[0].trim()}
+                pageTitle={pageTitle || document.title.split('|')[0].trim()}
             />
         </>
     );
