@@ -67,6 +67,21 @@ const RightSidebar = (props: any) => {
         const newTheme = { ...lumaTheme, ...updates };
         setLumaTheme(newTheme);
         saveLumaTheme(newTheme);
+
+        if (updates.background) {
+            const darkBg = ['aurora-glow', 'solid-indigo', 'cyberpunk-grid', 'midnight-gradient'];
+            const lightBg = ['pastel-mesh', 'clean-white-glass'];
+            
+            if (darkBg.includes(updates.background)) {
+                dispatch(changeLayoutMode(LAYOUT_MODE_TYPES.DARKMODE));
+                dispatch(changeTopbarTheme(LAYOUT_TOPBAR_THEME_TYPES.DARK));
+                dispatch(changeSidebarTheme(LAYOUT_SIDEBAR_TYPES.DARK));
+            } else if (lightBg.includes(updates.background)) {
+                dispatch(changeLayoutMode(LAYOUT_MODE_TYPES.LIGHTMODE));
+                dispatch(changeTopbarTheme(LAYOUT_TOPBAR_THEME_TYPES.LIGHT));
+                dispatch(changeSidebarTheme(LAYOUT_SIDEBAR_TYPES.LIGHT));
+            }
+        }
     };
 
     const [show, setShow] = useState<boolean>(false);

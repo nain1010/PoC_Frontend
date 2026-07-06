@@ -27,12 +27,12 @@ const fontUrls: Record<string, string> = {
 };
 
 const accentColors: Record<string, { hex: string, rgb: string, textShade: string }> = {
-  'orchid': { hex: '#d946ef', rgb: '217, 70, 239', textShade: '#a21caf' },
-  'teal-breeze': { hex: '#0ea5e9', rgb: '14, 165, 233', textShade: '#0369a1' },
-  'sunset': { hex: '#f97316', rgb: '249, 117, 22', textShade: '#c2410c' },
-  'nordic-slate': { hex: '#6366f1', rgb: '99, 102, 241', textShade: '#4338ca' },
-  'cyberpunk': { hex: '#06b6d4', rgb: '6, 182, 212', textShade: '#0e7490' },
-  'emerald': { hex: '#10b981', rgb: '16, 185, 129', textShade: '#047857' }
+  'orchid': { hex: '#8b5cf6', rgb: '139, 92, 246', textShade: '#6d28d9' }, // Soft Violet
+  'teal-breeze': { hex: '#14b8a6', rgb: '20, 184, 166', textShade: '#0f766e' }, // Muted Teal
+  'sunset': { hex: '#d97706', rgb: '217, 119, 6', textShade: '#b45309' }, // Terracotta / Amber
+  'nordic-slate': { hex: '#64748b', rgb: '100, 116, 139', textShade: '#334155' }, // Premium Slate
+  'cyberpunk': { hex: '#0284c7', rgb: '2, 132, 199', textShade: '#0369a1' }, // Soft Sky Blue
+  'emerald': { hex: '#059669', rgb: '5, 150, 105', textShade: '#047857' } // Elegant Sage
 };
 
 export const getLumaTheme = (): LumaThemeConfig => {
