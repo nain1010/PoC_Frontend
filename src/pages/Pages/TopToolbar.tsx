@@ -27,7 +27,7 @@ const TopToolbar = ({
     onDownloadPage?: (html?: string) => void,
     pageTitle?: string
 }) => {
-    const [blockDropdownOpen, useState] = React.useState(false);
+    const [blockDropdownOpen, setBlockDropdownOpen] = React.useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = React.useState(false);
     const [alignDropdownOpen, setAlignDropdownOpen] = React.useState(false);
     const [exportModalOpen, setExportModalOpen] = React.useState(false);
