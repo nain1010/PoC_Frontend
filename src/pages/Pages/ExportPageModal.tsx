@@ -75,37 +75,43 @@ const ExportPageModal = ({ isOpen, toggle, editor, pageTitle }: { isOpen: boolea
                 Exportar página
             </ModalHeader>
             <ModalBody>
-                <div className="mb-3 d-flex justify-content-between align-items-center px-1">
+                <div className="mb-4 d-flex justify-content-between align-items-center">
                     <label className="form-label fs-13 text-muted mb-0">Formato de exportación</label>
-                    <Input type="select" value={exportFormat} onChange={(e) => setExportFormat(e.target.value)} className="form-select-sm w-auto bg-dark text-light border-secondary">
-                        <option value="PDF">PDF</option>
-                        <option value="HTML">HTML</option>
-                        <option value="Markdown">Markdown</option>
-                    </Input>
+                    <div style={{ width: '140px' }}>
+                        <select value={exportFormat} onChange={(e) => setExportFormat(e.target.value)} className="form-select form-select-sm export-modal-select">
+                            <option value="PDF">PDF</option>
+                            <option value="HTML">HTML</option>
+                            <option value="Markdown">Markdown</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <div className="border border-secondary rounded p-3" style={{ backgroundColor: '#1a1a1a' }}>
+                <div className="border border-secondary rounded p-3" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
                     <div className="mb-3 d-flex justify-content-between align-items-center">
-                        <label className="form-label fs-13 mb-0">Incluir contenido</label>
-                        <Input type="select" value={includeContent} onChange={(e) => setIncludeContent(e.target.value)} className="form-select-sm w-auto border-0 text-end shadow-none" style={{ backgroundColor: '#1a1a1a', color: '#e9ecef', cursor: 'pointer' }}>
-                            <option value="Everything">Todo</option>
-                            <option value="No images">Sin imágenes</option>
-                        </Input>
+                        <label className="form-label fs-13 text-muted mb-0">Incluir contenido</label>
+                        <div style={{ width: '120px' }}>
+                            <select value={includeContent} onChange={(e) => setIncludeContent(e.target.value)} className="form-select form-select-sm export-modal-select-borderless">
+                                <option value="Everything">Todo</option>
+                                <option value="No images">Sin imágenes</option>
+                            </select>
+                        </div>
                     </div>
                     <div className="d-flex justify-content-between align-items-center">
-                        <label className="form-label fs-13 mb-0">Formato de página</label>
-                        {exportFormat === 'PDF' ? (
-                            <Input type="select" value={pageFormat} onChange={(e) => setPageFormat(e.target.value)} className="form-select-sm w-auto border-0 text-end shadow-none" style={{ backgroundColor: '#1a1a1a', color: '#e9ecef', cursor: 'pointer' }}>
-                                <option value="a4">A4</option>
-                                <option value="a3">A3</option>
-                                <option value="a2">A2</option>
-                                <option value="letter">Carta (Letter)</option>
-                                <option value="legal">Oficio (Legal)</option>
-                                <option value="tabloid">Tabloide</option>
-                            </Input>
-                        ) : (
-                            <div className="text-muted fs-13">{exportFormat}</div>
-                        )}
+                        <label className="form-label fs-13 text-muted mb-0">Formato de página</label>
+                        <div style={{ width: '120px' }}>
+                            {exportFormat === 'PDF' ? (
+                                <select value={pageFormat} onChange={(e) => setPageFormat(e.target.value)} className="form-select form-select-sm export-modal-select-borderless">
+                                    <option value="a4">A4</option>
+                                    <option value="a3">A3</option>
+                                    <option value="a2">A2</option>
+                                    <option value="letter">Carta (Letter)</option>
+                                    <option value="legal">Oficio (Legal)</option>
+                                    <option value="tabloid">Tabloide</option>
+                                </select>
+                            ) : (
+                                <div className="text-muted fs-13 text-end pe-2">{exportFormat}</div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </ModalBody>
@@ -115,6 +121,34 @@ const ExportPageModal = ({ isOpen, toggle, editor, pageTitle }: { isOpen: boolea
             </ModalFooter>
             <style>{`
                 .modal-backdrop-dark { opacity: 0.8 !important; }
+                .export-modal-select {
+                    background-color: transparent !important;
+                    color: #fff !important;
+                    border: 1px solid #444;
+                    cursor: pointer;
+                }
+                .export-modal-select:focus {
+                    border-color: #299cdb;
+                    box-shadow: none;
+                }
+                .export-modal-select option {
+                    background-color: #222;
+                    color: #fff;
+                }
+                .export-modal-select-borderless {
+                    background-color: transparent !important;
+                    color: #fff !important;
+                    border: none;
+                    cursor: pointer;
+                    box-shadow: none !important;
+                    text-align: right;
+                    padding-right: 24px;
+                }
+                .export-modal-select-borderless option {
+                    background-color: #222;
+                    color: #fff;
+                    text-align: left;
+                }
             `}</style>
         </Modal>
     );
