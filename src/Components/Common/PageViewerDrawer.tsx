@@ -22,6 +22,8 @@ import CustomImage from '../../pages/Pages/CustomImageExtension';
 import AttachmentExtension from '../../pages/Pages/AttachmentExtension';
 import VideoExtension from '../../pages/Pages/VideoExtension';
 import Link from '@tiptap/extension-link';
+import { UniqueId } from '../../pages/Pages/UniqueIdExtension';
+import { CommentMark } from '../../pages/Pages/CommentMark';
 
 const api = APIClient;
 
@@ -52,6 +54,8 @@ const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawe
             TableRow,
             TableHeader,
             TableCell,
+            UniqueId,
+            CommentMark,
             TextAlign.configure({ types: ['heading', 'paragraph'] }),
             Underline,
             TextStyle,
@@ -102,7 +106,7 @@ const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawe
                 )}
             </OffcanvasBody>
             <div className="p-3 border-top bg-light d-flex justify-content-end">
-                <Button color="primary" onClick={() => window.open(`/projects/${projectId}/pages?pageId=${pageId}`, '_blank')}>
+                <Button color="primary" onClick={() => window.open(`/pages?pageId=${pageId}`, '_blank')}>
                     Abrir en editor completo <i className="ri-external-link-line ms-1"></i>
                 </Button>
             </div>

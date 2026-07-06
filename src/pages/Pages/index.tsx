@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Button, Spinner } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -65,10 +66,19 @@ const Pages = () => {
     const queryClient = useQueryClient();
     const activeProjectId = localStorage.getItem('activeProjectId');
     const activeProjectName = localStorage.getItem('activeProjectName');
+    const [searchParams] = useSearchParams();
+    const urlPageId = searchParams.get('pageId');
 
-    const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
+    const [selectedPageId, setSelectedPageId] = useState<string | null>(urlPageId || null);
     const [titleValue, setTitleValue] = useState("");
     const [isFullWidth, setIsFullWidth] = useState(() => localStorage.getItem('pages_full_width') === 'true');
+    
+    useEffect(() => {
+        if (urlPageId && urlPageId !== selectedPageId) {
+            setSelectedPageId(urlPageId);
+        }
+    }, [urlPageId]);
+
     const toggleFullWidth = () => {
         setIsFullWidth(prev => {
             const next = !prev;
