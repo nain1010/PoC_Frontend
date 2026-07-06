@@ -5,6 +5,7 @@ import AttachmentPanel from '../../Components/Common/AttachmentPanel';
 const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any, projectId: string, pageId: string, pageContent: any }) => {
     const [activeTab, setActiveTab] = useState('info');
     const [headings, setHeadings] = useState<any[]>([]);
+    const [comments, setComments] = useState<any[]>([]);
     const [stats, setStats] = useState({ words: 0, chars: 0, paragraphs: 0, readTime: 0 });
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
@@ -35,6 +36,12 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
                         text: node.content?.map((c: any) => c.text).join('') || 'Sin título',
                     });
                 }
+                if (node.marks) {
+                    const commentMark = node.marks.find((m: any) => m.type === 'comment');
+                    if (commentMark) {
+                        extractedHeadings.push({ _isComment: true, id: commentMark.attrs.commentId, text: node.text || '' });
+                    }
+                }
                 if (node.content) {
                     node.content.forEach(traverse);
                 }
@@ -46,7 +53,21 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
                 paragraphsCount = json.content.filter((c:any) => c.type === 'paragraph' || c.type === 'heading').length;
             }
             
-            setHeadings(extractedHeadings);
+            const realHeadings = extractedHeadings.filter(h => !h._isComment);
+            const extractedComments = extractedHeadings.filter(h => h._isComment);
+            
+            const uniqueComments = extractedComments.reduce((acc, curr) => {
+                const existing = acc.find((c: any) => c.id === curr.id);
+                if (!existing) {
+                    acc.push({...curr});
+                } else {
+                    existing.text += curr.text;
+                }
+                return acc;
+            }, []);
+            
+            setHeadings(realHeadings);
+            setComments(uniqueComments);
 
             const text = editor.state.doc.textContent;
             const words = text.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
@@ -101,7 +122,7 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
                 <Nav pills className="nav-custom-pills nav-justified gap-1 bg-light p-1 rounded">
                     <NavItem>
                         <NavLink className={`px-2 py-1 fs-12 fw-medium ${activeTab === 'outline' ? 'active shadow-sm bg-white text-body' : 'text-muted bg-transparent'}`} onClick={() => setActiveTab('outline')} style={{ cursor: 'pointer', borderRadius: '4px' }}>
-                            Outline
+                            Índice
                         </NavLink>
                     </NavItem>
                     <NavItem>
@@ -111,7 +132,7 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
                     </NavItem>
                     <NavItem>
                         <NavLink className={`px-2 py-1 fs-12 fw-medium ${activeTab === 'assets' ? 'active shadow-sm bg-white text-body' : 'text-muted bg-transparent'}`} onClick={() => setActiveTab('assets')} style={{ cursor: 'pointer', borderRadius: '4px' }}>
-                            Assets
+                            Recursos
                         </NavLink>
                     </NavItem>
                     <NavItem>
@@ -161,32 +182,32 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
                             <div className="col-6">
                                 <div className="p-2 rounded bg-light">
                                     <div className="fs-14 fw-bold text-body">{stats.words}</div>
-                                    <div className="fs-12 text-muted">Words</div>
+                                    <div className="fs-12 text-muted">Palabras</div>
                                 </div>
                             </div>
                             <div className="col-6">
                                 <div className="p-2 rounded bg-light">
                                     <div className="fs-14 fw-bold text-body">{stats.chars}</div>
-                                    <div className="fs-12 text-muted">Characters</div>
+                                    <div className="fs-12 text-muted">Caracteres</div>
                                 </div>
                             </div>
                             <div className="col-6">
                                 <div className="p-2 rounded bg-light">
                                     <div className="fs-14 fw-bold text-body">{stats.paragraphs}</div>
-                                    <div className="fs-12 text-muted">Paragraphs</div>
+                                    <div className="fs-12 text-muted">Párrafos</div>
                                 </div>
                             </div>
                             <div className="col-6">
                                 <div className="p-2 rounded bg-light">
                                     <div className="fs-14 fw-bold text-body">{stats.readTime}m</div>
-                                    <div className="fs-12 text-muted">Read time</div>
+                                    <div className="fs-12 text-muted">Tiempo lectura</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Edited By */}
                         <div className="mb-3">
-                            <div className="fs-12 text-muted mb-2">Edited by</div>
+                            <div className="fs-12 text-muted mb-2">Editado por</div>
                             <div className="d-flex align-items-center justify-content-between">
                                 <div className="d-flex align-items-center gap-2">
                                     <div className="avatar-xxs">
@@ -202,7 +223,7 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
 
                         {/* Created By */}
                         <div className="mb-4">
-                            <div className="fs-12 text-muted mb-2">Created by</div>
+                            <div className="fs-12 text-muted mb-2">Creado por</div>
                             <div className="d-flex align-items-center justify-content-between">
                                 <div className="d-flex align-items-center gap-2">
                                     <div className="avatar-xxs">
@@ -218,14 +239,14 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
 
                         {/* Version History UI */}
                         <div className="mb-2">
-                            <div className="fs-13 text-body fw-medium mb-3">Version history</div>
+                            <div className="fs-13 text-body fw-medium mb-3">Historial de versiones</div>
                             
                             <div className="position-relative ms-2">
                                 <div className="position-absolute border-start border-primary border-2 opacity-25" style={{ left: '7px', top: '14px', bottom: '14px' }}></div>
                                 
                                 <div className="d-flex align-items-center gap-2 mb-3 position-relative">
                                     <div className="bg-primary rounded-circle border border-2 border-white" style={{ width: '16px', height: '16px', zIndex: 1 }}></div>
-                                    <div className="bg-light px-3 py-1 rounded w-100 fs-12 fw-medium text-body shadow-sm">Current version</div>
+                                    <div className="bg-light px-3 py-1 rounded w-100 fs-12 fw-medium text-body shadow-sm">Versión actual</div>
                                 </div>
                                 
                                 <div className="d-flex align-items-center gap-2 mb-3 position-relative opacity-75 hover-opacity-100" style={{ cursor: 'pointer' }}>
@@ -245,6 +266,34 @@ const RightSidebar = ({ editor, projectId, pageId, pageContent }: { editor: any,
                             </div>
                         </div>
 
+                    </TabPane>
+
+                    {/* Comments Tab */}
+                    <TabPane tabId="comments">
+                        <div className="d-flex flex-column gap-3">
+                            {comments.length === 0 ? (
+                                <div className="text-muted fs-12 text-center mt-4">
+                                    No hay comentarios en este documento. Selecciona un texto y usa la barra flotante para agregar uno.
+                                </div>
+                            ) : (
+                                comments.map((comment, index) => (
+                                    <div key={index} className={`p-2 rounded border ${activeCommentId === comment.id ? 'border-primary bg-primary-subtle' : 'border-light bg-light'}`}>
+                                        <div className="fs-12 text-muted mb-1 fst-italic">"{comment.text}"</div>
+                                        <div className="d-flex align-items-center gap-2 mt-2">
+                                            <div className="avatar-xxs">
+                                                <div className="avatar-title rounded-circle bg-info-subtle text-info fs-10">
+                                                    AD
+                                                </div>
+                                            </div>
+                                            <div className="flex-grow-1">
+                                                <div className="fs-12 fw-medium">Administrador</div>
+                                                <div className="fs-10 text-muted">Revisar este punto.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </TabPane>
 
                     {/* Assets Tab */}
