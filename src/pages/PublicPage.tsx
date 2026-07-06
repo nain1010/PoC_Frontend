@@ -10,7 +10,13 @@ import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Highlight from '@tiptap/extension-highlight';
+import Color from '@tiptap/extension-color';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import CustomImage from './Pages/CustomImageExtension';
+import Link from '@tiptap/extension-link';
 import { UniqueId } from './Pages/UniqueIdExtension';
+import { CommentMark } from './Pages/CommentMark';
 import CalloutExtension from './Pages/CalloutExtension';
 import AttachmentExtension from './Pages/AttachmentExtension';
 import { ColumnExtensions } from './Pages/ColumnExtension';
@@ -47,15 +53,21 @@ const PublicPage = () => {
     const editor = useEditor({
         extensions: [
             StarterKit,
+            TaskList,
+            TaskItem.configure({ nested: true }),
+            CustomImage.configure({ inline: false, allowBase64: true }),
+            Link.configure({ openOnClick: true, linkOnPaste: true }),
             Table.configure({ resizable: true }),
             TableRow,
             TableHeader,
             TableCell,
             UniqueId,
+            CommentMark,
             TextAlign.configure({ types: ['heading', 'paragraph'] }),
             Underline,
             TextStyle,
-            Highlight,
+            Color,
+            Highlight.configure({ multicolor: true }),
             CalloutExtension,
             AttachmentExtension,
             ...ColumnExtensions,
