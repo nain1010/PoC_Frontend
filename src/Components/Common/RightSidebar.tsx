@@ -101,6 +101,12 @@ const RightSidebar = (props: any) => {
         }
     }, [show]);
 
+    useEffect(() => {
+        const handleThemeReset = () => setLumaTheme(getLumaTheme());
+        window.addEventListener('luma-theme-reset', handleThemeReset);
+        return () => window.removeEventListener('luma-theme-reset', handleThemeReset);
+    }, []);
+
     const selectLayoutState = (state: any) => state.Layout;
     const selectLayoutProperties = createSelector(
         selectLayoutState,
