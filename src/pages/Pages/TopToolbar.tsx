@@ -22,7 +22,7 @@ const TopToolbar = ({
     publicToken?: string,
     togglePublish?: () => void,
     onDeletePage?: () => void,
-    onDownloadPage?: () => void
+    onDownloadPage?: (html?: string) => void
 }) => {
     const [blockDropdownOpen, setBlockDropdownOpen] = React.useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = React.useState(false);
@@ -209,7 +209,7 @@ const TopToolbar = ({
                     </button>
                 )}
                 {onDownloadPage && (
-                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1 text-muted" onClick={onDownloadPage} title="Descargar página">
+                    <button className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1 text-muted" onClick={() => onDownloadPage(editor.getHTML())} title="Descargar página">
                         <i className="ri-download-2-line"></i>
                     </button>
                 )}

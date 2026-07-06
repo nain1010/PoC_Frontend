@@ -15,9 +15,9 @@ code {
 /* Tiptap Editor Styles */
 .tiptap-plane-theme hr {
   border: none;
-  border-top: 2px solid var(--vz-border-color);
+  border-top: 2px solid var(--vz-secondary);
   margin: 2rem 0;
-  opacity: 0.8;
+  opacity: 0.5;
 }
 
 .tiptap-plane-theme hr.ProseMirror-selectednode {

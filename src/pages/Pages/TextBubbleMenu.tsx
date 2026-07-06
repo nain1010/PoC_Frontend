@@ -85,43 +85,50 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
     };
 
     const getActiveTextType = () => {
-        if (editor.isActive('heading', { level: 1 })) return 'Heading 1';
-        if (editor.isActive('heading', { level: 2 })) return 'Heading 2';
-        if (editor.isActive('heading', { level: 3 })) return 'Heading 3';
-        if (editor.isActive('heading', { level: 4 })) return 'Heading 4';
-        if (editor.isActive('heading', { level: 5 })) return 'Heading 5';
-        if (editor.isActive('heading', { level: 6 })) return 'Heading 6';
-        if (editor.isActive('codeBlock')) return 'Code Block';
-        return 'Text';
+        if (editor.isActive('heading', { level: 1 })) return 'Título 1';
+        if (editor.isActive('heading', { level: 2 })) return 'Título 2';
+        if (editor.isActive('heading', { level: 3 })) return 'Título 3';
+        if (editor.isActive('heading', { level: 4 })) return 'Título 4';
+        if (editor.isActive('heading', { level: 5 })) return 'Título 5';
+        if (editor.isActive('heading', { level: 6 })) return 'Título 6';
+        if (editor.isActive('codeBlock')) return 'Código';
+        return 'Texto';
     };
 
     const colors = [
-        { label: 'Default', value: 'inherit' },
-        { label: 'Gray', value: '#8a94a5' },
-        { label: 'Brown', value: '#976e57' },
-        { label: 'Orange', value: '#d9730d' },
-        { label: 'Yellow', value: '#cb912f' },
-        { label: 'Green', value: '#448361' },
-        { label: 'Blue', value: '#337ea9' },
-        { label: 'Purple', value: '#9065b0' },
-        { label: 'Pink', value: '#c14c8a' },
-        { label: 'Red', value: '#d44c47' },
+        { label: 'Defecto', value: 'inherit' },
+        { label: 'Gris', value: '#8a94a5' },
+        { label: 'Café', value: '#976e57' },
+        { label: 'Naranja', value: '#d9730d' },
+        { label: 'Amarillo', value: '#cb912f' },
+        { label: 'Verde', value: '#448361' },
+        { label: 'Azul', value: '#337ea9' },
+        { label: 'Morado', value: '#9065b0' },
+        { label: 'Rosa', value: '#c14c8a' },
+        { label: 'Rojo', value: '#d44c47' },
     ];
 
     return (
-        <BubbleMenu editor={editor} tippyOptions={{ duration: 100, placement: 'top' }} className="bubble-menu-advanced">
-            <div className="shadow-lg rounded d-flex align-items-center px-1 py-1" style={{ backgroundColor: '#262626', color: '#e9ecef', gap: '2px', border: '1px solid #333' }}>
+        <BubbleMenu 
+            editor={editor} 
+            tippyOptions={{ duration: 100, placement: 'top', maxWidth: 'none' }} 
+            className="bubble-menu-advanced"
+            shouldShow={({ editor, view, state, from, to }) => {
+                return from !== to && !editor.isActive('blockEquation') && !editor.isActive('image') && !editor.isActive('video') && !editor.isActive('attachment');
+            }}
+        >
+            <div className="shadow-lg rounded d-flex align-items-center px-1 py-1 flex-wrap" style={{ backgroundColor: '#262626', color: '#e9ecef', gap: '2px', border: '1px solid #333', maxWidth: '100%' }}>
             {/* Text Type Dropdown */}
             <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown} direction="down">
-                <DropdownToggle tag="div" className="menu-btn d-flex align-items-center gap-1 rounded" style={{ cursor: 'pointer' }}>
+                <DropdownToggle tag="div" className="menu-btn d-flex align-items-center gap-1 rounded" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     {getActiveTextType()} <i className="ri-arrow-down-s-line fs-14"></i>
                 </DropdownToggle>
                 <DropdownMenu className="shadow-lg border-0 bg-dark p-1" style={{ minWidth: '150px' }}>
-                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().setParagraph().run()}>Text</DropdownItem>
-                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>Heading 1</DropdownItem>
-                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>Heading 2</DropdownItem>
-                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>Heading 3</DropdownItem>
-                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code Block</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().setParagraph().run()}>Texto</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>Título 1</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>Título 2</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>Título 3</DropdownItem>
+                    <DropdownItem className="menu-dropdown-item rounded px-3 py-2" onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Código</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
 
@@ -142,19 +149,20 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
             <button 
                 onClick={setLink} 
                 className={`menu-btn rounded d-flex align-items-center gap-1 ${editor.isActive('link') ? 'is-active' : ''}`}
+                style={{ whiteSpace: 'nowrap' }}
             >
-                Link <i className="ri-links-line"></i>
+                Enlace <i className="ri-links-line"></i>
             </button>
 
             <div className="vr opacity-25 mx-1" style={{ height: '16px', backgroundColor: '#fff' }}></div>
 
             {/* Color */}
             <Dropdown isOpen={colorDropdownOpen} toggle={toggleColorDropdown} direction="down">
-                <DropdownToggle tag="div" className="menu-btn rounded d-flex align-items-center gap-1" style={{ cursor: 'pointer' }}>
+                <DropdownToggle tag="div" className="menu-btn rounded d-flex align-items-center gap-1" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     Color <i className="ri-font-color border border-secondary rounded px-1" style={{ fontSize: '11px', padding: '1px' }}></i>
                 </DropdownToggle>
                 <DropdownMenu className="shadow-lg border-0 bg-dark p-2" style={{ minWidth: '150px', zIndex: 1050 }}>
-                    <div className="fs-11 text-muted text-uppercase mb-2 px-2">Text Color</div>
+                    <div className="fs-11 text-muted text-uppercase mb-2 px-2">Color del texto</div>
                     {colors.map(color => (
                         <div 
                             key={color.value}

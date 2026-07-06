@@ -193,9 +193,10 @@ const Pages = () => {
         }
     }, [selectedPageId, titleValue, pageContent, updatePageMutation]);
 
-    const handleDownloadPage = useCallback(() => {
+    const handleDownloadPage = useCallback((htmlContent?: string) => {
         if (!pageContent) return;
-        const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${pageContent.titulo}</title></head><body><h1>${pageContent.titulo}</h1>${pageContent.contenido}</body></html>`;
+        const bodyHtml = htmlContent || "Contenido no disponible.";
+        const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${pageContent.titulo}</title><style>body { font-family: sans-serif; padding: 2rem; max-width: 800px; margin: auto; line-height: 1.6; color: #333; } img { max-width: 100%; height: auto; border-radius: 8px; } blockquote { border-left: 4px solid #ccc; margin-left: 0; padding-left: 1rem; color: #666; } pre { background: #f4f4f4; padding: 1rem; border-radius: 8px; overflow-x: auto; }</style></head><body><h1>${pageContent.titulo}</h1>${bodyHtml}</body></html>`;
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -206,9 +207,23 @@ const Pages = () => {
     }, [pageContent]);
 
     const confirmDeletePage = useCallback(() => {
-        if (window.confirm("¿Estás seguro de que deseas eliminar esta página y todo su contenido?")) {
-            if (selectedPageId) deletePageMutation.mutate(selectedPageId);
-        }
+        import('sweetalert2').then((SwalModule) => {
+            const Swal = SwalModule.default;
+            Swal.fire({
+                title: "¿Estás seguro?",
+                text: "Se eliminará esta página y todo su contenido irreversiblemente.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed && selectedPageId) {
+                    deletePageMutation.mutate(selectedPageId);
+                }
+            });
+        });
     }, [selectedPageId, deletePageMutation]);
 
     document.title = `Documentación | Luma - ${activeProjectName || 'Scrum'}`;

@@ -9,6 +9,13 @@ const MathNodeView = (props: any) => {
     const [isEditing, setIsEditing] = useState(latex === '');
     const [inputValue, setInputValue] = useState(latex);
     const containerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isEditing && inputRef.current) {
+            setTimeout(() => inputRef.current?.focus(), 50);
+        }
+    }, [isEditing]);
 
     useEffect(() => {
         if (!isEditing && containerRef.current && latex) {
@@ -51,15 +58,15 @@ const MathNodeView = (props: any) => {
             {isEditing ? (
                 <div className={`d-flex align-items-center gap-2 ${isInline ? 'd-inline-flex' : 'justify-content-center'}`}>
                     <input
+                        ref={inputRef}
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onBlur={handleSave}
                         onKeyDown={handleKeyDown}
-                        className="form-control form-control-sm bg-dark text-light border-secondary"
+                        className="form-control form-control-sm border-secondary"
                         style={{ minWidth: isInline ? '150px' : '300px', fontFamily: 'monospace' }}
                         placeholder="Escribe sintaxis LaTeX (ej: a^2 + b^2 = c^2)"
-                        autoFocus
                     />
                     {!isInline && selected && (
                         <button className="btn btn-sm btn-ghost-danger p-1" onClick={deleteNode} onMouseDown={e => e.preventDefault()}>
