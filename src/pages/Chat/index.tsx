@@ -126,15 +126,7 @@ const Chat = () => {
   }, [activeProjectId]);
 
   useEffect(() => {
-    if (input === '/') {
-      setShowCommands(true);
-      setCommandFilter('');
-    } else if (input.startsWith('/')) {
-      setShowCommands(true);
-      setCommandFilter(input.slice(1));
-    } else {
-      setShowCommands(false);
-    }
+    // Removed local command filtering logic as requested by user
   }, [input]);
 
   const applyTheme = useCallback((theme: ThemeConfig | null) => {
@@ -347,33 +339,11 @@ const Chat = () => {
                 </div>
 
                 <div className="mt-2 pt-2 border-top position-relative">
-                  {showCommands && (
-                    <div className="bg-white border rounded-3 shadow-sm mb-1 position-absolute bottom-100 start-0 end-0"
-                      style={{ maxHeight: '160px', overflowY: 'auto', zIndex: 10 }}>
-                      {filteredCommands.length === 0 ? (
-                        <div className="p-2 text-muted small">Sin comandos encontrados</div>
-                      ) : (
-                        filteredCommands.slice(0, 6).map((cmd, i) => (
-                          <div
-                            key={i}
-                            className="p-1 px-2 d-flex align-items-center justify-content-between"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => { setInput(cmd.cmd + ' '); setShowCommands(false); inputRef.current?.focus(); }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f6f9')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '')}
-                          >
-                            <span><code>{cmd.cmd}</code> <span className="text-muted small">{cmd.desc}</span></span>
-                            <Badge color="secondary" className="ms-2">{cmd.rol}</Badge>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
                   <div className="d-flex gap-2">
                     <Input
                       innerRef={inputRef}
                       type="text"
-                      placeholder="Escribe un mensaje... (usa / para comandos)"
+                      placeholder="Escribe un mensaje al asistente..."
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
