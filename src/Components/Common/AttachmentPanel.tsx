@@ -53,8 +53,7 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
     const deleteMutation = useMutation({
         mutationFn: (attachmentId: string) => api.delete(`/projects/${projectId}/attachments/${attachmentId}`),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey });
-            toast.success("Archivo eliminado.", { position: "top-right" });
+            queryClient.invalidateQueries({ queryKey: ['attachments', entityType, entityId] });
         },
         onError: (err: any) => {
             toast.error(err || "Error al eliminar el archivo.", { position: "top-right" });

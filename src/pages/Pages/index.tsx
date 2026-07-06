@@ -137,12 +137,6 @@ const Pages = () => {
             if (variables.id === selectedPageId) {
                 queryClient.invalidateQueries({ queryKey: ['page', selectedPageId] });
             }
-            if (variables.is_locked !== undefined) {
-                toast.info(variables.is_locked ? "Página bloqueada (Solo lectura)" : "Página desbloqueada", { position: "top-center" });
-            }
-            if (variables.is_public !== undefined) {
-                toast.info(variables.is_public ? "Página publicada en la web" : "Página oculta", { position: "top-center" });
-            }
         },
     });
 
@@ -151,7 +145,6 @@ const Pages = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
             setSelectedPageId(null);
-            toast.success("Página eliminada.");
         },
         onError: () => toast.error("Error al eliminar la página.")
     });

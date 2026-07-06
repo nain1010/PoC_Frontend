@@ -47,7 +47,6 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
         mutationFn: (attachmentId: string) => api.delete(`/projects/${projectId}/attachments/${attachmentId}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['attachments', entityType, entityId] });
-            toast.success("Archivo eliminado.");
         },
         onError: () => toast.error("Error al eliminar el archivo.")
     });
