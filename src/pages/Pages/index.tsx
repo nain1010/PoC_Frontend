@@ -230,13 +230,15 @@ const Pages = () => {
     }, [selectedPageId, deletePageMutation]);
 
     document.title = `Documentación | Luma - ${activeProjectName || 'Scrum'}`;
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-    if (false) {
+    if (!activeProjectId) {
         return (
-            <div className="page-content d-flex flex-column align-items-center justify-content-center" style={{ height: '100vh', padding: '70px 0 0 0', backgroundColor: 'var(--vz-body-bg)' }}>
+            <div className="page-content d-flex align-items-center justify-content-center" style={{ height: '100vh' }}>
                 <div className="text-center text-muted">
-                    <i className="ri-file-text-line display-1 mb-3 d-inline-block"></i>
-                    <h4>Selecciona un proyecto para ver sus documentos</h4>
+                    <i className="ri-error-warning-line display-4 mb-3"></i>
+                    <h5>No hay proyecto activo</h5>
+                    <p>Por favor selecciona un proyecto primero.</p>
                 </div>
             </div>
         );
@@ -247,6 +249,7 @@ const Pages = () => {
             <div className="page-content d-flex overflow-hidden" style={{ height: '100vh', padding: '70px 0 0 0', backgroundColor: 'var(--vz-body-bg)' }}>
                 
                 {/* ======= Sidebar (Left): Pages Tree ======= */}
+                {isSidebarOpen && (
                 <div className="border-end" style={{ width: '260px', flexShrink: 0, display: 'flex', flexDirection: 'column', backgroundColor: 'var(--vz-card-bg-custom)' }}>
                     <div className="p-3 border-bottom d-flex align-items-center justify-content-between">
                         <span className="fw-semibold text-uppercase fs-11 text-muted">
@@ -282,11 +285,19 @@ const Pages = () => {
                         )}
                     </div>
                 </div>
+                )}
 
                 {/* ======= Main: Editor ======= */}
                 <div className="flex-grow-1 d-flex flex-column position-relative" style={{ overflowY: 'auto', overflowX: 'hidden', backgroundColor: 'var(--vz-body-bg)' }}>
                     {!selectedPageId ? (
-                        <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                        <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted position-relative">
+                            {!isSidebarOpen && (
+                                <div className="position-absolute" style={{ top: '15px', left: '15px', zIndex: 1000 }}>
+                                    <Button color="light" size="sm" className="btn-icon rounded shadow-sm border" onClick={() => setIsSidebarOpen(true)} title="Mostrar menú lateral">
+                                        <i className="ri-menu-unfold-line fs-16 text-muted"></i>
+                                    </Button>
+                                </div>
+                            )}
                             <i className="ri-draft-line display-1 mb-3 opacity-50"></i>
                             <h5 className="text-muted fw-normal">Selecciona o crea una página para comenzar</h5>
                             <Button color="primary" className="mt-3 rounded-pill px-4" onClick={() => handleCreatePage()}>
@@ -313,6 +324,8 @@ const Pages = () => {
                             handleTitleSave={handleTitleSave}
                             onDeletePage={confirmDeletePage}
                             onDownloadPage={handleDownloadPage}
+                            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                            isSidebarOpen={isSidebarOpen}
                         />
                         </>
                     )}

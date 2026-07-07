@@ -53,7 +53,9 @@ const PageEditorWrapper = ({
     uploadImage,
     handleTitleSave,
     onDeletePage,
-    onDownloadPage
+    onDownloadPage,
+    onToggleSidebar,
+    isSidebarOpen
 }: any) => {
     const saveTimerRef = useRef<any>(null);
     const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
@@ -284,6 +286,8 @@ const PageEditorWrapper = ({
                 onDeletePage={onDeletePage}
                 onDownloadPage={onDownloadPage}
                 pageTitle={pageContent?.titulo}
+                onToggleSidebar={onToggleSidebar}
+                isSidebarOpen={isSidebarOpen}
             />
             
             <div className="d-flex flex-grow-1 w-100 h-100 overflow-hidden">

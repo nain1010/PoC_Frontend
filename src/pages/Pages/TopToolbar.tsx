@@ -13,7 +13,9 @@ const TopToolbar = ({
     togglePublish,
     onDeletePage,
     onDownloadPage,
-    pageTitle
+    pageTitle,
+    onToggleSidebar,
+    isSidebarOpen
 }: { 
     editor: any, 
     isLocked?: boolean, 
@@ -25,7 +27,9 @@ const TopToolbar = ({
     togglePublish?: () => void,
     onDeletePage?: () => void,
     onDownloadPage?: (html?: string) => void,
-    pageTitle?: string
+    pageTitle?: string,
+    onToggleSidebar?: () => void,
+    isSidebarOpen?: boolean
 }) => {
     const [blockDropdownOpen, setBlockDropdownOpen] = React.useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = React.useState(false);
@@ -38,6 +42,11 @@ const TopToolbar = ({
         return (
             <div className="d-flex align-items-center justify-content-between p-2 border-bottom sticky-top z-3" style={{ backgroundColor: 'var(--vz-card-bg-custom)', top: 0, marginTop: '-1px' }}>
                 <div className="text-muted fs-13 d-flex align-items-center gap-2">
+                    {onToggleSidebar && (
+                        <Button color="light" size="sm" className="btn-icon p-0 bg-transparent border-0 text-muted hover-bg-soft-primary rounded me-2" onClick={onToggleSidebar} title={isSidebarOpen ? "Ocultar panel lateral" : "Mostrar panel lateral"}>
+                            <i className={`ri-layout-left-${isSidebarOpen ? 'close' : 'open'}-line fs-18`}></i>
+                        </Button>
+                    )}
                     <i className="ri-lock-2-line text-warning"></i> <span className="fw-medium text-body">Página bloqueada (Solo lectura)</span>
                 </div>
                 <div className="d-flex align-items-center gap-2">
@@ -85,7 +94,16 @@ const TopToolbar = ({
         <div className="d-flex align-items-center justify-content-between p-2 border-bottom sticky-top z-3" style={{ backgroundColor: 'var(--vz-card-bg-custom)', top: 0, marginTop: '-1px' }}>
             
             {/* Left Zone: Editor Controls */}
-            <div className="d-flex align-items-center gap-2">
+            <div className="d-flex align-items-center flex-wrap gap-1">
+                {onToggleSidebar && (
+                    <>
+                        <Button color="light" size="sm" className="btn-icon p-0 bg-transparent border-0 text-muted hover-bg-soft-primary rounded me-1" onClick={onToggleSidebar} title={isSidebarOpen ? "Ocultar panel lateral" : "Mostrar panel lateral"}>
+                            <i className={`ri-layout-left-${isSidebarOpen ? 'close' : 'open'}-line fs-18`}></i>
+                        </Button>
+                        <div className="vr text-muted opacity-50 mx-1" style={{ width: '1px', height: '16px' }}></div>
+                    </>
+                )}
+
                 {/* Block Selector */}
                 <Dropdown isOpen={blockDropdownOpen} toggle={toggleBlockDropdown}>
                     <DropdownToggle caret className="btn btn-sm btn-ghost-secondary px-2 py-1 d-flex align-items-center gap-1 fs-13">
