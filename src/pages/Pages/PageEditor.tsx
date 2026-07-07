@@ -37,7 +37,7 @@ import config from '../../config';
 
 // Yjs imports
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import { WebrtcProvider } from 'y-webrtc';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 
@@ -76,17 +76,19 @@ const PageEditorWrapper = ({
         return doc;
     }, []); // IMPORTANTE: Se ejecuta 1 sola vez porque key={pageId} en el padre fuerza el remount
 
-    // Configurar WebSocket Provider
+    // Configurar Webrtc Provider (Peer-to-Peer)
     const provider = useMemo(() => {
-        const baseUrl = config.api.API_URL.endsWith('/') ? config.api.API_URL.slice(0, -1) : config.api.API_URL;
-        const wsUrl = baseUrl.replace('http', 'ws').replace('https', 'wss') + '/api/collab';
-        const wsProvider = new WebsocketProvider(wsUrl, pageId, ydoc);
+        const roomName = `luma-poc-page-${pageId}`;
+        const webrtcProvider = new WebrtcProvider(roomName, ydoc, {
+            // Servidores públicos de señalización por defecto (solo para descubrir peers)
+            signaling: ['wss://signaling.yjs.dev', 'wss://y-webrtc-signaling-eu.herokuapp.com', 'wss://y-webrtc-signaling-us.herokuapp.com']
+        });
         
-        wsProvider.on('status', (event: any) => {
-            setStatus(event.status); // 'connected' or 'disconnected'
+        webrtcProvider.on('synced', (synced: any) => {
+            setStatus(webrtcProvider.connected ? 'connected' : 'disconnected');
         });
 
-        return wsProvider;
+        return webrtcProvider;
     }, [pageId, ydoc]);
 
     useEffect(() => {
