@@ -291,7 +291,7 @@ const PageEditorWrapper = ({
             />
             
             <div className="d-flex flex-grow-1 w-100 h-100 overflow-hidden">
-                <div className="flex-grow-1 d-flex justify-content-center overflow-auto" style={{ scrollBehavior: 'smooth' }}>
+                <div className="flex-grow-1 d-flex justify-content-center overflow-auto editor-scroll-container" style={{ scrollBehavior: 'smooth' }}>
                     <div className="editor-content-wrapper px-4 py-5" style={{ width: '100%', maxWidth: isFullWidth ? '100%' : '850px', transition: 'max-width 0.3s ease' }}>
                         
                         <div className="d-flex align-items-center mb-4">

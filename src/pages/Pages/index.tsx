@@ -288,7 +288,7 @@ const Pages = () => {
                 )}
 
                 {/* ======= Main: Editor ======= */}
-                <div className="flex-grow-1 d-flex flex-column position-relative" style={{ overflowY: 'auto', overflowX: 'hidden', backgroundColor: 'var(--vz-body-bg)' }}>
+                <div className="flex-grow-1 d-flex flex-column position-relative editor-scroll-container" style={{ backgroundColor: 'var(--vz-body-bg)' }}>
                     {!selectedPageId ? (
                         <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted position-relative">
                             {!isSidebarOpen && (
