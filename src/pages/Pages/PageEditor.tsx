@@ -37,7 +37,7 @@ import config from '../../config';
 
 // Yjs imports
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import { WebrtcProvider } from 'y-webrtc';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 
@@ -78,23 +78,24 @@ const PageEditorWrapper = ({
         return doc;
     }, []); // IMPORTANTE: Se ejecuta 1 sola vez porque key={pageId} en el padre fuerza el remount
 
-    // Configurar WebSocket Provider (Backend Relay nativo)
+    // Configurar WebRTC Provider (P2P Mesh Network con servidores STUN/Signaling públicos y robustos)
     const provider = useMemo(() => {
-        const loggedUser = JSON.parse(sessionStorage.getItem('authUser') || localStorage.getItem('authUser') || '{}');
-        const token = loggedUser?.token || '';
+        const roomName = `luma-poc-page-webrtc-${pageId}`;
         
-        const baseUrl = config.api.API_URL.endsWith('/') ? config.api.API_URL.slice(0, -1) : config.api.API_URL;
-        const wsUrl = baseUrl.replace('http', 'ws').replace('https', 'wss') + '/api/collab';
-        
-        const wsProvider = new WebsocketProvider(wsUrl, pageId, ydoc, {
-            params: { token: token }
+        const rtcProvider = new WebrtcProvider(roomName, ydoc, {
+            signaling: [
+                'wss://signaling.yjs.dev',
+                'wss://y-webrtc-signaling-eu.herokuapp.com',
+                'wss://y-webrtc-signaling-us.herokuapp.com'
+            ],
+            password: null
         });
         
-        wsProvider.awareness.on('change', () => {
-            setPeersCount(wsProvider.awareness.getStates().size);
+        rtcProvider.awareness.on('change', () => {
+            setPeersCount(rtcProvider.awareness.getStates().size);
         });
 
-        return wsProvider;
+        return rtcProvider;
     }, [pageId, ydoc]);
 
     useEffect(() => {
