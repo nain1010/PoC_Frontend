@@ -78,14 +78,17 @@ const PageEditorWrapper = ({
         return doc;
     }, []); // IMPORTANTE: Se ejecuta 1 sola vez porque key={pageId} en el padre fuerza el remount
 
-    // Configurar WebSocket Provider (Backend Relay usando el servidor público de Yjs para el PoC)
+    // Configurar WebSocket Provider (Backend Relay nativo)
     const provider = useMemo(() => {
-        // En un entorno de producción real, este servidor se aloja en un contenedor NodeJS separado.
-        // Para este PoC, usamos el servidor público oficial de Yjs. La persistencia sigue ocurriendo en nuestra base de datos.
-        const wsUrl = 'wss://demos.yjs.dev/ws';
-        const roomName = `luma-poc-page-${pageId}`;
+        const loggedUser = JSON.parse(sessionStorage.getItem('authUser') || localStorage.getItem('authUser') || '{}');
+        const token = loggedUser?.token || '';
         
-        const wsProvider = new WebsocketProvider(wsUrl, roomName, ydoc);
+        const baseUrl = config.api.API_URL.endsWith('/') ? config.api.API_URL.slice(0, -1) : config.api.API_URL;
+        const wsUrl = baseUrl.replace('http', 'ws').replace('https', 'wss') + '/api/collab';
+        
+        const wsProvider = new WebsocketProvider(wsUrl, pageId, ydoc, {
+            params: { token: token }
+        });
         
         wsProvider.awareness.on('change', () => {
             setPeersCount(wsProvider.awareness.getStates().size);
