@@ -37,7 +37,7 @@ import config from '../../config';
 
 // Yjs imports
 import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
+import { WebsocketProvider } from 'y-websocket';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 
@@ -59,7 +59,7 @@ const PageEditorWrapper = ({
     const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
     const [hoveredBlockPos, setHoveredBlockPos] = useState({ top: 0, left: 0 });
     const isEditable = !pageContent?.is_locked;
-    const [status, setStatus] = useState('connecting');
+    const [peersCount, setPeersCount] = useState(1);
 
     // Inicializar YDoc y cargar estado inicial (si existe en BD)
     const ydoc = useMemo(() => {
@@ -76,19 +76,23 @@ const PageEditorWrapper = ({
         return doc;
     }, []); // IMPORTANTE: Se ejecuta 1 sola vez porque key={pageId} en el padre fuerza el remount
 
-    // Configurar Webrtc Provider (Peer-to-Peer)
+    // Configurar WebSocket Provider (Backend Relay)
     const provider = useMemo(() => {
-        const roomName = `luma-poc-page-${pageId}`;
-        const webrtcProvider = new WebrtcProvider(roomName, ydoc, {
-            // Servidores públicos de señalización por defecto (solo para descubrir peers)
-            signaling: ['wss://signaling.yjs.dev', 'wss://y-webrtc-signaling-eu.herokuapp.com', 'wss://y-webrtc-signaling-us.herokuapp.com']
+        const loggedUser = JSON.parse(sessionStorage.getItem('authUser') || localStorage.getItem('authUser') || '{}');
+        const token = loggedUser?.token || '';
+        
+        const baseUrl = config.api.API_URL.endsWith('/') ? config.api.API_URL.slice(0, -1) : config.api.API_URL;
+        const wsUrl = baseUrl.replace('http', 'ws').replace('https', 'wss') + '/api/collab';
+        
+        const wsProvider = new WebsocketProvider(wsUrl, pageId, ydoc, {
+            params: { token: token }
         });
         
-        webrtcProvider.on('synced', (synced: any) => {
-            setStatus(webrtcProvider.connected ? 'connected' : 'disconnected');
+        wsProvider.awareness.on('change', () => {
+            setPeersCount(wsProvider.awareness.getStates().size);
         });
 
-        return webrtcProvider;
+        return wsProvider;
     }, [pageId, ydoc]);
 
     useEffect(() => {
@@ -297,13 +301,13 @@ const PageEditorWrapper = ({
                                 style={{ fontSize: '2.8rem', boxShadow: 'none', lineHeight: '1.2' }}
                             />
                             <div className="ms-3 d-flex align-items-center">
-                                {status === 'connected' ? (
-                                    <span className="badge bg-soft-success text-success d-flex align-items-center gap-1" title="Colaboración en vivo activa">
-                                        <i className="ri-wifi-line"></i> En vivo
+                                {peersCount > 1 ? (
+                                    <span className="badge bg-soft-success text-success d-flex align-items-center gap-1" title={`${peersCount} colaboradores conectados`}>
+                                        <i className="ri-group-line"></i> {peersCount} en vivo
                                     </span>
                                 ) : (
-                                    <span className="badge bg-soft-warning text-warning d-flex align-items-center gap-1" title="Desconectado">
-                                        <i className="ri-wifi-off-line"></i> Offline
+                                    <span className="badge bg-soft-secondary text-secondary d-flex align-items-center gap-1" title="Solo tú estás en esta página">
+                                        <i className="ri-user-line"></i> Solo tú
                                     </span>
                                 )}
                             </div>
