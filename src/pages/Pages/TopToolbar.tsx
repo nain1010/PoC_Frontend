@@ -44,7 +44,7 @@ const TopToolbar = ({
                 <div className="text-muted fs-13 d-flex align-items-center gap-2">
                     {onToggleSidebar && (
                         <Button color="light" size="sm" className="btn-icon p-0 bg-transparent border-0 text-muted hover-bg-soft-primary rounded me-2" onClick={onToggleSidebar} title={isSidebarOpen ? "Ocultar panel lateral" : "Mostrar panel lateral"}>
-                            <i className={`ri-layout-left-${isSidebarOpen ? 'close' : 'open'}-line fs-18`}></i>
+                            <i className={`ri-menu-${isSidebarOpen ? 'fold' : 'unfold'}-line fs-18`}></i>
                         </Button>
                     )}
                     <i className="ri-lock-2-line text-warning"></i> <span className="fw-medium text-body">Página bloqueada (Solo lectura)</span>
@@ -98,7 +98,7 @@ const TopToolbar = ({
                 {onToggleSidebar && (
                     <>
                         <Button color="light" size="sm" className="btn-icon p-0 bg-transparent border-0 text-muted hover-bg-soft-primary rounded me-1" onClick={onToggleSidebar} title={isSidebarOpen ? "Ocultar panel lateral" : "Mostrar panel lateral"}>
-                            <i className={`ri-layout-left-${isSidebarOpen ? 'close' : 'open'}-line fs-18`}></i>
+                            <i className={`ri-menu-${isSidebarOpen ? 'fold' : 'unfold'}-line fs-18`}></i>
                         </Button>
                         <div className="vr text-muted opacity-50 mx-1" style={{ width: '1px', height: '16px' }}></div>
                     </>
