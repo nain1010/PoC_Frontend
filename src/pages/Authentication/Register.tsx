@@ -69,12 +69,11 @@ const Register = () => {
     useEffect(() => {
         if (success && justRegistered && registeredCredentials) {
             // Auto login!
-            toast.success("Registro exitoso. Iniciando sesión...", { position: "top-right" });
             setJustRegistered(false);
-            // Delay to allow toast to show, then login
+            // Delay to allow seamless transition, then login
             setTimeout(() => {
                 dispatch(loginUser(registeredCredentials, history, true));
-            }, 1000);
+            }, 400);
         }
         if (error) {
             setLoader(false);
