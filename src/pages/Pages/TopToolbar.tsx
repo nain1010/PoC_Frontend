@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import ExportPageModal from './ExportPageModal';
+import Swal from 'sweetalert2';
 
 const TopToolbar = ({ 
     editor, 
@@ -183,8 +184,19 @@ const TopToolbar = ({
                 <div className="d-flex gap-1">
                     <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={() => editor.chain().focus().toggleBulletList().run()} title="Lista de viñetas"><i className="ri-list-unordered"></i></button>
                     <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={() => {
-                        const url = window.prompt('URL del enlace:');
-                        if (url) editor.chain().focus().setLink({ href: url }).run();
+                        Swal.fire({
+                            title: 'URL del enlace',
+                            input: 'url',
+                            inputPlaceholder: 'https://...',
+                            showCancelButton: true,
+                            confirmButtonText: 'Aceptar',
+                            cancelButtonText: 'Cancelar',
+                            confirmButtonColor: '#405189'
+                        }).then((result) => {
+                            if (result.isConfirmed && result.value) {
+                                editor.chain().focus().setLink({ href: result.value }).run();
+                            }
+                        });
                     }} title="Enlace"><i className="ri-link"></i></button>
                     <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={() => editor.chain().focus().toggleCodeBlock().run()} title="Bloque de código"><i className="ri-code-box-line"></i></button>
                     <button className="btn btn-sm btn-ghost-secondary px-2 py-1" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Tabla"><i className="ri-table-line"></i></button>
