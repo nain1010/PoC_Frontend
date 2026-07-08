@@ -115,7 +115,7 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
                             {filteredPages.map((page: any) => (
                                 <div key={page.id} className="list-group-item d-flex justify-content-between align-items-center">
                                     <div className="d-flex align-items-center gap-3">
-                                        <span className="fs-3">{page.icono || '📄'}</span>
+                                        {page.icono && page.icono !== "📝" && page.icono !== "📄" && <span className="fs-3">{page.icono}</span>}
                                         <div>
                                             <h6 
                                                 className={`mb-0 ${isLinked(page.id) && onOpenPageViewer ? 'text-primary cursor-pointer text-decoration-underline' : ''}`}

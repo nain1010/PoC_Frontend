@@ -35,7 +35,7 @@ const PageTreeNode = ({ page, allPages, selectedPageId, onSelect, onCreateSubpag
                     ) : <span style={{ width: '16px' }}></span>}
                 </div>
                 <div className="d-flex align-items-center gap-2 flex-grow-1 overflow-hidden" onClick={() => onSelect(page.id)}>
-                    <span className="fs-14 opacity-75">{page.icono || "📄"}</span>
+                    {page.icono && page.icono !== "📝" && page.icono !== "📄" && <span className="fs-14 opacity-75">{page.icono}</span>}
                     <span className="flex-grow-1 text-truncate fs-13">{page.titulo}</span>
                 </div>
                 <div className="page-actions d-flex align-items-center opacity-50 hover-opacity-100">
@@ -187,7 +187,7 @@ const Pages = () => {
     // ---- Handlers ----
     const handleCreatePage = useCallback((parentId: string | null | any = null) => {
         const id = typeof parentId === 'string' ? parentId : null;
-        createPageMutation.mutate({ titulo: "Nueva página", icono: "📄", padre_id: id });
+        createPageMutation.mutate({ titulo: "Nueva página", icono: "", padre_id: id });
     }, [createPageMutation]);
 
     const handleTitleSave = useCallback(() => {

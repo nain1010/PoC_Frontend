@@ -110,7 +110,7 @@ const PublicPage = () => {
     return (
         <div className="bg-light min-vh-100 py-5">
             <div className="container bg-white shadow-sm rounded p-5" style={{ maxWidth: '900px' }}>
-                <h1 className="mb-4">{page.icono} {page.titulo}</h1>
+                <h1 className="mb-4">{page.icono && page.icono !== "📝" && page.icono !== "📄" ? `${page.icono} ` : ''}{page.titulo}</h1>
                 <div className="tiptap-editor-container tiptap-readonly tiptap-prose">
                     <EditorContent editor={editor} />
                 </div>
