@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import TableContainer from '../../Components/Common/TableContainer';
 import { APIClient } from '../../helpers/api_helper';
@@ -223,7 +224,7 @@ const Projects = () => {
     const handleSelectProject = useCallback((project: any) => {
         if (selectedProjectId) return;
         setSelectedProjectId(project.id);
-        localStorage.setItem("activeProjectId", project.id);
+        useProjectStore.getState().setActiveProjectId(project.id);
         localStorage.setItem("activeProjectName", project.nombre);
         localStorage.setItem("activeProjectRole", project.mi_rol || "Sin rol");
         window.dispatchEvent(new Event("activeProjectUpdated"));
@@ -238,8 +239,8 @@ const Projects = () => {
     const confirmDeleteProject = useCallback(async () => {
         if (!projectToDelete) return;
         toggleDeleteModal();
-        if (localStorage.getItem("activeProjectId") === projectToDelete.id) {
-            localStorage.removeItem("activeProjectId");
+        if (useProjectStore.getState().activeProjectId === projectToDelete.id) {
+            useProjectStore.getState().setActiveProjectId(null);
             localStorage.removeItem("activeProjectName");
             localStorage.removeItem("activeProjectRole");
             window.dispatchEvent(new Event("activeProjectUpdated"));

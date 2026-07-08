@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Button, Spinner } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -64,7 +65,7 @@ const PageTreeNode = ({ page, allPages, selectedPageId, onSelect, onCreateSubpag
 
 const Pages = () => {
     const queryClient = useQueryClient();
-    const activeProjectId = localStorage.getItem('activeProjectId');
+    const activeProjectId = useProjectStore((state) => state.activeProjectId);
     const activeProjectName = localStorage.getItem('activeProjectName');
     const [searchParams] = useSearchParams();
     const urlPageId = searchParams.get('pageId');

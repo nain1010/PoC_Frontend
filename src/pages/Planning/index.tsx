@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
@@ -14,6 +15,7 @@ import PageSelectorModal from '../../Components/Common/PageSelectorModal';
 import AttachmentModal from '../../Components/Common/AttachmentModal';
 import PageViewerDrawer from '../../Components/Common/PageViewerDrawer';
 import InlineAttachments from '../../Components/Common/InlineAttachments';
+import SkeletonLoader from '../../Components/Common/SkeletonLoader';
 const api = APIClient;
 
 const getProjectPrefix = (name: string) => {
@@ -38,7 +40,7 @@ const Planning = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const activeProjectId = localStorage.getItem("activeProjectId");
+    const activeProjectId = useProjectStore((state) => state.activeProjectId);
     const activeProjectName = localStorage.getItem("activeProjectName");
 
     const { data: projectDetails, isLoading, error } = useQuery({
@@ -807,10 +809,33 @@ const Planning = () => {
                     <BreadCrumb title={`Planificación - ${activeProjectName}`} />
 
                     {isLoading ? (
-                        <div className="text-center my-5">
-                            <Spinner color="primary" />
-                            <p className="text-muted mt-2">Cargando tablero de planificación...</p>
-                        </div>
+                        <Row>
+                            <Col lg={5} className="mb-4">
+                                <Card className="shadow-sm border-0 h-100">
+                                    <div className="card-header bg-light border-0 d-flex p-3">
+                                        <SkeletonLoader width="40%" height="24px" />
+                                        <SkeletonLoader width="100px" height="30px" className="ms-auto" />
+                                    </div>
+                                    <CardBody className="p-3">
+                                        <div className="d-flex flex-column gap-3">
+                                            <SkeletonLoader height="120px" borderRadius="8px" />
+                                            <SkeletonLoader height="120px" borderRadius="8px" />
+                                            <SkeletonLoader height="120px" borderRadius="8px" />
+                                        </div>
+                                    </CardBody>
+                                </Card>
+                            </Col>
+                            <Col lg={7}>
+                                <Card className="shadow-sm border-0 mb-4">
+                                    <div className="card-header bg-soft-primary border-0 p-3">
+                                        <SkeletonLoader width="50%" height="24px" />
+                                    </div>
+                                    <CardBody className="p-3">
+                                        <SkeletonLoader height="150px" borderRadius="8px" />
+                                    </CardBody>
+                                </Card>
+                            </Col>
+                        </Row>
                     ) : error ? (
                         <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
                     ) : (

@@ -67,7 +67,7 @@ export const logoutUser = () => async (dispatch : any) => {
     localStorage.removeItem("authUser");
     sessionStorage.removeItem("chatHistory");
     // Limpiar datos de proyecto activo del usuario saliente
-    localStorage.removeItem("activeProjectId");
+    localStorage.removeItem("luma-project-storage");
     localStorage.removeItem("activeProjectName");
     localStorage.removeItem("activeProjectRole");
     setAuthorization("");

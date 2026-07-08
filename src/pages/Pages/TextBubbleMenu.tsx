@@ -4,6 +4,7 @@ import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap
 import { BubbleMenu } from '@tiptap/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from '../../helpers/api_helper';
+import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
@@ -13,7 +14,7 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
     const queryClient = useQueryClient();
-    const activeProjectId = localStorage.getItem('activeProjectId');
+    const activeProjectId = useProjectStore((state) => state.activeProjectId);
 
     const convertToTaskMutation = useMutation({
         mutationFn: (payload: any) => api.create(`/projects/${activeProjectId}/stories`, payload),
@@ -125,7 +126,7 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                 return from !== to && !editor.isActive('blockEquation') && !editor.isActive('image') && !editor.isActive('video') && !editor.isActive('attachment');
             }}
         >
-            <div className="shadow-lg rounded d-flex align-items-center px-1 py-1 flex-wrap" style={{ backgroundColor: '#262626', color: '#e9ecef', gap: '2px', border: '1px solid #333', maxWidth: '100%' }}>
+            <div className="shadow-lg rounded d-flex align-items-center px-2 py-1 flex-wrap bubble-menu-container" style={{ gap: '4px', maxWidth: '100%' }}>
             {/* Text Type Dropdown */}
             <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown} direction="down">
                 <DropdownToggle tag="div" className="menu-btn d-flex align-items-center gap-1 rounded" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -225,23 +226,33 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
             </button>
 
             <style>{`
+                .bubble-menu-container {
+                    background: rgba(25, 25, 25, 0.65);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    color: #e9ecef;
+                    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+                }
                 .hover-bg-dark:hover { background-color: rgba(255,255,255,0.1); }
                 .menu-btn {
                     background: transparent;
                     border: none;
-                    color: #d1d5db; /* Light gray */
-                    padding: 4px 8px;
+                    color: #d1d5db;
+                    padding: 6px 10px;
                     font-size: 13px;
                     cursor: pointer;
-                    transition: all 0.2s ease;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 }
                 .menu-btn:hover {
-                    background-color: rgba(255,255,255,0.1);
+                    background-color: rgba(255,255,255,0.15);
                     color: #ffffff;
+                    transform: translateY(-1px);
                 }
                 .menu-btn.is-active {
-                    background-color: var(--vz-primary);
+                    background-color: rgba(64, 81, 137, 0.8);
                     color: #ffffff;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 }
                 .menu-dropdown-item {
                     color: #d1d5db !important;
@@ -249,7 +260,7 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                     transition: all 0.2s ease;
                 }
                 .menu-dropdown-item:hover {
-                    background-color: rgba(255,255,255,0.1) !important;
+                    background-color: rgba(255,255,255,0.15) !important;
                     color: #ffffff !important;
                 }
             `}</style>

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { APIClient } from '../../helpers/api_helper';
+import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import config from '../../config';
@@ -31,6 +32,7 @@ const getLoggedUserId = () => {
     }
     return "";
 };
+
 
 const TaskRow = React.memo(({ task, onStatusChange, getStoryCorrelativo }: {
     task: any;
@@ -92,7 +94,7 @@ const TaskRow = React.memo(({ task, onStatusChange, getStoryCorrelativo }: {
 const Starter = () => {
     const queryClient = useQueryClient();
 
-    const activeProjectId = localStorage.getItem("activeProjectId");
+    const activeProjectId = useProjectStore((state) => state.activeProjectId);
     const activeProjectName = localStorage.getItem("activeProjectName");
 
     // SSE Activities Feed state

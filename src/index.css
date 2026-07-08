@@ -45,3 +45,48 @@ code {
 .editor-scroll-container::-webkit-scrollbar-thumb:hover {
   background-color: rgba(135, 138, 153, 0.6);
 }
+
+/* Luma Premium Design Overrides */
+:root {
+  --luma-radius-sm: 6px;
+  --luma-radius-md: 10px;
+  --luma-radius-lg: 16px;
+  --luma-shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --luma-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  --luma-shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.card {
+  border-radius: var(--luma-radius-md) !important;
+  box-shadow: var(--luma-shadow-sm) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--luma-shadow-md) !important;
+}
+
+.modal-content {
+  border-radius: var(--luma-radius-lg) !important;
+  box-shadow: var(--luma-shadow-float) !important;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.btn {
+  border-radius: var(--luma-radius-sm) !important;
+  transition: all 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Smooth fade in for route changes */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

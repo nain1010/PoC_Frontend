@@ -5,6 +5,7 @@ import TableContainer from '../../Components/Common/TableContainer';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { APIClient } from '../../helpers/api_helper';
+import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 
 interface SprintVelocity {
     nombre: string;
@@ -417,8 +418,7 @@ const BurndownSvgChart = React.memo<{ sprintInfo: any, resumen: any }>(({ sprint
 const Analytics = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-
-    const activeProjectId = localStorage.getItem("activeProjectId");
+    const activeProjectId = useProjectStore((state) => state.activeProjectId);
     const activeProjectName = localStorage.getItem("activeProjectName");
 
     const { data: velocityData = { sprints: [], velocidad_promedio: 0 }, isLoading: loadingVelocity } = useQuery({

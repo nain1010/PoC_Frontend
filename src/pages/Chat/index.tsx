@@ -8,6 +8,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const TypewriterMarkdown = ({ text, isNew }: { text: string; isNew?: boolean }) => {
   const [displayedText, setDisplayedText] = useState(isNew ? '' : text);
@@ -35,14 +37,21 @@ const TypewriterMarkdown = ({ text, isNew }: { text: string; isNew?: boolean }) 
         table: ({node, ...props}: any) => <table className="table table-sm table-bordered mt-2 mb-2 bg-white" {...props} />,
         thead: ({node, ...props}: any) => <thead className="table-light" {...props} />,
         code: ({node, inline, className, children, ...props}: any) => {
-          return inline ? (
-            <code style={{ background: 'rgba(0,0,0,0.05)', padding: '2px 4px', borderRadius: '4px', color: '#e83e8c' }} {...props}>
+          const match = /language-(\w+)/.exec(className || '');
+          return !inline && match ? (
+            <SyntaxHighlighter
+              style={vscDarkPlus}
+              language={match[1]}
+              PreTag="div"
+              className="rounded mt-2 mb-2 shadow-sm"
+              {...props}
+            >
+              {String(children).replace(/\n$/, '')}
+            </SyntaxHighlighter>
+          ) : (
+            <code style={{ background: 'rgba(0,0,0,0.05)', padding: '2px 4px', borderRadius: '4px', color: '#e83e8c' }} className={className} {...props}>
               {children}
             </code>
-          ) : (
-            <pre className="bg-dark text-white p-3 rounded mt-2 mb-2" style={{ overflowX: 'auto' }}>
-              <code {...props}>{children}</code>
-            </pre>
           );
         }
       }}

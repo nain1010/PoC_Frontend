@@ -5,10 +5,12 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BreadCrumb from '../../Components/Common/BreadCrumb';
+import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PageSelectorModal from '../../Components/Common/PageSelectorModal';
+import SkeletonLoader from '../../Components/Common/SkeletonLoader';
 import AttachmentModal from '../../Components/Common/AttachmentModal';
 import PageViewerDrawer from '../../Components/Common/PageViewerDrawer';
 import InlineAttachments from '../../Components/Common/InlineAttachments';
@@ -18,7 +20,7 @@ const Kanban = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const activeProjectId = localStorage.getItem("activeProjectId");
+    const activeProjectId = useProjectStore((state) => state.activeProjectId);
     const activeProjectName = localStorage.getItem("activeProjectName");
 
     const { data: projectDetails, isLoading, error } = useQuery({
@@ -303,10 +305,20 @@ const Kanban = () => {
                     </div>
 
                     {isLoading ? (
-                        <div className="text-center my-5">
-                            <Spinner color="primary" />
-                            <p className="text-muted mt-2">Cargando tablero Kanban...</p>
-                        </div>
+                        <Row>
+                            {[1, 2, 3].map((col) => (
+                                <Col lg={4} key={col} className="mb-4">
+                                    <div className="bg-light-subtle rounded p-3 h-100">
+                                        <SkeletonLoader width="60%" height="20px" className="mb-3" />
+                                        <div className="d-flex flex-column gap-3">
+                                            <SkeletonLoader height="100px" borderRadius="8px" />
+                                            <SkeletonLoader height="120px" borderRadius="8px" />
+                                            <SkeletonLoader height="90px" borderRadius="8px" />
+                                        </div>
+                                    </div>
+                                </Col>
+                            ))}
+                        </Row>
                     ) : error ? (
                         <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
                     ) : !activeSprint ? (

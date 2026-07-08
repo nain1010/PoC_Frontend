@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import config from "../config";
+import Swal from 'sweetalert2';
 
 const { api } = config;
 
@@ -85,10 +86,36 @@ axios.interceptors.response.use(
       error.config?.method === 'get' && 
       error.config?.url?.match(/^\/?projects\/[^\/]+$/)
     ) {
-      localStorage.removeItem("activeProjectId");
+      localStorage.removeItem("luma-project-storage");
       localStorage.removeItem("activeProjectName");
       localStorage.removeItem("activeProjectRole");
       window.dispatchEvent(new Event("activeProjectUpdated"));
+    }
+
+    // Disparar SweetAlert2 global para errores de servidor o permisos
+    if (error.response?.status === 500) {
+      Swal.fire({
+        title: 'Error Interno',
+        text: message,
+        icon: 'error',
+        confirmButtonColor: '#299cdb',
+      });
+    } else if (error.response?.status === 403) {
+      Swal.fire({
+        title: 'Acceso Denegado',
+        text: message,
+        icon: 'warning',
+        confirmButtonColor: '#f1b44c',
+      });
+    } else if (error.response?.status === 401) {
+      Swal.fire({
+        title: 'Sesión Expirada',
+        text: 'Por favor, inicia sesión nuevamente.',
+        icon: 'warning',
+        confirmButtonColor: '#f1b44c',
+      }).then(() => {
+        window.location.href = '/login';
+      });
     }
 
     return Promise.reject(message);
