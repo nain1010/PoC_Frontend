@@ -787,7 +787,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                         projectId={projectDetails.id}
                                         onTaskStatusChange={onTaskStatusChange}
                                         onTaskAssign={onTaskAssign}
-                                        developers={projectDetails?.integrantes || []}
+                                        developers={projectDetails?.memberships?.filter((m: any) => m.rol === 'Developer') || []}
                                         onOpenPageSelector={onOpenPageSelector}
                                         onOpenAttachmentModal={onOpenAttachmentModal}
                                         onOpenPageViewer={onOpenPageViewer}
