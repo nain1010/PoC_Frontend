@@ -126,11 +126,7 @@ const Login = (props: any) => {
                                 <FormFeedback type="invalid">{validation.errors.email}</FormFeedback>
                             ) : null}
                         </div>
-
                         <div className="mb-3 animate-fade-in-up delay-200">
-                            <div className="float-end">
-                                <Link to="/forgot-password" className="text-muted transition-colors hover:text-primary">¿Olvidaste tu contraseña?</Link>
-                            </div>
                             <Label className="form-label" htmlFor="password-input">Contraseña</Label>
                             <div className="position-relative auth-pass-inputgroup mb-3">
                                 <Input
@@ -150,17 +146,6 @@ const Login = (props: any) => {
                                 ) : null}
                                 <button className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" id="password-addon" onClick={() => setPasswordShow(!passwordShow)}><i className="ri-eye-fill align-middle"></i></button>
                             </div>
-                        </div>
-
-                        <div className="form-check animate-fade-in-up delay-300">
-                            <Input 
-                                className="form-check-input" 
-                                type="checkbox" 
-                                checked={rememberMe} 
-                                id="auth-remember-check" 
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                            />
-                            <Label className="form-check-label" htmlFor="auth-remember-check">Recordarme</Label>
                         </div>
 
                         <div className="mt-4 animate-fade-in-up delay-400">

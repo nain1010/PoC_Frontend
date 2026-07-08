@@ -8,7 +8,6 @@ const Alt404 = React.lazy(() => import('../pages/AuthenticationInner/Errors/Alt4
 const Error500 = React.lazy(() => import('../pages/AuthenticationInner/Errors/Error500'));
 const Offlinepage = React.lazy(() => import("../pages/AuthenticationInner/Errors/Offlinepage"));
 const Login = React.lazy(() => import("../pages/Authentication/Login"));
-const ForgetPasswordPage = React.lazy(() => import("../pages/Authentication/ForgetPassword"));
 const Logout = React.lazy(() => import("../pages/Authentication/Logout"));
 const Register = React.lazy(() => import("../pages/Authentication/Register"));
 const UserProfile = React.lazy(() => import("../pages/Authentication/user-profile"));
@@ -50,7 +49,6 @@ const publicRoutes = [
   // Authentication Page
   { path: "/logout", component: <Logout /> },
   { path: "/login", component: <Login /> },
-  { path: "/forgot-password", component: <ForgetPasswordPage /> },
   { path: "/register", component: <Register /> },
 
   { path: "/auth-404-basic", component: <Basic404 /> },
