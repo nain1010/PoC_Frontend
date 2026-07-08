@@ -7,6 +7,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 import RightSidebar from '../Components/Common/RightSidebar';
+import Onboarding from '../Components/Common/Onboarding';
 
 //import actions
 import {
@@ -159,6 +160,7 @@ const Layout = (props: any) => {
                 </div>
             </div>
             <RightSidebar show={showRightSidebar} toggleCanvas={toggleRightSidebar} />
+            <Onboarding />
         </React.Fragment>
 
     );
