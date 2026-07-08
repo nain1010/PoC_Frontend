@@ -5,6 +5,7 @@ import { BubbleMenu } from '@tiptap/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from '../../helpers/api_helper';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 const api = APIClient;
 
@@ -42,18 +43,25 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
 
     const setLink = () => {
         const previousUrl = editor.getAttributes('link').href;
-        const url = window.prompt('URL', previousUrl);
-
-        if (url === null) {
-            return;
-        }
-
-        if (url === '') {
-            editor.chain().focus().extendMarkRange('link').unsetLink().run();
-            return;
-        }
-
-        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+        Swal.fire({
+            title: 'URL del enlace',
+            input: 'url',
+            inputValue: previousUrl || '',
+            inputPlaceholder: 'https://...',
+            showCancelButton: true,
+            confirmButtonText: 'Aceptar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#405189'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const url = result.value;
+                if (url === '') {
+                    editor.chain().focus().extendMarkRange('link').unsetLink().run();
+                } else {
+                    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+                }
+            }
+        });
     };
 
     const handleConvertToTask = () => {
