@@ -14,7 +14,7 @@ const CoverAuth = ({ children, title, subtitle }: any) => {
                     <Container>
                         <Row className="justify-content-center">
                             <Col lg={11}>
-                                <Card className="overflow-hidden card-bg-fill border-0 shadow-lg m-0">
+                                <Card className="overflow-hidden card-bg-fill border-0 shadow-lg m-0 auth-page-transition">
                                     <Row className="g-0">
                                         <Col lg={6} className="d-none d-lg-block">
                                             <div className="p-lg-5 p-4 auth-one-bg h-100 d-flex flex-column justify-content-between" style={{ minHeight: "500px" }}>

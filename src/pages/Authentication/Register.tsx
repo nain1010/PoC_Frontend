@@ -108,7 +108,7 @@ const Register = () => {
                         }}
                         className="needs-validation" action="#">
 
-                        <div className="mb-3">
+                        <div className="mb-3 animate-fade-in-up delay-100">
                             <Label htmlFor="useremail" className="form-label">Correo Electrónico <span className="text-danger">*</span></Label>
                             <Input
                                 id="email"
@@ -128,7 +128,7 @@ const Register = () => {
                             ) : null}
 
                         </div>
-                        <div className="mb-3">
+                        <div className="mb-3 animate-fade-in-up delay-200">
                             <Label htmlFor="username" className="form-label">Nombre de usuario <span className="text-danger">*</span></Label>
                             <Input
                                 name="first_name"
@@ -147,7 +147,7 @@ const Register = () => {
 
                         </div>
 
-                        <div className="mb-3">
+                        <div className="mb-3 animate-fade-in-up delay-300">
                             <Label htmlFor="userpassword" className="form-label">Contraseña <span className="text-danger">*</span></Label>
                             <Input
                                 name="password"
@@ -166,7 +166,7 @@ const Register = () => {
 
                         </div>
 
-                        <div className="mb-2">
+                        <div className="mb-2 animate-fade-in-up delay-400">
                             <Label htmlFor="confirmPassword" className="form-label">Confirmar Contraseña <span className="text-danger">*</span></Label>
                             <Input
                                 name="confirm_password"
@@ -185,20 +185,26 @@ const Register = () => {
 
                         </div>
 
-
-
-                        <div className="mt-4">
-                            <Button className="btn-submit-premium w-100" type="submit" disabled={loader && true}>
-                                {loader && <Spinner size="sm" className='me-2'> Cargando... </Spinner>}
-                                Registrarse
-                            </Button>
+                        <div className="mb-4 animate-fade-in-up delay-400">
+                            <p className="mb-0 fs-12 text-muted fst-italic">Al registrarte aceptas las <Link to="#" className="text-primary text-decoration-underline fst-normal fw-medium">Condiciones de Uso</Link></p>
                         </div>
 
-
+                        <div className="mt-4 animate-fade-in-up delay-400">
+                            <Button disabled={loader} className="btn-submit-premium w-100" type="submit">
+                                {loader ? (
+                                    <span className="d-flex align-items-center justify-content-center">
+                                        <Spinner size="sm" className='me-2'> Cargando... </Spinner>
+                                        <span>Cargando...</span>
+                                    </span>
+                                ) : (
+                                    <span>Registrarse</span>
+                                )}
+                            </Button>
+                        </div>
                     </Form>
                 </div>
 
-                <div className="mt-4 text-center">
+                <div className="mt-4 text-center animate-fade-in-up delay-400">
                     <p className="mb-0">¿Ya tienes una cuenta? <Link to="/login" className="fw-semibold text-primary text-decoration-underline"> Iniciar Sesión </Link> </p>
                 </div>
             </CoverAuth>

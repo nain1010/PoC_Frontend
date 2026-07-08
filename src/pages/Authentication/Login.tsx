@@ -108,7 +108,7 @@ const Login = (props: any) => {
                         }}
                         action="#">
 
-                        <div className="mb-3">
+                        <div className="mb-3 animate-fade-in-up delay-100">
                             <Label htmlFor="email" className="form-label">Correo Electrónico</Label>
                             <Input
                                 name="email"
@@ -127,9 +127,9 @@ const Login = (props: any) => {
                             ) : null}
                         </div>
 
-                        <div className="mb-3">
+                        <div className="mb-3 animate-fade-in-up delay-200">
                             <div className="float-end">
-                                <Link to="/forgot-password" className="text-muted">¿Olvidaste tu contraseña?</Link>
+                                <Link to="/forgot-password" className="text-muted transition-colors hover:text-primary">¿Olvidaste tu contraseña?</Link>
                             </div>
                             <Label className="form-label" htmlFor="password-input">Contraseña</Label>
                             <div className="position-relative auth-pass-inputgroup mb-3">
@@ -152,7 +152,7 @@ const Login = (props: any) => {
                             </div>
                         </div>
 
-                        <div className="form-check">
+                        <div className="form-check animate-fade-in-up delay-300">
                             <Input 
                                 className="form-check-input" 
                                 type="checkbox" 
@@ -163,7 +163,7 @@ const Login = (props: any) => {
                             <Label className="form-check-label" htmlFor="auth-remember-check">Recordarme</Label>
                         </div>
 
-                        <div className="mt-4">
+                        <div className="mt-4 animate-fade-in-up delay-400">
                             <Button
                                 disabled={loader}
                                 className="btn-submit-premium w-100" type="submit">
@@ -178,11 +178,10 @@ const Login = (props: any) => {
                             </Button>
                         </div>
 
-
                     </Form>
                 </div>
 
-                <div className="mt-4 text-center">
+                <div className="mt-4 text-center animate-fade-in-up delay-400">
                     <p className="mb-0">¿No tienes una cuenta? <Link to="/register" className="fw-semibold text-primary text-decoration-underline"> Regístrate </Link> </p>
                 </div>
             </CoverAuth>
