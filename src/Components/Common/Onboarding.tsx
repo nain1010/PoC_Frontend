@@ -6,7 +6,7 @@ import { APIClient } from '../../helpers/api_helper';
 import { getLoggedinUser } from '../../helpers/api_helper';
 import { useNavigate } from 'react-router-dom';
 
-const api = new APIClient();
+const api = APIClient;
 
 const Onboarding = () => {
     const dispatch = useDispatch();
