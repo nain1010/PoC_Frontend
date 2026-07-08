@@ -58,6 +58,40 @@ export function useSSE() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     });
 
+    // --- Pages events (sidebar tree + page content) ---
+    es.addEventListener('page_created', (e: MessageEvent) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.project_id) {
+          queryClient.invalidateQueries({ queryKey: ['pages', data.project_id] });
+        }
+      } catch {
+        queryClient.invalidateQueries({ queryKey: ['pages'] });
+      }
+    });
+
+    es.addEventListener('page_updated', (e: MessageEvent) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.project_id) {
+          queryClient.invalidateQueries({ queryKey: ['pages', data.project_id] });
+        }
+      } catch {
+        queryClient.invalidateQueries({ queryKey: ['pages'] });
+      }
+    });
+
+    es.addEventListener('page_deleted', (e: MessageEvent) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.project_id) {
+          queryClient.invalidateQueries({ queryKey: ['pages', data.project_id] });
+        }
+      } catch {
+        queryClient.invalidateQueries({ queryKey: ['pages'] });
+      }
+    });
+
     es.onerror = () => {
     };
 

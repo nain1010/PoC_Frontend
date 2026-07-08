@@ -384,6 +384,39 @@ const Pages = () => {
                 /* Utilities */
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+                /* Collaboration Cursors */
+                .collaboration-cursor__caret {
+                    border-left: 2px solid;
+                    border-right: none;
+                    margin-left: -1px;
+                    margin-right: -1px;
+                    pointer-events: none;
+                    position: relative;
+                    word-break: normal;
+                }
+                .collaboration-cursor__label {
+                    border-radius: 4px 4px 4px 0;
+                    font-size: 10px;
+                    font-style: normal;
+                    font-weight: 600;
+                    left: -1px;
+                    line-height: 1;
+                    padding: 2px 5px;
+                    position: absolute;
+                    top: -1.4em;
+                    user-select: none;
+                    white-space: nowrap;
+                    color: #fff;
+                    animation: collabFadeIn 0.2s ease;
+                }
+                @keyframes collabFadeIn {
+                    from { opacity: 0; transform: translateY(4px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                /* Spin animation for loading indicator */
+                .ri-spin { animation: ri-spin 1s linear infinite; }
+                @keyframes ri-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
             `}</style>
         </React.Fragment>
     );

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Input } from 'reactstrap';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -57,28 +57,16 @@ const PageEditorWrapper = ({
     onToggleSidebar,
     isSidebarOpen
 }: any) => {
-    const saveTimerRef = useRef<any>(null);
     const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
     const [hoveredBlockPos, setHoveredBlockPos] = useState({ top: 0, left: 0 });
     const isEditable = !pageContent?.is_locked;
-    const [peersCount, setPeersCount] = useState(1);
+    const [peers, setPeers] = useState<Array<{ name: string; color: string }>>([]); 
+    const [wsStatus, setWsStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
 
-    // Inicializar YDoc y cargar estado inicial (si existe en BD)
-    const ydoc = useMemo(() => {
-        const doc = new Y.Doc();
-        if (pageContent?.contenido) {
-            try {
-                const parsed = JSON.parse(pageContent.contenido);
-                if (parsed.crdt_b64) {
-                    const binary = Uint8Array.from(atob(parsed.crdt_b64), c => c.charCodeAt(0));
-                    Y.applyUpdate(doc, binary);
-                }
-            } catch(e) {}
-        }
-        return doc;
-    }, []); // IMPORTANTE: Se ejecuta 1 sola vez porque key={pageId} en el padre fuerza el remount
+    // Inicializar YDoc — el WebSocket provider sincroniza el estado desde el server
+    const ydoc = useMemo(() => new Y.Doc(), []); // key={pageId} en el padre fuerza remount
 
-    // Configurar WebSocket Provider (Backend Relay nativo)
+    // Configurar WebSocket Provider (Backend Relay con pycrdt-websocket)
     const provider = useMemo(() => {
         const loggedUser = JSON.parse(sessionStorage.getItem('authUser') || localStorage.getItem('authUser') || '{}');
         const token = loggedUser?.token || '';
@@ -90,9 +78,23 @@ const PageEditorWrapper = ({
             params: { token: token }
         });
         
-        wsProvider.awareness.on('change', () => {
-            setPeersCount(wsProvider.awareness.getStates().size);
+        // Track connection status
+        wsProvider.on('status', ({ status }: { status: string }) => {
+            setWsStatus(status as any);
         });
+        
+        // Track awareness (connected peers)
+        const updatePeers = () => {
+            const states = wsProvider.awareness.getStates();
+            const peerList: Array<{ name: string; color: string }> = [];
+            states.forEach((state: any, clientId: number) => {
+                if (clientId !== ydoc.clientID && state.user) {
+                    peerList.push({ name: state.user.name, color: state.user.color });
+                }
+            });
+            setPeers(peerList);
+        };
+        wsProvider.awareness.on('change', updatePeers);
 
         return wsProvider;
     }, [pageId, ydoc]);
@@ -105,7 +107,16 @@ const PageEditorWrapper = ({
 
     const loggedUser = JSON.parse(sessionStorage.getItem('authUser') || localStorage.getItem('authUser') || '{}');
     const userName = loggedUser?.nombre_completo || 'Usuario';
-    const userColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+    // Deterministic color based on user ID (hash → hue)
+    const userColor = useMemo(() => {
+        const userId = loggedUser?.id || loggedUser?.email || 'default';
+        let hash = 0;
+        for (let i = 0; i < userId.length; i++) {
+            hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = Math.abs(hash) % 360;
+        return `hsl(${hue}, 70%, 50%)`;
+    }, [loggedUser?.id, loggedUser?.email]);
 
     const editor = useEditor({
         extensions: [
@@ -167,20 +178,8 @@ const PageEditorWrapper = ({
             }),
         ],
         editable: isEditable,
-        onUpdate: ({ editor }) => {
-            if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-            saveTimerRef.current = setTimeout(() => {
-                const b64Crdt = btoa(String.fromCharCode(...Array.from(Y.encodeStateAsUpdate(ydoc))));
-                const jsonToSave = {
-                    ...editor.getJSON(),
-                    crdt_b64: b64Crdt
-                };
-                updatePageMutation.mutate({
-                    id: pageId,
-                    contenido: JSON.stringify(jsonToSave),
-                });
-            }, 1500);
-        },
+        // Content persistence is handled by the backend WebSocket server (CRDT auto-save every 30s)
+        // Only title/metadata changes go through HTTP mutations
         editorProps: {
             attributes: { class: 'prose prose-lg focus:outline-none w-100 max-w-none text-body' },
             handleDrop: function(view, event, slice, moved) {
@@ -304,15 +303,60 @@ const PageEditorWrapper = ({
                                 className="fw-bold bg-transparent border-0 p-0 text-body title-input-plane flex-grow-1"
                                 style={{ fontSize: '2.8rem', boxShadow: 'none', lineHeight: '1.2' }}
                             />
-                            <div className="ms-3 d-flex align-items-center">
-                                {peersCount > 1 ? (
-                                    <span className="badge bg-soft-success text-success d-flex align-items-center gap-1" title={`${peersCount} colaboradores conectados`}>
-                                        <i className="ri-group-line"></i> {peersCount} en vivo
+                            <div className="ms-3 d-flex align-items-center gap-2">
+                                {/* Connection status indicator */}
+                                {wsStatus === 'connecting' && (
+                                    <span className="badge bg-soft-warning text-warning d-flex align-items-center gap-1" title="Conectando...">
+                                        <i className="ri-loader-4-line ri-spin"></i>
                                     </span>
+                                )}
+                                {wsStatus === 'disconnected' && (
+                                    <span className="badge bg-soft-danger text-danger d-flex align-items-center gap-1" title="Desconectado — reconectando...">
+                                        <i className="ri-wifi-off-line"></i>
+                                    </span>
+                                )}
+                                {/* Presence avatars */}
+                                {peers.length > 0 ? (
+                                    <div className="d-flex align-items-center" title={peers.map(p => p.name).join(', ')}>
+                                        <div className="d-flex" style={{ marginRight: '6px' }}>
+                                            {peers.slice(0, 4).map((peer, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                                                    style={{
+                                                        width: '26px', height: '26px', fontSize: '11px',
+                                                        backgroundColor: peer.color,
+                                                        marginLeft: i > 0 ? '-6px' : 0,
+                                                        border: '2px solid var(--vz-card-bg-custom)',
+                                                        zIndex: 10 - i,
+                                                    }}
+                                                >
+                                                    {peer.name.charAt(0).toUpperCase()}
+                                                </div>
+                                            ))}
+                                            {peers.length > 4 && (
+                                                <div
+                                                    className="rounded-circle d-flex align-items-center justify-content-center bg-secondary text-white fw-bold"
+                                                    style={{
+                                                        width: '26px', height: '26px', fontSize: '10px',
+                                                        marginLeft: '-6px',
+                                                        border: '2px solid var(--vz-card-bg-custom)',
+                                                    }}
+                                                >
+                                                    +{peers.length - 4}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span className="badge bg-soft-success text-success d-flex align-items-center gap-1">
+                                            <i className="ri-group-line"></i> {peers.length + 1} en vivo
+                                        </span>
+                                    </div>
                                 ) : (
-                                    <span className="badge bg-soft-secondary text-secondary d-flex align-items-center gap-1" title="Solo tú estás en esta página">
-                                        <i className="ri-user-line"></i> Solo tú
-                                    </span>
+                                    wsStatus === 'connected' && (
+                                        <span className="badge bg-soft-secondary text-secondary d-flex align-items-center gap-1" title="Solo tú estás en esta página">
+                                            <i className="ri-user-line"></i> Solo tú
+                                        </span>
+                                    )
                                 )}
                             </div>
                         </div>
