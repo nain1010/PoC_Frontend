@@ -91,7 +91,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
         <Card 
             innerRef={setNodeRef}
             style={{ ...style, cursor: isDragging ? 'grabbing' : 'grab' }}
-            className={`border mb-3 shadow-sm card-animate ${isDragging ? 'opacity-0' : ''}`}
+            className={`border mb-3 shadow-sm ${isDragging ? 'opacity-0' : ''}`}
             {...dragHandleProps}
         >
             <CardBody className="p-3">
