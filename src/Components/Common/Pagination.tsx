@@ -34,11 +34,11 @@ const Pagination = ({ data, currentPage, setCurrentPage, perPageData }: any) => 
                     <ul className="pagination-block pagination pagination-separated justify-content-center justify-content-sm-end mb-sm-0">
                         {currentPage <= 1 ? (
                             <Link className="page-item pagination-prev disabled" to="#!">
-                                Previous
+                                Anterior
                             </Link>
                         ) :
                             <li className={currentPage <= 1 ? "page-item disabled" : "page-item"}>
-                                <Link to="#!" className="page-link" onClick={handleprevPage}>Previous</Link>
+                                <Link to="#!" className="page-link" onClick={handleprevPage}>Anterior</Link>
                             </li>
                         }
                         {pageNumbers.map((item, key) => (
@@ -50,11 +50,11 @@ const Pagination = ({ data, currentPage, setCurrentPage, perPageData }: any) => 
                         ))}
                         {currentPage >= pageNumbers.length ? (
                             <Link className="page-item pagination-next disabled" to="#!">
-                                Next
+                                Siguiente
                             </Link>
                         ) :
                             <li className={currentPage <= 1 ? "page-item disabled" : "page-item"}>
-                                <Link to="#!" className="page-link" onClick={handlenextPage}>Next</Link>
+                                <Link to="#!" className="page-link" onClick={handlenextPage}>Siguiente</Link>
                             </li>
                         }
                     </ul>

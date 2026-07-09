@@ -158,3 +158,24 @@ body {
 [data-bs-theme="dark"] * {
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
+
+// 9. Enforce Fixed Layout for Topbar, Sidebar, and Page Title
+#page-topbar, .navbar-menu {
+  position: fixed !important;
+}
+
+.page-title-box {
+  position: sticky !important;
+  top: 70px; // Matches vertical header height
+  z-index: 100;
+  background-color: var(--vz-secondary-bg) !important;
+  box-shadow: 0 1px 2px rgba(56, 65, 74, 0.15) !important;
+}
+
+[data-layout="horizontal"] .page-title-box {
+  top: 60px;
+}
+
+[data-bs-theme="dark"] .page-title-box {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}

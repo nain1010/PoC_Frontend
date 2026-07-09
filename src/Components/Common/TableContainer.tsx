@@ -297,13 +297,13 @@ const TableContainer = ({
       <Row className="align-items-center mt-2 g-3 text-center text-sm-start">
         <div className="col-sm">
           <div className="text-muted">
-            Showing <span className="fw-semibold">{table.getFilteredRowModel().rows.length === 0 ? 0 : getState().pagination.pageIndex * getState().pagination.pageSize + 1}</span> to <span className="fw-semibold">{Math.min(table.getFilteredRowModel().rows.length, (getState().pagination.pageIndex + 1) * getState().pagination.pageSize)}</span> of <span className="fw-semibold">{table.getFilteredRowModel().rows.length}</span> Results
+            Mostrando <span className="fw-semibold">{table.getFilteredRowModel().rows.length === 0 ? 0 : getState().pagination.pageIndex * getState().pagination.pageSize + 1}</span> a <span className="fw-semibold">{Math.min(table.getFilteredRowModel().rows.length, (getState().pagination.pageIndex + 1) * getState().pagination.pageSize)}</span> de <span className="fw-semibold">{table.getFilteredRowModel().rows.length}</span> Resultados
           </div>
         </div>
         <div className="col-sm-auto">
           <ul className="pagination pagination-separated pagination-md justify-content-center justify-content-sm-start mb-0">
             <li className={!getCanPreviousPage() ? "page-item disabled" : "page-item"}>
-              <Link to="#" className="page-link" onClick={previousPage}>Previous</Link>
+              <Link to="#" className="page-link" onClick={previousPage}>Anterior</Link>
             </li>
             {getPageOptions().map((item: any, key: number) => (
               <React.Fragment key={key}>
@@ -313,7 +313,7 @@ const TableContainer = ({
               </React.Fragment>
             ))}
             <li className={!getCanNextPage() ? "page-item disabled" : "page-item"}>
-              <Link to="#" className="page-link" onClick={nextPage}>Next</Link>
+              <Link to="#" className="page-link" onClick={nextPage}>Siguiente</Link>
             </li>
           </ul>
         </div>
