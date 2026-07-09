@@ -17,7 +17,6 @@ const Index = () => {
 
     return (
         <React.Fragment>
-            <Suspense fallback={<div className="d-flex justify-content-center mx-2 mt-2"><Spinner color="primary">Cargando...</Spinner></div>}>
             <AnimatePresence mode="wait">
                 <Routes location={location} key={location.pathname}>
                     <Route>
@@ -27,7 +26,9 @@ const Index = () => {
                                 element={
                                     <PageTransition>
                                         <NonAuthLayout>
-                                            {route.component}
+                                            <Suspense fallback={<div className="d-flex justify-content-center mx-2 mt-2"><Spinner color="primary">Cargando...</Spinner></div>}>
+                                                {route.component}
+                                            </Suspense>
                                         </NonAuthLayout>
                                     </PageTransition>
                                 }
@@ -43,7 +44,11 @@ const Index = () => {
                                 element={
                                     <AuthProtected>
                                         <PageTransition>
-                                            <VerticalLayout>{route.component}</VerticalLayout>
+                                            <VerticalLayout>
+                                                <Suspense fallback={<div className="page-content"><div className="d-flex justify-content-center mx-2 mt-2"><Spinner color="primary">Cargando...</Spinner></div></div>}>
+                                                    {route.component}
+                                                </Suspense>
+                                            </VerticalLayout>
                                         </PageTransition>
                                     </AuthProtected>
                                 }
@@ -53,7 +58,6 @@ const Index = () => {
                     </Route>
                 </Routes>
             </AnimatePresence>
-            </Suspense>
         </React.Fragment>
     );
 };

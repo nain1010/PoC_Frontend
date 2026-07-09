@@ -21,8 +21,8 @@ import { createSelector } from 'reselect';
 
 const api = APIClient;
 
-const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSidebar } : any) => {
-    const dispatch : any = useDispatch();
+const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSidebar }: any) => {
+    const dispatch: any = useDispatch();
     const navigate = useNavigate();
 
     const [activeProjectName, setActiveProjectName] = useState<string | null>(localStorage.getItem("activeProjectName"));
@@ -76,7 +76,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
     const selectDashboardData = createSelector(
         (state) => state.Layout,
         (sidebarVisibilitytype) => sidebarVisibilitytype.sidebarVisibilitytype
-      );
+    );
     // Inside your component
     const sidebarVisibilitytype = useSelector(selectDashboardData);
 
@@ -123,7 +123,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                         <img src={logoSm} alt="Luma" height="22" />
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoDark} alt="Luma" height="17" />
+                                        <img src={logoDark} alt="Luma" height="30" />
                                     </span>
                                 </Link>
 
@@ -132,7 +132,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                         <img src={logoSm} alt="Luma" height="22" />
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoLight} alt="Luma" height="17" />
+                                        <img src={logoLight} alt="Luma" height="30" />
                                     </span>
                                 </Link>
                             </div>
@@ -166,7 +166,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                 </DropdownMenu>
                             </Dropdown> */}
 
-                             {activeProjectName && (
+                            {activeProjectName && (
                                 <Dropdown isOpen={projectDropdownOpen} toggle={toggleProjectDropdown} className="d-none d-md-flex me-3 border-end pe-3 align-items-center">
                                     <DropdownToggle tag="div" className="d-flex align-items-center" role="button" style={{ cursor: 'pointer', userSelect: 'none' }}>
                                         <div className="text-end me-2.5">
@@ -175,12 +175,11 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                             </span>
                                             <span className="fw-bold fs-13 text-truncate d-block" style={{ maxWidth: "180px" }}>{activeProjectName}</span>
                                         </div>
-                                        <span className={`badge ${
-                                            activeProjectRole === 'Product Owner' ? 'bg-primary' :
-                                            activeProjectRole === 'Scrum Master' ? 'bg-success' :
-                                            activeProjectRole === 'Developer' ? 'bg-info' :
-                                            'bg-secondary'
-                                        } fs-11 py-1 px-2 border border-opacity-10 rounded-pill`}>
+                                        <span className={`badge ${activeProjectRole === 'Product Owner' ? 'bg-primary' :
+                                                activeProjectRole === 'Scrum Master' ? 'bg-success' :
+                                                    activeProjectRole === 'Developer' ? 'bg-info' :
+                                                        'bg-secondary'
+                                            } fs-11 py-1 px-2 border border-opacity-10 rounded-pill`}>
                                             <span>{activeProjectRole || 'Sin rol'}</span>
                                         </span>
                                     </DropdownToggle>
