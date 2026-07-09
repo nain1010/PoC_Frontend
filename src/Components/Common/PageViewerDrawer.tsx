@@ -88,7 +88,6 @@ const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawe
         <Offcanvas isOpen={isOpen} toggle={toggle} direction="end" style={{ width: '800px', maxWidth: '100vw' }}>
             <OffcanvasHeader toggle={toggle} className="border-bottom bg-light">
                 <div className="d-flex align-items-center gap-2">
-                    <span className="fs-3">{pageContent?.icono || '📄'}</span>
                     <h4 className="mb-0">{pageContent?.titulo || 'Cargando...'}</h4>
                 </div>
             </OffcanvasHeader>
@@ -98,11 +97,22 @@ const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawe
                         <Spinner color="primary" />
                     </div>
                 ) : (
-                    <div className="tiptap-plane-theme p-4" style={{ backgroundColor: 'var(--vz-body-bg)' }}>
-                        <div className="editor-content-wrapper mx-auto" style={{ maxWidth: '100%' }}>
-                            <EditorContent editor={editor} />
+                    (!pageContent?.contenido || pageContent.contenido.trim() === '' || pageContent.contenido === '{"type":"doc","content":[{"type":"paragraph"}]}') ? (
+                        <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted p-4 text-center">
+                            <i className="ri-file-text-line display-4 mb-3 text-light"></i>
+                            <h5>Esta página está vacía</h5>
+                            <p className="mb-4">No hay contenido escrito en esta página todavía.</p>
+                            <Button color="primary" onClick={() => window.open(`/pages?pageId=${pageId}`, '_blank')}>
+                                <i className="ri-edit-line me-1"></i> Empezar a escribir
+                            </Button>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="tiptap-plane-theme p-4" style={{ backgroundColor: 'var(--vz-body-bg)' }}>
+                            <div className="editor-content-wrapper mx-auto" style={{ maxWidth: '100%' }}>
+                                <EditorContent editor={editor} />
+                            </div>
+                        </div>
+                    )
                 )}
             </OffcanvasBody>
             <div className="p-3 border-top bg-light d-flex justify-content-end">
