@@ -662,6 +662,17 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
     const [storyDropdownOpen, setStoryDropdownOpen] = useState(false);
     const toggleStoryDropdown = useCallback(() => setStoryDropdownOpen(prevState => !prevState), []);
 
+    const [statusError, setStatusError] = useState<string | null>(null);
+
+    const handleStatusClick = useCallback((newState: string) => {
+        if (newState === "Hecha" && totalTasksCount > 0 && progressPercent < 100) {
+            setStatusError("Termina todas las tareas técnicas primero.");
+            setTimeout(() => setStatusError(null), 4000);
+            return;
+        }
+        onStoryStatusChange(story.id, newState);
+    }, [totalTasksCount, progressPercent, onStoryStatusChange, story.id]);
+
     const states = useMemo(() => [
         { label: "Comprometida (Pendiente)", value: "Comprometida" },
         { label: "En Progreso (En curso)", value: "En Progreso" },
@@ -688,7 +699,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                             {states.map(state => (
                                 <DropdownItem 
                                     key={state.value} 
-                                    onClick={() => onStoryStatusChange(story.id, state.value)}
+                                    onClick={() => handleStatusClick(state.value)}
                                     active={story.estado === state.value}
                                     className="fs-12"
                                 >
@@ -700,6 +711,12 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                 </div>
 
                 <h6 className="fw-semibold text-body mb-2">{story.titulo}</h6>
+                {statusError && (
+                    <div className="alert alert-danger py-1 px-2 mb-2 fs-11 animate-fade-in-up" role="alert" style={{ borderRadius: '6px' }}>
+                        <i className="ri-error-warning-line me-1 align-middle"></i>
+                        {statusError}
+                    </div>
+                )}
                 <p className="text-muted fs-13 mb-3 text-truncate-two-lines" title={story.narrativa}>
                     {story.narrativa}
                 </p>
