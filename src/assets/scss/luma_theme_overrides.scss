@@ -116,3 +116,8 @@ body {
 .card-footer:last-child {
   border-radius: 0 0 calc(var(--luma-border-radius) - 1px) calc(var(--luma-border-radius) - 1px) !important;
 }
+
+// 7. Layout Fixes
+.page-content {
+  min-height: 100vh;
+}
