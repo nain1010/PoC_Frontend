@@ -118,13 +118,7 @@ const Login = (props: any) => {
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
                                 value={validation.values.email || ""}
-                                invalid={
-                                    validation.touched.email && validation.errors.email ? true : false
-                                }
                             />
-                            {validation.touched.email && validation.errors.email ? (
-                                <FormFeedback type="invalid">{validation.errors.email}</FormFeedback>
-                            ) : null}
                         </div>
                         <div className="mb-3 animate-fade-in-up delay-200">
                             <Label className="form-label" htmlFor="password-input">Contraseña</Label>
@@ -137,13 +131,7 @@ const Login = (props: any) => {
                                     placeholder="Ingresa tu contraseña"
                                     onChange={validation.handleChange}
                                     onBlur={validation.handleBlur}
-                                    invalid={
-                                        validation.touched.password && validation.errors.password ? true : false
-                                    }
                                 />
-                                {validation.touched.password && validation.errors.password ? (
-                                    <FormFeedback type="invalid">{validation.errors.password}</FormFeedback>
-                                ) : null}
                                 <button className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted" type="button" id="password-addon" onClick={() => setPasswordShow(!passwordShow)}><i className="ri-eye-fill align-middle"></i></button>
                             </div>
                         </div>
