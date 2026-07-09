@@ -2,7 +2,7 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { Card, CardBody, Badge, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Input, Label } from 'reactstrap';
 import InlineAttachments from '../../../Components/Common/InlineAttachments';
 
-const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, onOpenTaskModal, expanded, onToggleExpand, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer, dragHandleProps, setNodeRef, style, isDragging }: {
+const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, onOpenTaskModal, expanded, onToggleExpand, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer, dragHandleProps, setNodeRef, style, isDragging, statusErrorExt }: {
     story: any;
     projectDetails: any;
     memberFilter: string | null;
