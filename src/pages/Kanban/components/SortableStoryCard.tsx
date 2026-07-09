@@ -17,6 +17,7 @@ interface SortableStoryCardProps {
         onOpenPageSelector: (id: string, type: 'historia' | 'tarea') => void;
         onOpenAttachmentModal: (id: string, type: 'historia' | 'tarea') => void;
         onOpenPageViewer: (pageId: string) => void;
+        storyErrors?: Record<string, string>;
     };
 }
 
@@ -58,6 +59,7 @@ const SortableStoryCard = ({
             isDragging={isDragging}
             dragHandleProps={{ ...attributes, ...listeners }}
             {...handlers}
+            statusErrorExt={handlers.storyErrors ? handlers.storyErrors[story.id] : undefined}
         />
     );
 };

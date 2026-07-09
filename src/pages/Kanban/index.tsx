@@ -277,6 +277,7 @@ const Kanban = () => {
     );
 
     const [activeDragStory, setActiveDragStory] = useState<any | null>(null);
+    const [storyErrors, setStoryErrors] = useState<Record<string, string>>({});
 
     const handleDragStart = useCallback((event: DragStartEvent) => {
         const { active } = event;
@@ -318,7 +319,8 @@ const Kanban = () => {
                 const total = tasks.length;
                 const done = tasks.filter((t: any) => t.estado === 'Terminada').length;
                 if (total > 0 && done < total) {
-                    toast.error("Termina todas las tareas técnicas primero.", { position: "top-right" });
+                    setStoryErrors(prev => ({ ...prev, [story.id]: "Termina todas las tareas técnicas primero." }));
+                    setTimeout(() => setStoryErrors(prev => ({ ...prev, [story.id]: "" })), 4000);
                     return; // Abort move
                 }
             }
@@ -348,8 +350,9 @@ const Kanban = () => {
         onToggleExpand: toggleStoryExpand,
         onOpenPageSelector: openPageSelector,
         onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => setAttachmentModal({isOpen: true, id, type}),
-        onOpenPageViewer: openPageViewer
-    }), [handleStoryStatusChange, handleTaskStatusChange, handleTaskAssign, openTaskModal, toggleStoryExpand, openPageSelector, openPageViewer]);
+        onOpenPageViewer: (id: string) => setPageViewer({isOpen: true, pageId: id}),
+        storyErrors
+    }), [handleStoryStatusChange, handleTaskStatusChange, handleTaskAssign, openTaskModal, toggleStoryExpand, openPageSelector, storyErrors]);
 
     document.title = `Sprint Activo | Luma - ${activeProjectName || 'Scrum'}`;
 
@@ -555,23 +558,22 @@ const Kanban = () => {
                                     />
                                 </Row>
 
-                                <DragOverlay dropAnimation={{
-                                    sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } })
-                                }}>
+                                <DragOverlay dropAnimation={null}>
                                     {activeDragStory ? (
                                         <KanbanStoryCard 
-                                            story={activeDragStory}
-                                            projectDetails={projectDetails}
+                                            story={activeDragStory} 
+                                            projectDetails={projectDetails} 
                                             memberFilter={memberFilter}
-                                            expanded={!!expandedStories[activeDragStory.id]}
-                                            onStoryStatusChange={handleStoryStatusChange}
-                                            onTaskStatusChange={handleTaskStatusChange}
-                                            onTaskAssign={handleTaskAssign}
-                                            onOpenTaskModal={openTaskModal}
-                                            onToggleExpand={toggleStoryExpand}
-                                            onOpenPageSelector={openPageSelector}
-                                            onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, id, type})}
-                                            onOpenPageViewer={openPageViewer}
+                                            onStoryStatusChange={storyHandlers.onStoryStatusChange}
+                                            onTaskStatusChange={storyHandlers.onTaskStatusChange}
+                                            onTaskAssign={storyHandlers.onTaskAssign}
+                                            onOpenTaskModal={storyHandlers.onOpenTaskModal}
+                                            expanded={false}
+                                            onToggleExpand={storyHandlers.onToggleExpand}
+                                            onOpenPageSelector={storyHandlers.onOpenPageSelector}
+                                            onOpenAttachmentModal={storyHandlers.onOpenAttachmentModal}
+                                            onOpenPageViewer={storyHandlers.onOpenPageViewer}
+                                            statusErrorExt={storyErrors[activeDragStory.id]}
                                         />
                                     ) : null}
                                 </DragOverlay>

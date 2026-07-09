@@ -19,17 +19,29 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
     setNodeRef?: any;
     style?: any;
     isDragging?: boolean;
+    statusErrorExt?: string;
 }) => {
     // Filter tasks for this story
     const storyTasks = useMemo(
         () => projectDetails?.tareas?.filter((t: any) => t.historia_id === story.id) || [],
         [projectDetails?.tareas, story.id]
     );
-    const doneTasksCount = useMemo(
-        () => storyTasks.filter((t: any) => t.estado === 'Terminada').length,
-        [storyTasks]
+
+    // Filter tasks by member if active
+    const memberTasksCount = useMemo(() => 
+        memberFilter ? storyTasks.filter((t: any) => t.asignado_a === memberFilter).length : storyTasks.length,
+        [storyTasks, memberFilter]
     );
-    const totalTasksCount = storyTasks.length;
+
+    const doneTasksCount = useMemo(() => 
+        storyTasks.filter((t: any) => t.estado === 'Terminada' && (!memberFilter || t.asignado_a === memberFilter)).length,
+        [storyTasks, memberFilter]
+    );
+
+    const totalTasksCount = useMemo(() => 
+        storyTasks.filter((t: any) => !memberFilter || t.asignado_a === memberFilter).length,
+        [storyTasks, memberFilter]
+    );
 
     // Filter tasks inside the story card by selected member
     const displayedTasks = useMemo(
@@ -73,11 +85,13 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
         { label: "Hecha (Terminada)", value: "Hecha" }
     ], []);
 
+    const currentError = statusError || statusErrorExt;
+
     return (
         <Card 
             innerRef={setNodeRef}
             style={style}
-            className={`border mb-3 shadow-sm card-animate ${isDragging ? 'opacity-50' : ''}`}
+            className={`border mb-3 shadow-sm card-animate ${isDragging ? 'opacity-0' : ''}`}
         >
             <CardBody className="p-3">
                 <div className="d-flex justify-content-between align-items-start mb-2">
@@ -116,10 +130,10 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                 </div>
 
                 <h6 className="fw-semibold text-body mb-2">{story.titulo}</h6>
-                {statusError && (
+                {currentError && (
                     <div className="alert alert-danger py-1 px-2 mb-2 fs-11 animate-fade-in-up" role="alert" style={{ borderRadius: '6px' }}>
                         <i className="ri-error-warning-line me-1 align-middle"></i>
-                        {statusError}
+                        {currentError}
                     </div>
                 )}
                 <p className="text-muted fs-13 mb-3 text-truncate-two-lines" title={story.narrativa}>
