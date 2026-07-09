@@ -14,6 +14,21 @@ import SkeletonLoader from '../../Components/Common/SkeletonLoader';
 import AttachmentModal from '../../Components/Common/AttachmentModal';
 import PageViewerDrawer from '../../Components/Common/PageViewerDrawer';
 import InlineAttachments from '../../Components/Common/InlineAttachments';
+import KanbanColumn from './components/KanbanColumn';
+import KanbanStoryCard from './components/KanbanStoryCard';
+import {
+    DndContext,
+    DragOverlay,
+    closestCorners,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragStartEvent,
+    DragEndEvent,
+    defaultDropAnimationSideEffects
+} from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 const api = APIClient;
 
 const Kanban = () => {
@@ -249,6 +264,93 @@ const Kanban = () => {
         [filteredStories]
     );
 
+    // Dnd-kit sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const [activeDragStory, setActiveDragStory] = useState<any | null>(null);
+
+    const handleDragStart = useCallback((event: DragStartEvent) => {
+        const { active } = event;
+        if (active.data.current?.type === 'Story') {
+            setActiveDragStory(active.data.current.story);
+        }
+    }, []);
+
+    const handleDragEnd = useCallback((event: DragEndEvent) => {
+        const { active, over } = event;
+        setActiveDragStory(null);
+        
+        if (!over) return;
+
+        const activeId = active.id;
+        const overId = over.id;
+
+        // The over.id will be either a Column ID ("Comprometida", "En Progreso", "Hecha")
+        // OR another Story ID. If it's a story ID, we need to find which column it belongs to.
+        let newStatus = overId as string;
+        
+        if (newStatus !== "Comprometida" && newStatus !== "En Progreso" && newStatus !== "Hecha") {
+            // It's a story ID. Find its state.
+            const targetStory = filteredStories.find((s: any) => s.id === overId);
+            if (targetStory) {
+                // Map the story's actual state to the primary state of that column
+                if (["Nueva", "Refinada", "Comprometida"].includes(targetStory.estado)) newStatus = "Comprometida";
+                else if (["En Progreso", "Lista para Pruebas"].includes(targetStory.estado)) newStatus = "En Progreso";
+                else if (targetStory.estado === "Hecha") newStatus = "Hecha";
+            }
+        }
+
+        const story = filteredStories.find((s: any) => s.id === activeId);
+        
+        if (story) {
+            // Check validation before moving to Hecha
+            if (newStatus === "Hecha") {
+                const tasks = projectDetails?.tareas?.filter((t: any) => t.historia_id === story.id) || [];
+                const total = tasks.length;
+                const done = tasks.filter((t: any) => t.estado === 'Terminada').length;
+                if (total > 0 && done < total) {
+                    toast.error("Termina todas las tareas técnicas primero.", { position: "top-right" });
+                    return; // Abort move
+                }
+            }
+
+            // Map target column to the new state for the story
+            let targetState = newStatus;
+            // If dragging from "Lista para Pruebas" inside the same "En Progreso" column, it just stays.
+            // But if we're actually changing columns, we map to the default state of the column.
+            
+            // Only update if it actually changed column categories
+            let currentColumn = "";
+            if (["Nueva", "Refinada", "Comprometida"].includes(story.estado)) currentColumn = "Comprometida";
+            if (["En Progreso", "Lista para Pruebas"].includes(story.estado)) currentColumn = "En Progreso";
+            if (story.estado === "Hecha") currentColumn = "Hecha";
+
+            if (currentColumn !== newStatus) {
+                handleStoryStatusChange(story.id, targetState);
+            }
+        }
+    }, [filteredStories, projectDetails, handleStoryStatusChange]);
+
+    const storyHandlers = useMemo(() => ({
+        onStoryStatusChange: handleStoryStatusChange,
+        onTaskStatusChange: handleTaskStatusChange,
+        onTaskAssign: handleTaskAssign,
+        onOpenTaskModal: openTaskModal,
+        onToggleExpand: toggleStoryExpand,
+        onOpenPageSelector: openPageSelector,
+        onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => setAttachmentModal({isOpen: true, id, type}),
+        onOpenPageViewer: openPageViewer
+    }), [handleStoryStatusChange, handleTaskStatusChange, handleTaskAssign, openTaskModal, toggleStoryExpand, openPageSelector, openPageViewer]);
+
     document.title = `Sprint Activo | Luma - ${activeProjectName || 'Scrum'}`;
 
     if (!activeProjectId) {
@@ -409,112 +511,71 @@ const Kanban = () => {
                             </Row>
 
                             {/* Board Columns */}
-                            <Row>
-                                {/* Column 1: Pendiente */}
-                                <Col lg={4} className="mb-4">
-                                    <Card className="bg-light border-top border-3 border-secondary border-opacity-50 shadow-none h-100">
-                                        <div className="p-3 bg-light-subtle d-flex justify-content-between align-items-center rounded-top border-bottom">
-                                            <h6 className="card-title mb-0 fw-bold text-body flex-grow-1">
-                                                <i className="ri-checkbox-blank-circle-fill text-muted me-2 align-middle fs-10"></i>
-                                                <span>Pendiente ({pendingStories.length})</span>
-                                            </h6>
-                                        </div>
-                                        <CardBody className="p-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 300px)", minHeight: "350px" }}>
-                                            {pendingStories.length === 0 ? (
-                                                <div className="text-center py-5 text-muted fs-13">No hay historias pendientes.</div>
-                                            ) : (
-                                                pendingStories.map((story: any) => (
-                                                    <KanbanStoryCard 
-                                                        key={story.id} 
-                                                        story={story} 
-                                                        projectDetails={projectDetails} 
-                                                        memberFilter={memberFilter}
-                                                        onStoryStatusChange={handleStoryStatusChange}
-                                                        onTaskStatusChange={handleTaskStatusChange}
-                                                        onTaskAssign={handleTaskAssign}
-                                                        onOpenTaskModal={openTaskModal}
-                                                        expanded={!!expandedStories[story.id]}
-                                                        onToggleExpand={toggleStoryExpand}
-                                                        onOpenPageSelector={openPageSelector}
-                                                        onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, id, type})}
-                                                        onOpenPageViewer={openPageViewer}
-                                                    />
-                                                ))
-                                            )}
-                                        </CardBody>
-                                    </Card>
-                                </Col>
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCorners}
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <Row>
+                                    <KanbanColumn 
+                                        id="Comprometida"
+                                        title="Pendiente"
+                                        icon={<i className="ri-checkbox-blank-circle-fill text-muted me-2 align-middle fs-10"></i>}
+                                        colorClass="border-secondary border-opacity-50"
+                                        stories={pendingStories}
+                                        projectDetails={projectDetails}
+                                        memberFilter={memberFilter}
+                                        expandedStories={expandedStories}
+                                        handlers={storyHandlers}
+                                    />
+                                    
+                                    <KanbanColumn 
+                                        id="En Progreso"
+                                        title="En Progreso"
+                                        icon={<i className="ri-checkbox-blank-circle-fill text-primary me-2 align-middle fs-10"></i>}
+                                        colorClass="border-primary"
+                                        stories={inProgressStories}
+                                        projectDetails={projectDetails}
+                                        memberFilter={memberFilter}
+                                        expandedStories={expandedStories}
+                                        handlers={storyHandlers}
+                                    />
 
-                                {/* Column 2: En Progreso */}
-                                <Col lg={4} className="mb-4">
-                                    <Card className="bg-light border-top border-3 border-primary shadow-none h-100">
-                                        <div className="p-3 bg-light-subtle d-flex justify-content-between align-items-center rounded-top border-bottom">
-                                            <h6 className="card-title mb-0 fw-bold text-body flex-grow-1">
-                                                <i className="ri-checkbox-blank-circle-fill text-primary me-2 align-middle fs-10"></i>
-                                                <span>En Progreso ({inProgressStories.length})</span>
-                                            </h6>
-                                        </div>
-                                        <CardBody className="p-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 300px)", minHeight: "350px" }}>
-                                            {inProgressStories.length === 0 ? (
-                                                <div className="text-center py-5 text-muted fs-13">Ninguna historia en curso.</div>
-                                            ) : (
-                                                inProgressStories.map((story: any) => (
-                                                    <KanbanStoryCard 
-                                                        key={story.id} 
-                                                        story={story} 
-                                                        projectDetails={projectDetails} 
-                                                        memberFilter={memberFilter}
-                                                        onStoryStatusChange={handleStoryStatusChange}
-                                                        onTaskStatusChange={handleTaskStatusChange}
-                                                        onTaskAssign={handleTaskAssign}
-                                                        onOpenTaskModal={openTaskModal}
-                                                        expanded={!!expandedStories[story.id]}
-                                                        onToggleExpand={toggleStoryExpand}
-                                                        onOpenPageSelector={openPageSelector}
-                                                        onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, id, type})}
-                                                        onOpenPageViewer={openPageViewer}
-                                                    />
-                                                ))
-                                            )}
-                                        </CardBody>
-                                    </Card>
-                                </Col>
+                                    <KanbanColumn 
+                                        id="Hecha"
+                                        title="Terminada"
+                                        icon={<i className="ri-checkbox-blank-circle-fill text-success me-2 align-middle fs-10"></i>}
+                                        colorClass="border-success"
+                                        stories={doneStories}
+                                        projectDetails={projectDetails}
+                                        memberFilter={memberFilter}
+                                        expandedStories={expandedStories}
+                                        handlers={storyHandlers}
+                                    />
+                                </Row>
 
-                                {/* Column 3: Terminada */}
-                                <Col lg={4} className="mb-4">
-                                    <Card className="bg-light border-top border-3 border-success shadow-none h-100">
-                                        <div className="p-3 bg-light-subtle d-flex justify-content-between align-items-center rounded-top border-bottom">
-                                            <h6 className="card-title mb-0 fw-bold text-body flex-grow-1">
-                                                <i className="ri-checkbox-blank-circle-fill text-success me-2 align-middle fs-10"></i>
-                                                <span>Terminada ({doneStories.length})</span>
-                                            </h6>
-                                        </div>
-                                        <CardBody className="p-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 300px)", minHeight: "350px" }}>
-                                            {doneStories.length === 0 ? (
-                                                <div className="text-center py-5 text-muted fs-13">Ninguna historia terminada.</div>
-                                            ) : (
-                                                doneStories.map((story: any) => (
-                                                    <KanbanStoryCard 
-                                                        key={story.id} 
-                                                        story={story} 
-                                                        projectDetails={projectDetails} 
-                                                        memberFilter={memberFilter}
-                                                        onStoryStatusChange={handleStoryStatusChange}
-                                                        onTaskStatusChange={handleTaskStatusChange}
-                                                        onTaskAssign={handleTaskAssign}
-                                                        onOpenTaskModal={openTaskModal}
-                                                        expanded={!!expandedStories[story.id]}
-                                                        onToggleExpand={toggleStoryExpand}
-                                                        onOpenPageSelector={openPageSelector}
-                                                        onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, id, type})}
-                                                        onOpenPageViewer={openPageViewer}
-                                                    />
-                                                ))
-                                            )}
-                                        </CardBody>
-                                    </Card>
-                                </Col>
-                            </Row>
+                                <DragOverlay dropAnimation={{
+                                    sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } })
+                                }}>
+                                    {activeDragStory ? (
+                                        <KanbanStoryCard 
+                                            story={activeDragStory}
+                                            projectDetails={projectDetails}
+                                            memberFilter={memberFilter}
+                                            expanded={!!expandedStories[activeDragStory.id]}
+                                            onStoryStatusChange={handleStoryStatusChange}
+                                            onTaskStatusChange={handleTaskStatusChange}
+                                            onTaskAssign={handleTaskAssign}
+                                            onOpenTaskModal={openTaskModal}
+                                            onToggleExpand={toggleStoryExpand}
+                                            onOpenPageSelector={openPageSelector}
+                                            onOpenAttachmentModal={(id, type) => setAttachmentModal({isOpen: true, id, type})}
+                                            onOpenPageViewer={openPageViewer}
+                                        />
+                                    ) : null}
+                                </DragOverlay>
+                            </DndContext>
                         </div>
                     )}
                 </Container>
@@ -613,317 +674,5 @@ const Kanban = () => {
     );
 };
 
-// Story Card sub-component
-const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, onOpenTaskModal, expanded, onToggleExpand, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
-    story: any;
-    projectDetails: any;
-    memberFilter: string | null;
-    onStoryStatusChange: (storyId: string, status: string) => void;
-    onTaskStatusChange: (taskId: string, status: string) => void;
-    onTaskAssign: (taskId: string, usuarioId: string) => void;
-    onOpenTaskModal: (storyId: string) => void;
-    expanded: boolean;
-    onToggleExpand: (storyId: string) => void;
-    onOpenPageSelector: (id: string, type: 'historia' | 'tarea') => void;
-    onOpenAttachmentModal: (id: string, type: 'historia' | 'tarea') => void;
-    onOpenPageViewer: (pageId: string) => void;
-}) => {
-    // Filter tasks for this story
-    const storyTasks = useMemo(
-        () => projectDetails?.tareas?.filter((t: any) => t.historia_id === story.id) || [],
-        [projectDetails?.tareas, story.id]
-    );
-    const doneTasksCount = useMemo(
-        () => storyTasks.filter((t: any) => t.estado === 'Terminada').length,
-        [storyTasks]
-    );
-    const totalTasksCount = storyTasks.length;
-
-    // Filter tasks inside the story card by selected member
-    const displayedTasks = useMemo(
-        () => storyTasks.filter((t: any) => {
-            if (memberFilter === null) return true;
-            if (memberFilter === "unassigned") return !t.asignado_a;
-            return t.asignado_a === memberFilter;
-        }),
-        [storyTasks, memberFilter]
-    );
-
-    // Progress percentage
-    const progressPercent = useMemo(
-        () => totalTasksCount > 0 ? Math.round((doneTasksCount / totalTasksCount) * 100) : 0,
-        [doneTasksCount, totalTasksCount]
-    );
-
-    // Stable handlers
-    const handleToggleExpand = useCallback(() => { onToggleExpand(story.id); }, [story.id, onToggleExpand]);
-    const handleOpenTaskModal = useCallback(() => { onOpenTaskModal(story.id); }, [story.id, onOpenTaskModal]);
-
-    // Handle dropdown select
-    const [storyDropdownOpen, setStoryDropdownOpen] = useState(false);
-    const toggleStoryDropdown = useCallback(() => setStoryDropdownOpen(prevState => !prevState), []);
-
-    const [statusError, setStatusError] = useState<string | null>(null);
-
-    const handleStatusClick = useCallback((newState: string) => {
-        if (newState === "Hecha" && totalTasksCount > 0 && progressPercent < 100) {
-            setStatusError("Termina todas las tareas técnicas primero.");
-            setTimeout(() => setStatusError(null), 4000);
-            return;
-        }
-        onStoryStatusChange(story.id, newState);
-    }, [totalTasksCount, progressPercent, onStoryStatusChange, story.id]);
-
-    const states = useMemo(() => [
-        { label: "Comprometida (Pendiente)", value: "Comprometida" },
-        { label: "En Progreso (En curso)", value: "En Progreso" },
-        { label: "Lista para Pruebas (En curso)", value: "Lista para Pruebas" },
-        { label: "Hecha (Terminada)", value: "Hecha" }
-    ], []);
-
-    return (
-        <Card className="border mb-3 shadow-sm card-animate">
-            <CardBody className="p-3">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                    <span className="badge bg-soft-info text-info fs-11">{story.correlativo}</span>
-                    
-                    {/* Story status dropdown selector */}
-                    <Dropdown isOpen={storyDropdownOpen} toggle={toggleStoryDropdown} size="sm" strategy="fixed">
-                        <DropdownToggle tag="button" className="btn btn-sm btn-outline-light text-muted border-0 py-0 px-2 fs-12">
-                            <span className="d-flex align-items-center gap-1">
-                                <span>{story.estado}</span>
-                                <i className="ri-arrow-down-s-line align-middle"></i>
-                            </span>
-                        </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-sm dropdown-menu-end">
-                            <DropdownItem header><span>Cambiar Estado de Historia</span></DropdownItem>
-                            {states.map(state => (
-                                <DropdownItem 
-                                    key={state.value} 
-                                    onClick={() => handleStatusClick(state.value)}
-                                    active={story.estado === state.value}
-                                    className="fs-12"
-                                >
-                                    <span>{state.label}</span>
-                                </DropdownItem>
-                            ))}
-                        </DropdownMenu>
-                    </Dropdown>
-                </div>
-
-                <h6 className="fw-semibold text-body mb-2">{story.titulo}</h6>
-                {statusError && (
-                    <div className="alert alert-danger py-1 px-2 mb-2 fs-11 animate-fade-in-up" role="alert" style={{ borderRadius: '6px' }}>
-                        <i className="ri-error-warning-line me-1 align-middle"></i>
-                        {statusError}
-                    </div>
-                )}
-                <p className="text-muted fs-13 mb-3 text-truncate-two-lines" title={story.narrativa}>
-                    {story.narrativa}
-                </p>
-
-                {/* Effort points and Actions */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <span className="text-muted fs-12 me-2">Esfuerzo:</span>
-                        <Badge color="soft-primary" className="text-primary rounded-pill">
-                            {story.esfuerzo_estimado || story.puntos_esfuerzo || 0} Pts
-                        </Badge>
-                    </div>
-                    <div className="d-flex gap-1">
-                        <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenAttachmentModal(story.id, 'historia'); }} title="Archivos adjuntos">
-                            <i className="ri-attachment-2 fs-16 align-middle"></i>
-                        </Button>
-                        <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenPageSelector(story.id, 'historia'); }} title="Documentos Adjuntos">
-                            <i className="ri-file-text-line fs-16 align-middle"></i>
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Progress bar of tasks */}
-                <div className="mb-3 pt-2 border-top">
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span className="text-muted fs-12">Tareas Técnicas ({doneTasksCount}/{totalTasksCount})</span>
-                        <span className="fw-semibold text-body fs-12">{progressPercent}%</span>
-                    </div>
-                    <div className="progress progress-sm" style={{ height: "6px" }}>
-                        <div 
-                            className={`progress-bar ${progressPercent === 100 ? 'bg-success' : 'bg-primary'}`} 
-                            role="progressbar" 
-                            style={{ width: `${progressPercent}%` }} 
-                            aria-valuenow={progressPercent} 
-                            aria-valuemin={0} 
-                            aria-valuemax={100}
-                        ></div>
-                    </div>
-                </div>
-
-                <InlineAttachments projectId={projectDetails.id} entityType="historia" entityId={story.id} onOpenPageViewer={onOpenPageViewer} />
-
-
-                {/* Actions */}
-                <div className="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
-                    <Button 
-                        color="link" 
-                        size="sm" 
-                        className="p-0 text-decoration-none fs-12 text-secondary"
-                        onClick={handleToggleExpand}
-                    >
-                        <span className="d-flex align-items-center gap-1">
-                            <i className={`${expanded ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'} align-middle`}></i>
-                            <span>{expanded ? 'Ocultar Tareas' : `Ver Tareas (${displayedTasks.length})`}</span>
-                        </span>
-                    </Button>
-                    
-                    <Button 
-                        color="soft-success" 
-                        size="sm" 
-                        className="btn-sm py-0.5 px-2 fs-11"
-                        onClick={handleOpenTaskModal}
-                    >
-                        <span className="d-flex align-items-center gap-1">
-                            <i className="ri-add-line align-middle"></i>
-                            <span>Crear Tarea</span>
-                        </span>
-                    </Button>
-                </div>
-
-                {/* Expanded Tasks List */}
-                {expanded && (
-                    <div className="mt-3 pt-3 border-top bg-light-subtle rounded p-2 border border-dashed">
-                        <h6 className="fs-12 fw-bold text-body mb-2"><span>Desglose Técnico:</span></h6>
-                        <div>
-                            {displayedTasks.length === 0 ? (
-                                <div className="text-center py-2 text-muted fs-11">
-                                    <span>{memberFilter ? "No hay tareas que coincidan con el filtro." : "Sin tareas creadas aún. Presiona \"+ Tarea\" para crear una."}</span>
-                                </div>
-                            ) : (
-                                displayedTasks.map((task: any) => (
-                                    <KanbanTaskRow 
-                                        key={task.id} 
-                                        task={task} 
-                                        projectId={projectDetails.id}
-                                        onTaskStatusChange={onTaskStatusChange}
-                                        onTaskAssign={onTaskAssign}
-                                        developers={projectDetails?.memberships?.filter((m: any) => m.rol === 'Developer') || []}
-                                        onOpenPageSelector={onOpenPageSelector}
-                                        onOpenAttachmentModal={onOpenAttachmentModal}
-                                        onOpenPageViewer={onOpenPageViewer}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    </div>
-                )}
-            </CardBody>
-        </Card>
-    );
-});
-
-// Task Row inside story card
-const KanbanTaskRow = React.memo(({ task, projectId, onTaskStatusChange, onTaskAssign, developers, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
-    task: any;
-    projectId: string;
-    onTaskStatusChange: (taskId: string, status: string) => void;
-    onTaskAssign: (taskId: string, usuarioId: string) => void;
-    developers: any[];
-    onOpenPageSelector: (id: string, type: 'historia' | 'tarea') => void;
-    onOpenAttachmentModal: (id: string, type: 'historia' | 'tarea') => void;
-    onOpenPageViewer: (pageId: string) => void;
-}) => {
-    const [taskDropdownOpen, setTaskDropdownOpen] = useState(false);
-    const toggleTaskDropdown = useCallback(() => setTaskDropdownOpen(prevState => !prevState), []);
-
-    const [assignDropdownOpen, setAssignDropdownOpen] = useState(false);
-    const toggleAssignDropdown = useCallback(() => setAssignDropdownOpen(prevState => !prevState), []);
-
-    const taskStates = useMemo(() => ["Pendiente", "En Curso", "Bloqueada", "Terminada"], []);
-
-    const getBadgeColor = useCallback((status: string) => {
-        switch (status) {
-            case "Pendiente": return "secondary";
-            case "En Curso": return "primary";
-            case "Bloqueada": return "danger";
-            case "Terminada": return "success";
-            default: return "dark";
-        }
-    }, []);
-
-    const assignedDev = useMemo(
-        () => developers.find((d: any) => d.usuario_id === task.asignado_a),
-        [developers, task.asignado_a]
-    );
-
-    return (
-        <div className="p-2 border rounded bg-body mb-2 shadow-none border-light-subtle">
-            <div className="d-flex justify-content-between align-items-start mb-2">
-                <span className="fw-semibold text-body fs-12 d-block text-truncate-two-lines" style={{ maxWidth: "55%" }}>
-                    {task.titulo}
-                </span>
-                
-                <div className="d-flex align-items-center gap-1">
-                    <Button size="sm" color="light" className="text-muted p-0 px-1 border-0" onClick={() => onOpenAttachmentModal(task.id, 'tarea')} title="Archivos de la Tarea">
-                        <i className="ri-attachment-2 fs-14 align-middle"></i>
-                    </Button>
-                    <Button size="sm" color="light" className="text-muted p-0 px-1 border-0" onClick={() => onOpenPageSelector(task.id, 'tarea')} title="Documentos de la Tarea">
-                        <i className="ri-file-text-line fs-14 align-middle"></i>
-                    </Button>
-                    {/* Assign Dropdown */}
-                    <Dropdown isOpen={assignDropdownOpen} toggle={toggleAssignDropdown} size="sm" strategy="fixed">
-                        <DropdownToggle tag="button" className={`badge ${assignedDev ? 'bg-soft-info text-info' : 'bg-soft-warning text-warning'} border-0 py-0.5 px-1.5 fs-10`}>
-                            <span className="d-flex align-items-center gap-1">
-                                <span>{assignedDev ? assignedDev.nombre_completo.split(' ')[0] : 'Sin asignar'}</span>
-                                <i className="ri-user-line align-middle"></i>
-                            </span>
-                        </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-sm dropdown-menu-end">
-                            <DropdownItem header className="fs-10"><span>Asignar a Developer</span></DropdownItem>
-                            {developers.length === 0 ? (
-                                <DropdownItem disabled className="fs-10"><span>No hay Developers</span></DropdownItem>
-                            ) : (
-                                developers.map((dev: any) => (
-                                    <DropdownItem
-                                        key={dev.usuario_id}
-                                        onClick={() => onTaskAssign(task.id, dev.usuario_id)}
-                                        active={task.asignado_a === dev.usuario_id}
-                                        className="fs-10 px-2 py-1"
-                                    >
-                                        <i className="ri-user-fill me-1"></i><span>{dev.nombre_completo}</span>
-                                    </DropdownItem>
-                                ))
-                            )}
-                        </DropdownMenu>
-                    </Dropdown>
-
-                    {/* Task Status Dropdown */}
-                    <Dropdown isOpen={taskDropdownOpen} toggle={toggleTaskDropdown} size="sm" strategy="fixed">
-                        <DropdownToggle tag="button" className={`badge bg-soft-${getBadgeColor(task.estado)} text-${getBadgeColor(task.estado)} border-0 py-0.5 px-1.5 fs-10`}>
-                            <span className="d-flex align-items-center gap-1">
-                                <span>{task.estado}</span>
-                                <i className="ri-arrow-down-s-line align-middle"></i>
-                            </span>
-                        </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-sm dropdown-menu-end">
-                            {taskStates.map(state => (
-                                <DropdownItem 
-                                    key={state} 
-                                    onClick={() => onTaskStatusChange(task.id, state)}
-                                    active={task.estado === state}
-                                    className="fs-10 px-2 py-1"
-                                >
-                                    <span>{state}</span>
-                                </DropdownItem>
-                            ))}
-                        </DropdownMenu>
-                    </Dropdown>
-                </div>
-            </div>
-            {task.descripcion && (
-                <p className="text-muted fs-11 mb-0 mt-1"><span>{task.descripcion}</span></p>
-            )}
-            <InlineAttachments projectId={projectId} entityType="tarea" entityId={task.id} onOpenPageViewer={onOpenPageViewer} />
-        </div>
-    );
-});
 
 export default Kanban;
