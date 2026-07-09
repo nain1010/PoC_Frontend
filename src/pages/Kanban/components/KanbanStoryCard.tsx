@@ -90,17 +90,13 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
     return (
         <Card 
             innerRef={setNodeRef}
-            style={style}
+            style={{ ...style, cursor: isDragging ? 'grabbing' : 'grab' }}
             className={`border mb-3 shadow-sm card-animate ${isDragging ? 'opacity-0' : ''}`}
+            {...dragHandleProps}
         >
             <CardBody className="p-3">
                 <div className="d-flex justify-content-between align-items-start mb-2">
-                    <span 
-                        className="badge bg-soft-info text-info fs-11" 
-                        style={{ cursor: 'grab' }} 
-                        {...dragHandleProps}
-                        title="Arrastrar"
-                    >
+                    <span className="badge bg-soft-info text-info fs-11">
                         <i className="ri-drag-move-2-fill me-1"></i>
                         {story.correlativo}
                     </span>
