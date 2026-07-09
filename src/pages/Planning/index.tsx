@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Container, Row, Col, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Button, Spinner, Alert, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFormik } from 'formik';
@@ -167,6 +167,38 @@ const Planning = () => {
         storyValidation.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [storyModal]);
+
+    useEffect(() => {
+        const handleOpenStory = (e: any) => {
+            const storyId = e.detail;
+            const projectData = queryClient.getQueryData(['project', activeProjectId]) as any;
+            if (projectData && projectData.historias) {
+                const story = projectData.historias.find((s: any) => s.id === storyId);
+                if (story) {
+                    setEditStory(story);
+                    setStoryModal(true);
+                }
+            }
+        };
+        const handleOpenSprint = (e: any) => {
+            const sprintId = e.detail;
+            const projectData = queryClient.getQueryData(['project', activeProjectId]) as any;
+            if (projectData && projectData.sprints) {
+                const sprint = projectData.sprints.find((s: any) => s.id === sprintId);
+                if (sprint) {
+                    setEditSprint(sprint);
+                    setSprintModal(true);
+                }
+            }
+        };
+
+        window.addEventListener('open-story-modal', handleOpenStory);
+        window.addEventListener('open-sprint-modal', handleOpenSprint);
+        return () => {
+            window.removeEventListener('open-story-modal', handleOpenStory);
+            window.removeEventListener('open-sprint-modal', handleOpenSprint);
+        };
+    }, [activeProjectId, queryClient]);
 
     const toggleSprintModal = useCallback(() => {
         if (sprintModal) {

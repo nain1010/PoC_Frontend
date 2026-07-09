@@ -15,7 +15,7 @@ const CommandPalette = () => {
     const activeProject = activeProjectId ? (queryClient.getQueryData(['project', activeProjectId]) as any) : null;
     const stories = activeProject?.historias || [];
     const sprints = activeProject?.sprints || [];
-    const tasks = stories.flatMap((s: any) => s.tareas || []);
+    const tasks = stories.flatMap((s: any) => (s.tareas || []).map((t: any) => ({ ...t, historia_id: s.id })));
 
     // Toggle the menu when ⌘K is pressed
     useEffect(() => {
@@ -56,6 +56,15 @@ const CommandPalette = () => {
         command();
     };
 
+    const navigateAndDispatch = (path: string, eventName?: string, detail?: any) => {
+        runCommand(() => {
+            navigate(path);
+            if (eventName) {
+                setTimeout(() => window.dispatchEvent(new CustomEvent(eventName, { detail })), 300);
+            }
+        });
+    };
+
     if (!open) return null;
 
     return (
@@ -69,16 +78,16 @@ const CommandPalette = () => {
 
                         {activeProjectId && (
                             <Command.Group heading="Navegación del Proyecto Actual">
-                                <Command.Item onSelect={() => runCommand(() => navigate(`/planning/${activeProjectId}`))}>
+                                <Command.Item onSelect={() => runCommand(() => navigate('/planning'))}>
                                     <i className="ri-layout-3-line text-primary"></i> Planning (Backlog)
                                 </Command.Item>
-                                <Command.Item onSelect={() => runCommand(() => navigate(`/kanban/${activeProjectId}`))}>
+                                <Command.Item onSelect={() => runCommand(() => navigate('/kanban'))}>
                                     <i className="ri-kanban-view text-success"></i> Sprint Activo (Tablero)
                                 </Command.Item>
-                                <Command.Item onSelect={() => runCommand(() => navigate(`/analytics/${activeProjectId}`))}>
+                                <Command.Item onSelect={() => runCommand(() => navigate('/analytics'))}>
                                     <i className="ri-pie-chart-line text-info"></i> Analíticas
                                 </Command.Item>
-                                <Command.Item onSelect={() => runCommand(() => navigate(`/pages/${activeProjectId}`))}>
+                                <Command.Item onSelect={() => runCommand(() => navigate('/pages'))}>
                                     <i className="ri-pages-line text-warning"></i> Documentos
                                 </Command.Item>
                             </Command.Group>
@@ -89,7 +98,7 @@ const CommandPalette = () => {
                                 {stories.map((story: any) => (
                                     <Command.Item 
                                         key={`story-${story.id}`}
-                                        onSelect={() => runCommand(() => navigate(`/planning/${activeProjectId}`))}
+                                        onSelect={() => navigateAndDispatch('/planning', 'open-story-modal', story.id)}
                                     >
                                         <i className="ri-bookmark-line text-secondary"></i> {story.correlativo} - {story.titulo}
                                     </Command.Item>
@@ -102,7 +111,7 @@ const CommandPalette = () => {
                                 {tasks.map((task: any) => (
                                     <Command.Item 
                                         key={`task-${task.id}`}
-                                        onSelect={() => runCommand(() => navigate(`/kanban/${activeProjectId}`))}
+                                        onSelect={() => navigateAndDispatch('/kanban', 'open-task-modal', { taskId: task.id, storyId: task.historia_id })}
                                     >
                                         <i className="ri-checkbox-circle-line text-success"></i> {task.titulo}
                                     </Command.Item>
@@ -115,7 +124,7 @@ const CommandPalette = () => {
                                 {sprints.map((sprint: any) => (
                                     <Command.Item 
                                         key={`sprint-${sprint.id}`}
-                                        onSelect={() => runCommand(() => navigate(`/planning/${activeProjectId}`))}
+                                        onSelect={() => navigateAndDispatch('/planning', 'open-sprint-modal', sprint.id)}
                                     >
                                         <i className="ri-run-line text-primary"></i> {sprint.nombre}
                                     </Command.Item>
@@ -128,7 +137,10 @@ const CommandPalette = () => {
                                 {projects.map((project: any) => (
                                     <Command.Item 
                                         key={`proj-${project.id}`} 
-                                        onSelect={() => runCommand(() => navigate(`/planning/${project.id}`))}
+                                        onSelect={() => runCommand(() => {
+                                            useProjectStore.getState().setActiveProjectId(project.id);
+                                            navigate('/planning');
+                                        })}
                                     >
                                         <i className="ri-folder-2-line"></i> {project.nombre}
                                     </Command.Item>

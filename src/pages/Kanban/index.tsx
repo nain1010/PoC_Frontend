@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Container, Row, Col, Card, CardBody, Badge, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Spinner, Alert, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFormik } from 'formik';
@@ -95,6 +95,36 @@ const Kanban = () => {
             ...prev,
             [storyId]: !prev[storyId]
         }));
+    }, []);
+
+    useEffect(() => {
+        const handleScrollTo = (e: any) => {
+            const { taskId, storyId } = e.detail;
+            
+            // Auto expand the story so the task becomes visible
+            if (storyId) {
+                setExpandedStories(prev => ({ ...prev, [storyId]: true }));
+            }
+            
+            setTimeout(() => {
+                const el = document.getElementById(`task-${taskId}`);
+                if (el) {
+                    const row = el.closest('.mb-2.border.rounded') as HTMLElement;
+                    if (row) {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const oldBg = row.style.backgroundColor;
+                        row.style.transition = 'background-color 0.5s';
+                        row.style.backgroundColor = 'var(--vz-secondary-bg)';
+                        setTimeout(() => {
+                            row.style.backgroundColor = oldBg;
+                        }, 2000);
+                    }
+                }
+            }, 500); // Give it half a second to render
+        };
+        
+        window.addEventListener('open-task-modal', handleScrollTo);
+        return () => window.removeEventListener('open-task-modal', handleScrollTo);
     }, []);
 
     const invalidateProject = useCallback(() => queryClient.invalidateQueries({ queryKey: ['project', activeProjectId] }), [activeProjectId, queryClient]);
