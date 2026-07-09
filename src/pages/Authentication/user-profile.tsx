@@ -524,7 +524,7 @@ const UserProfile = () => {
         </ModalFooter>
       </Modal>
 
-      <ToastContainer />
+      
     </React.Fragment>
   );
 };

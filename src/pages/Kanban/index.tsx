@@ -607,7 +607,7 @@ const Kanban = () => {
                 </>
             )}
 
-            <ToastContainer />
+            
         </React.Fragment>
     );
 };

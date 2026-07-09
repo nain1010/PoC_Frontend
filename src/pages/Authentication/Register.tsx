@@ -113,7 +113,7 @@ const Register = () => {
     return (
         <React.Fragment>
             <CoverAuth title="Crear Cuenta Nueva" subtitle="Crea tu cuenta en 3 sencillos pasos">
-                <ToastContainer autoClose={2000} limit={1} />
+                
                 
                 {error && error ? (
                     <Alert color="danger"><div>

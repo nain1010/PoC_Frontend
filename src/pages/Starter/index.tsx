@@ -542,7 +542,7 @@ const Starter = () => {
                     </Row>
                 </Container>
             </div>
-            <ToastContainer />
+            
         </React.Fragment>
     );
 };

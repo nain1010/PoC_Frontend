@@ -511,7 +511,7 @@ const Projects = () => {
                 </ModalFooter>
             </Modal>
 
-            <ToastContainer />
+            
         </React.Fragment>
     );
 };

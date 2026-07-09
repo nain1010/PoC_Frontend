@@ -368,7 +368,7 @@ const Chat = () => {
           </Col>
         </Row>
       </Container>
-      <ToastContainer />
+      
     </div>
   );
 };

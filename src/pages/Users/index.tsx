@@ -616,7 +616,7 @@ const UserManagement = () => {
                 </ModalFooter>
             </Modal>
 
-            <ToastContainer />
+            
         </React.Fragment>
     );
 };
