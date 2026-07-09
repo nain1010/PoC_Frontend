@@ -118,8 +118,8 @@ body {
 }
 
 // 7. Layout Fixes
-.page-content {
-  min-height: 100vh;
+html {
+  scrollbar-gutter: stable; // Prevents layout shift when scrollbar appears/disappears
 }
 
 // 8. Custom Scrollbar (Plane style)
