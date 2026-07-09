@@ -148,23 +148,17 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
 
                         <div className="d-flex align-items-center">
 
-                            {/* <Dropdown isOpen={search} toggle={toogleSearch} className="d-md-none topbar-head-dropdown header-item">
-                                <DropdownToggle type="button" tag="button" className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle">
+                            {/* Search Button for CmdK */}
+                            <div className="ms-1 header-item d-none d-sm-flex">
+                                <button 
+                                    onClick={() => window.dispatchEvent(new Event('open-cmdk'))}
+                                    type="button" 
+                                    className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                                    title="Buscar... (Ctrl+K)"
+                                >
                                     <i className="bx bx-search fs-22"></i>
-                                </DropdownToggle>
-                                <DropdownMenu className="dropdown-menu-lg dropdown-menu-end p-0">
-                                    <Form className="p-3">
-                                        <div className="form-group m-0">
-                                            <div className="input-group">
-                                                <input type="text" className="form-control" placeholder="Search ..."
-                                                    aria-label="Recipient's username" />
-                                                <button className="btn btn-primary" type="submit"><i
-                                                    className="mdi mdi-magnify"></i></button>
-                                            </div>
-                                        </div>
-                                    </Form>
-                                </DropdownMenu>
-                            </Dropdown> */}
+                                </button>
+                            </div>
 
                             {activeProjectName && (
                                 <Dropdown isOpen={projectDropdownOpen} toggle={toggleProjectDropdown} className="d-none d-md-flex me-3 border-end pe-3 align-items-center">

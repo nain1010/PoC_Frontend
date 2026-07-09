@@ -20,6 +20,8 @@ import { useSSE } from './Components/Hooks/useSSE';
 import { getLumaTheme, applyLumaTheme } from './helpers/luma_theme_helper';
 import { useEffect } from 'react';
 
+import CommandPalette from './Components/Common/CommandPalette';
+
 // Activating fake backend
 if (process.env.REACT_APP_DEFAULTAUTH === "fake") {
   fakeBackend();
@@ -34,6 +36,7 @@ function App() {
 
   return (
     <React.Fragment>
+      <CommandPalette />
       <Route />
     </React.Fragment>
   );
