@@ -24,6 +24,8 @@ import VideoExtension from '../../pages/Pages/VideoExtension';
 import Link from '@tiptap/extension-link';
 import { UniqueId } from '../../pages/Pages/UniqueIdExtension';
 import { CommentMark } from '../../pages/Pages/CommentMark';
+import * as Y from 'yjs';
+import Collaboration from '@tiptap/extension-collaboration';
 
 const api = APIClient;
 
@@ -42,10 +44,13 @@ const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawe
     });
     const pageContent: any = rawPageContent;
 
+    const [ydoc] = useState(() => new Y.Doc());
+
     const editor = useEditor({
         editable: false,
         extensions: [
-            StarterKit,
+            StarterKit.configure({ history: false }),
+            Collaboration.configure({ document: ydoc }),
             TaskList,
             TaskItem.configure({ nested: true }),
             CustomImage.configure({ inline: false, allowBase64: true }),
@@ -73,8 +78,19 @@ const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawe
         if (pageContent && editor) {
             if (pageContent.contenido) {
                 try {
-                    const jsonContent = JSON.parse(pageContent.contenido);
-                    editor.commands.setContent(jsonContent);
+                    const parsed = JSON.parse(pageContent.contenido);
+                    if (parsed.crdt_b64) {
+                        const binaryString = atob(parsed.crdt_b64);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        Y.applyUpdate(ydoc, bytes);
+                    } else if (parsed.text_fallback) {
+                        editor.commands.setContent(parsed.text_fallback);
+                    } else {
+                        editor.commands.setContent(parsed);
+                    }
                 } catch (e) {
                     editor.commands.setContent(pageContent.contenido);
                 }
@@ -82,7 +98,7 @@ const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawe
                 editor.commands.setContent('');
             }
         }
-    }, [pageContent, editor]);
+    }, [pageContent, editor, ydoc]);
 
     return (
         <Offcanvas isOpen={isOpen} toggle={toggle} direction="end" style={{ width: '800px', maxWidth: '100vw' }}>

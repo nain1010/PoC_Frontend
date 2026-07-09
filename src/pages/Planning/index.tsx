@@ -1356,6 +1356,7 @@ const Planning = () => {
                         entityId={attachmentModal.id}
                     />
                     <PageViewerDrawer 
+                        key={pageViewer.pageId || 'empty'}
                         isOpen={pageViewer.isOpen} 
                         toggle={() => setPageViewer(prev => ({ ...prev, isOpen: false }))} 
                         pageId={pageViewer.pageId} 
