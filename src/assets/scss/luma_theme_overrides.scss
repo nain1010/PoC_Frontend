@@ -119,7 +119,7 @@ body {
 
 // 7. Layout Fixes
 html {
-  scrollbar-gutter: stable; // Prevents layout shift when scrollbar appears/disappears
+  overflow-y: scroll !important; // Forces scrollbar track to always exist, preventing fixed header shifts
 }
 
 // 8. Custom Scrollbar (Plane style)
