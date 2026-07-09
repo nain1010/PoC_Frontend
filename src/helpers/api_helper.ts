@@ -92,30 +92,13 @@ axios.interceptors.response.use(
       window.dispatchEvent(new Event("activeProjectUpdated"));
     }
 
-    // Disparar SweetAlert2 global para errores de servidor o permisos
-    if (error.response?.status === 500) {
-      Swal.fire({
-        title: 'Error Interno',
-        text: message,
-        icon: 'error',
-        confirmButtonColor: '#299cdb',
-      });
-    } else if (error.response?.status === 403) {
-      Swal.fire({
-        title: 'Acceso Denegado',
-        text: message,
-        icon: 'warning',
-        confirmButtonColor: '#f1b44c',
-      });
-    } else if (error.response?.status === 401) {
-      Swal.fire({
-        title: 'Sesión Expirada',
-        text: 'Por favor, inicia sesión nuevamente.',
-        icon: 'warning',
-        confirmButtonColor: '#f1b44c',
-      }).then(() => {
+    // Eliminar SweetAlerts gigantes
+    if (error.response?.status === 401) {
+      // Redirigir a login solo si no estamos ya en login/register
+      const path = window.location.pathname;
+      if (path !== '/login' && path !== '/register') {
         window.location.href = '/login';
-      });
+      }
     }
 
     return Promise.reject(message);

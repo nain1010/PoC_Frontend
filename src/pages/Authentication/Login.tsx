@@ -98,7 +98,9 @@ const Login = (props: any) => {
     return (
         <React.Fragment>
             <CoverAuth title="¡Bienvenido de nuevo!" subtitle="Inicia sesión para continuar.">
-                {error && error ? (<Alert color="danger"> {error} </Alert>) : null}
+                <div style={{ minHeight: '24px', marginTop: '4px', marginBottom: '-12px' }} className="text-center">
+                    {error ? <span className="text-danger fs-13 fw-medium animate-fade-in-up">{error}</span> : null}
+                </div>
                 <div className="p-2 mt-4">
                     <Form
                         onSubmit={(e) => {
