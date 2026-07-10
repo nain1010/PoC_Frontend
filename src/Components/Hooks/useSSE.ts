@@ -9,8 +9,9 @@ const SSE_URL = `${config.api.API_URL}/events`;
 export function useSSE() {
   const queryClient = useQueryClient();
   const esRef = useRef<EventSource | null>(null);
-  const authUserStr = localStorage.getItem('authUser');
-  const currentUserId = authUserStr ? JSON.parse(authUserStr).id : null;
+  const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
+  const authUser = authUserStr ? JSON.parse(authUserStr) : null;
+  const currentUserId = authUser ? (authUser.id || authUser.usuario_id) : null;
 
   useEffect(() => {
     if (esRef.current) return;

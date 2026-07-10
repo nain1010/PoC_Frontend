@@ -39,9 +39,11 @@ const formatTimeAgo = (isoStr: string) => {
     return then.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
+import { useProjectStore } from '../Hooks/useProjectStore';
+
 const NotificationDropdown = () => {
     const [isNotificationDropdown, setIsNotificationDropdown] = useState<boolean>(false);
-    const activeProjectId = localStorage.getItem('activeProjectId');
+    const activeProjectId = useProjectStore((state) => state.activeProjectId);
 
     const toggleNotificationDropdown = () => {
         setIsNotificationDropdown(!isNotificationDropdown);
@@ -62,7 +64,12 @@ const NotificationDropdown = () => {
             <Dropdown isOpen={isNotificationDropdown} toggle={toggleNotificationDropdown} className="topbar-head-dropdown ms-1 header-item">
                 <DropdownToggle type="button" tag="button" className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle">
                     <i className='bx bx-bell fs-22'></i>
-                    {/* <span className="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">0<span className="visually-hidden">unread messages</span></span> */}
+                    {activityLog.length > 0 && (
+                        <span className="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
+                            {activityLog.length}
+                            <span className="visually-hidden">unread messages</span>
+                        </span>
+                    )}
                 </DropdownToggle>
                 <DropdownMenu className="dropdown-menu-lg dropdown-menu-end p-0">
                     <div className="dropdown-head bg-primary bg-pattern rounded-top">
