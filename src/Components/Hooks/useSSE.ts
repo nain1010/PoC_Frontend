@@ -33,12 +33,14 @@ export function useSSE() {
         if (data.project_id) {
           queryClient.invalidateQueries({ queryKey: ['project', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['activity', data.project_id] });
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
         if (data.actor_id && data.actor_id !== currentUserId) {
           toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
         }
         }
       } catch {
         queryClient.invalidateQueries({ queryKey: ['project'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
       }
     });
 
@@ -50,12 +52,14 @@ export function useSSE() {
           queryClient.invalidateQueries({ queryKey: ['velocity', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['capacity', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['activity', data.project_id] });
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
           if (data.actor_id && data.actor_id !== currentUserId) {
             toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
           }
         }
       } catch {
         queryClient.invalidateQueries({ queryKey: ['project'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
       }
     });
 
