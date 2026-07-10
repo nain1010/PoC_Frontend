@@ -1,6 +1,7 @@
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import config from "../config";
 import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 
 const { api } = config;
 
@@ -99,6 +100,16 @@ axios.interceptors.response.use(
       if (path !== '/login' && path !== '/register') {
         window.location.href = '/login';
       }
+    } else if (message) {
+      toast.error(message, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+      });
     }
 
     return Promise.reject(message);
