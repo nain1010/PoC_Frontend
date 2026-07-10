@@ -26,10 +26,11 @@ const ACTION_META: Record<string, { icon: string; color: string; label: string }
 const getActionMeta = (accion: string) => ACTION_META[accion] || { icon: 'ri-information-line', color: 'secondary', label: accion };
 
 const formatTimeAgo = (isoStr: string) => {
+    if (!isoStr) return '';
     const now = new Date();
-    const then = new Date(isoStr);
+    const then = new Date(isoStr.endsWith('Z') ? isoStr : isoStr + 'Z');
     const diffMs = now.getTime() - then.getTime();
-    const diffMin = Math.floor(diffMs / 60000);
+    const diffMin = Math.max(0, Math.floor(diffMs / 60000));
     if (diffMin < 1) return 'Justo ahora';
     if (diffMin < 60) return `Hace ${diffMin} min`;
     const diffHr = Math.floor(diffMin / 60);
