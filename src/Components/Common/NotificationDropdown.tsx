@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import SimpleBar from "simplebar-react";
 import { useQuery } from '@tanstack/react-query';
 import { APIClient } from '../../helpers/api_helper';
+import { useProjectStore } from '../Hooks/useProjectStore';
 
 const api = APIClient;
 
@@ -39,7 +40,7 @@ const formatTimeAgo = (isoStr: string) => {
     return then.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-import { useProjectStore } from '../Hooks/useProjectStore';
+
 
 const NotificationDropdown = () => {
     const [isNotificationDropdown, setIsNotificationDropdown] = useState<boolean>(false);
