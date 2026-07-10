@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import { Card, CardBody, Badge, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Input, Label } from 'reactstrap';
+import { Card, CardBody, Badge, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Input, Label, UncontrolledDropdown } from 'reactstrap';
 import InlineAttachments from '../../../Components/Common/InlineAttachments';
 
 const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, onOpenTaskModal, expanded, onToggleExpand, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer, dragHandleProps, setNodeRef, style, isDragging, statusErrorExt }: {
@@ -235,12 +235,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                             <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenPageSelector(task.id, 'tarea'); }} title="Documentos Adjuntos">
                                                 <i className="ri-file-text-line fs-14 align-middle"></i>
                                             </Button>
-                                            
-                                            <Dropdown 
-                                                isOpen={false} 
-                                                toggle={() => {}} 
-                                                size="sm" 
-                                            >
+                                            <UncontrolledDropdown size="sm">
                                                 <DropdownToggle tag="button" className="btn btn-sm btn-ghost-primary rounded-circle p-1">
                                                     {task.asignado_a ? (
                                                         <div className="avatar-xs">
@@ -267,7 +262,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                                         </DropdownItem>
                                                     ))}
                                                 </DropdownMenu>
-                                            </Dropdown>
+                                            </UncontrolledDropdown>
                                         </div>
                                     </div>
                                 ))
