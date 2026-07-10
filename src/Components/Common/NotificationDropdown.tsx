@@ -79,11 +79,34 @@ const NotificationDropdown = () => {
 
     const unreadNotifications = notificationsLog.filter((n: any) => !n.leida);
 
-    const markAsRead = async (id: string, link?: string) => {
+    const markAsRead = async (id: string, link?: string, proyectoId?: string) => {
         try {
             await api.put(`/notifications/${id}/read`, {});
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
-            if (link) navigate(link);
+            
+            if (proyectoId && proyectoId !== activeProjectId) {
+                try {
+                    const projectDetails: any = await api.get(`/projects/${proyectoId}`);
+                    useProjectStore.getState().setActiveProjectId(proyectoId);
+                    localStorage.setItem("activeProjectName", projectDetails.nombre);
+                    localStorage.setItem("activeProjectRole", projectDetails.mi_rol || "Sin rol");
+                    window.dispatchEvent(new Event("activeProjectUpdated"));
+                } catch (e) {
+                    console.error("No se pudo cargar el proyecto para la notificación", e);
+                }
+            }
+
+            if (link) {
+                let finalLink = link;
+                if (link.includes('/kanban')) finalLink = '/kanban';
+                else if (link.includes('/planning')) finalLink = '/planning';
+                else if (link.includes('/analytics')) finalLink = '/analytics';
+                else if (link.includes('/activity')) finalLink = '/activity';
+                else if (link.includes('/projects')) finalLink = '/projects';
+                
+                navigate(finalLink);
+            }
+            
             setIsNotificationDropdown(false);
         } catch (error) {
             console.error("Error marking as read", error);
@@ -180,7 +203,7 @@ const NotificationDropdown = () => {
                                                         </span>
                                                     </div>
                                                     <div className="flex-grow-1">
-                                                        <a href="#!" onClick={(e) => { e.preventDefault(); markAsRead(item.id, item.link); }} className="stretched-link">
+                                                        <a href="#!" onClick={(e) => { e.preventDefault(); markAsRead(item.id, item.link, item.proyecto_id); }} className="stretched-link">
                                                             <h6 className="mt-0 mb-1 fs-13 fw-semibold">{item.titulo}</h6>
                                                         </a>
                                                         <div className="fs-13 text-muted">
