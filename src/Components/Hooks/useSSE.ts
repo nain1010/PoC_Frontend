@@ -32,6 +32,7 @@ export function useSSE() {
         const data = JSON.parse(e.data);
         if (data.project_id) {
           queryClient.invalidateQueries({ queryKey: ['project', data.project_id] });
+          queryClient.invalidateQueries({ queryKey: ['activity', data.project_id] });
         if (data.actor_id && data.actor_id !== currentUserId) {
           toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
         }
@@ -48,6 +49,7 @@ export function useSSE() {
           queryClient.invalidateQueries({ queryKey: ['project', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['velocity', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['capacity', data.project_id] });
+          queryClient.invalidateQueries({ queryKey: ['activity', data.project_id] });
           if (data.actor_id && data.actor_id !== currentUserId) {
             toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
           }
