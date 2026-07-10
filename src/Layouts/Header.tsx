@@ -227,7 +227,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                             </div>
 
                             {/* NotificationDropdown */}
-                            {/* <NotificationDropdown /> */}
+                            <NotificationDropdown />
 
                             {/* ProfileDropdown */}
                             <ProfileDropdown />

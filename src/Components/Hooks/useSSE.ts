@@ -1,12 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import config from '../../config';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SSE_URL = `${config.api.API_URL}/events`;
 
 export function useSSE() {
   const queryClient = useQueryClient();
   const esRef = useRef<EventSource | null>(null);
+  const authUserStr = localStorage.getItem('authUser');
+  const currentUserId = authUserStr ? JSON.parse(authUserStr).id : null;
 
   useEffect(() => {
     if (esRef.current) return;
@@ -27,6 +31,9 @@ export function useSSE() {
         const data = JSON.parse(e.data);
         if (data.project_id) {
           queryClient.invalidateQueries({ queryKey: ['project', data.project_id] });
+        if (data.actor_id && data.actor_id !== currentUserId) {
+          toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
+        }
         }
       } catch {
         queryClient.invalidateQueries({ queryKey: ['project'] });
@@ -40,6 +47,9 @@ export function useSSE() {
           queryClient.invalidateQueries({ queryKey: ['project', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['velocity', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['capacity', data.project_id] });
+          if (data.actor_id && data.actor_id !== currentUserId) {
+            toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
+          }
         }
       } catch {
         queryClient.invalidateQueries({ queryKey: ['project'] });
