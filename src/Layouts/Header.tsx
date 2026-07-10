@@ -40,8 +40,12 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
         localStorage.setItem("activeProjectId", project.id);
         localStorage.setItem("activeProjectName", project.nombre);
         localStorage.setItem("activeProjectRole", project.mi_rol || "Sin rol");
-        window.dispatchEvent(new Event("activeProjectUpdated"));
-        window.location.reload();
+        
+        import('../Components/Hooks/useProjectStore').then(({ useProjectStore }) => {
+            useProjectStore.getState().setActiveProjectId(project.id);
+            window.dispatchEvent(new Event("activeProjectUpdated"));
+            window.location.reload();
+        });
     };
 
     useEffect(() => {
@@ -55,7 +59,10 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                 localStorage.removeItem("activeProjectRole");
                 setActiveProjectName(null);
                 setActiveProjectRole(null);
-                window.dispatchEvent(new Event("activeProjectUpdated"));
+                import('../Components/Hooks/useProjectStore').then(({ useProjectStore }) => {
+                    useProjectStore.getState().setActiveProjectId(null);
+                    window.dispatchEvent(new Event("activeProjectUpdated"));
+                });
             }
         }
     }, [projects, isSuccess]);
