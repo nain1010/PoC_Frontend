@@ -137,7 +137,7 @@ const Activity = () => {
                 <Row>
                     {/* Filters sidebar */}
                     <Col lg={3} className="mb-4">
-                        <Card className="border-0 shadow-sm sticky-top" style={{ top: '80px' }}>
+                        <Card className="border-0 shadow-sm sticky-top" style={{ top: '80px', zIndex: 10 }}>
                             <CardBody className="p-3">
                                 <h6 className="fw-bold text-body mb-3">
                                     <i className="ri-filter-3-line me-1"></i> Filtrar por acción
