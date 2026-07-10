@@ -10,6 +10,7 @@ const Navdata = () => {
     const [isKanban, setIsKanban] = useState<boolean>(false);
     const [isAnalytics, setIsAnalytics] = useState<boolean>(false);
     const [isDocs, setIsDocs] = useState<boolean>(false);
+    const [isActivity, setIsActivity] = useState<boolean>(false);
     const [isAuth, setIsAuth] = useState<boolean>(false);
     const [isPages, setIsPages] = useState<boolean>(false);
     const [isUsers, setIsUsers] = useState<boolean>(false);
@@ -39,6 +40,7 @@ const Navdata = () => {
         if (iscurrentState !== 'Kanban') setIsKanban(false);
         if (iscurrentState !== 'Analytics') setIsAnalytics(false);
         if (iscurrentState !== 'Docs') setIsDocs(false);
+        if (iscurrentState !== 'Activity') setIsActivity(false);
         if (iscurrentState !== 'Auth') setIsAuth(false);
         if (iscurrentState !== 'Pages') setIsPages(false);
         if (iscurrentState !== 'Users') setIsUsers(false);
@@ -146,6 +148,20 @@ const Navdata = () => {
                 setIscurrentState('Docs');
                 updateIconSidebar(e);
                 history("/pages");
+            },
+        },
+        {
+            id: "activity",
+            label: "Historial",
+            icon: "ri-history-line",
+            link: "/activity",
+            stateVariables: isActivity,
+            click: function (e: any) {
+                e.preventDefault();
+                setIsActivity(!isActivity);
+                setIscurrentState('Activity');
+                updateIconSidebar(e);
+                history("/activity");
             },
         },
         ...(isAdmin ? [

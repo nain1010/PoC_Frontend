@@ -19,6 +19,7 @@ const UserManagement = React.lazy(() => import("../pages/Users"));
 const Chat = React.lazy(() => import("../pages/Chat"));
 const Pages = React.lazy(() => import("../pages/Pages"));
 const PublicPage = React.lazy(() => import("../pages/PublicPage"));
+const Activity = React.lazy(() => import("../pages/Activity"));
 
 
 const authProtectedRoutes = [
@@ -30,6 +31,7 @@ const authProtectedRoutes = [
   { path: "/analytics", component: <Analytics /> },
   { path: "/users", component: <UserManagement /> },
   { path: "/pages", component: <Pages /> },
+  { path: "/activity", component: <Activity /> },
 
   //User Profile
   { path: "/profile", component: <UserProfile /> },

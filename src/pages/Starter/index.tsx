@@ -1,24 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Container, Row, Col, Card, CardBody, Badge, Button, Spinner, Alert, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { APIClient } from '../../helpers/api_helper';
 import { useProjectStore } from '../../Components/Hooks/useProjectStore';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import config from '../../config';
 
 const api = APIClient;
-const SSE_URL = `${config.api.API_URL}/events`;
 
-interface ActivityLog {
-    id: string;
-    text: string;
-    time: string;
-    icon: string;
-    color: string;
-}
 
 const getLoggedUserId = () => {
     const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
@@ -97,8 +88,6 @@ const Starter = () => {
     const activeProjectId = useProjectStore((state) => state.activeProjectId);
     const activeProjectName = localStorage.getItem("activeProjectName");
 
-    // SSE Activities Feed state
-    const [activities, setActivities] = useState<ActivityLog[]>([]);
 
     document.title = "Home | Luma - Scrum Dashboard";
 
@@ -193,68 +182,41 @@ const Starter = () => {
         return story ? story.correlativo : "";
     }, [projectDetails?.historias_usuario]);
 
-    // SSE Event Listener for real-time activities log
-    useEffect(() => {
-        const initialLogs: ActivityLog[] = [
-            {
-                id: 'init-1',
-                text: 'Dashboard sincronizado y listo para trabajar.',
-                time: 'Ahora mismo',
-                icon: 'ri-checkbox-circle-line',
-                color: 'success'
-            },
-            {
-                id: 'init-2',
-                text: 'Conexión a eventos del servidor (SSE) establecida.',
-                time: 'Ahora mismo',
-                icon: 'ri-wifi-line',
-                color: 'primary'
-            }
-        ];
-        setActivities(initialLogs);
+    // Persistent Activity Log from backend
+    const { data: recentActivity = [] } = useQuery({
+        queryKey: ['activity', activeProjectId, 5],
+        queryFn: () => api.get(`/projects/${activeProjectId}/activity?limit=5&offset=0`) as any,
+        enabled: !!activeProjectId,
+        staleTime: 15000,
+    });
 
-        const es = new EventSource(SSE_URL);
+    const ACTION_ICONS: Record<string, { icon: string; color: string }> = useMemo(() => ({
+        project_created:      { icon: 'ri-folder-add-line',       color: 'success' },
+        project_deleted:      { icon: 'ri-delete-bin-line',       color: 'danger' },
+        member_assigned:      { icon: 'ri-user-shared-line',      color: 'warning' },
+        sprint_created:       { icon: 'ri-calendar-event-line',   color: 'primary' },
+        sprint_activated:     { icon: 'ri-play-circle-line',      color: 'success' },
+        sprint_closed:        { icon: 'ri-stop-circle-line',      color: 'secondary' },
+        story_created:        { icon: 'ri-bookmark-line',         color: 'info' },
+        story_estimated:      { icon: 'ri-scales-3-line',         color: 'primary' },
+        story_planned:        { icon: 'ri-git-merge-line',        color: 'warning' },
+        story_status_changed: { icon: 'ri-exchange-line',         color: 'info' },
+        task_created:         { icon: 'ri-checkbox-circle-line',  color: 'success' },
+        task_status_changed:  { icon: 'ri-refresh-line',          color: 'primary' },
+        task_assigned:        { icon: 'ri-user-follow-line',      color: 'warning' },
+    }), []);
 
-        const addActivity = (text: string, icon: string, color: string) => {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const newAct: ActivityLog = {
-                id: String(Math.random()),
-                text,
-                time: timeStr,
-                icon,
-                color
-            };
-            setActivities(prev => [newAct, ...prev.slice(0, 5)]);
-        };
-
-        es.addEventListener('project_created', () => {
-            addActivity('Se ha creado un nuevo proyecto en la plataforma.', 'ri-folder-add-line', 'success');
-        });
-
-        es.addEventListener('project_deleted', () => {
-            addActivity('Se ha eliminado un proyecto de la plataforma.', 'ri-delete-bin-line', 'danger');
-        });
-
-        es.addEventListener('project_updated', () => {
-            addActivity('Se ha actualizado información en un proyecto.', 'ri-edit-line', 'info');
-        });
-
-        es.addEventListener('member_updated', () => {
-            addActivity('Se han modificado los miembros de un proyecto.', 'ri-user-shared-line', 'warning');
-        });
-
-        es.addEventListener('user_created', () => {
-            addActivity('Un nuevo usuario se ha registrado en la plataforma.', 'ri-user-add-line', 'primary');
-        });
-
-        es.addEventListener('user_updated', () => {
-            addActivity('Se ha actualizado el perfil de un usuario.', 'ri-user-settings-line', 'info');
-        });
-
-        return () => {
-            es.close();
-        };
+    const formatTimeAgo = useCallback((isoStr: string) => {
+        const now = new Date();
+        const then = new Date(isoStr);
+        const diffMs = now.getTime() - then.getTime();
+        const diffMin = Math.floor(diffMs / 60000);
+        if (diffMin < 1) return 'Justo ahora';
+        if (diffMin < 60) return `Hace ${diffMin} min`;
+        const diffHr = Math.floor(diffMin / 60);
+        if (diffHr < 24) return `Hace ${diffHr}h`;
+        const diffDay = Math.floor(diffHr / 24);
+        return `Hace ${diffDay}d`;
     }, []);
 
     return (
@@ -535,6 +497,44 @@ const Starter = () => {
                                                 );
                                             })}
                                         </div>
+                                    )}
+                                </CardBody>
+                            </Card>
+
+                            {/* Card: Recent Activity (Persistent) */}
+                            <Card className="border-0 shadow-sm mt-4">
+                                <div className="p-3.5 border-bottom d-flex align-items-center justify-content-between bg-light-subtle">
+                                    <div className="d-flex align-items-center gap-2">
+                                        <i className="ri-history-line fs-18 text-primary"></i>
+                                        <h6 className="card-title mb-0 fw-bold text-body">Actividad Reciente</h6>
+                                    </div>
+                                    <Link to="/activity" className="btn btn-sm btn-soft-primary">Ver todo</Link>
+                                </div>
+                                <CardBody className="p-0">
+                                    {!activeProjectId ? (
+                                        <div className="text-center py-4 text-muted fs-13 p-3">
+                                            Selecciona un proyecto para ver la actividad.
+                                        </div>
+                                    ) : recentActivity.length === 0 ? (
+                                        <div className="text-center py-4 text-muted fs-13 p-3">
+                                            <i className="ri-inbox-line display-6 mb-2 d-block"></i>
+                                            <p className="mb-0">Sin actividad registrada aún.</p>
+                                        </div>
+                                    ) : (
+                                        recentActivity.map((act: any) => {
+                                            const meta = ACTION_ICONS[act.accion] || { icon: 'ri-information-line', color: 'secondary' };
+                                            return (
+                                                <div key={act.id} className="d-flex align-items-start gap-2 p-3 border-bottom">
+                                                    <span className={`avatar-title bg-soft-${meta.color} text-${meta.color} rounded-circle fs-14`} style={{ width: '28px', height: '28px', minWidth: '28px' }}>
+                                                        <i className={meta.icon}></i>
+                                                    </span>
+                                                    <div className="flex-grow-1 min-width-0">
+                                                        <p className="mb-0 fs-12 text-body text-truncate">{act.descripcion}</p>
+                                                        <small className="text-muted fs-11">{act.usuario_nombre} · {formatTimeAgo(act.created_at)}</small>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
                                     )}
                                 </CardBody>
                             </Card>

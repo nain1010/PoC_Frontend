@@ -90,6 +90,9 @@ const CommandPalette = () => {
                                 <Command.Item onSelect={() => runCommand(() => navigate('/pages'))}>
                                     <i className="ri-pages-line text-warning"></i> Documentos
                                 </Command.Item>
+                                <Command.Item onSelect={() => runCommand(() => navigate('/activity'))}>
+                                    <i className="ri-history-line text-secondary"></i> Historial de Actividad
+                                </Command.Item>
                             </Command.Group>
                         )}
                         
