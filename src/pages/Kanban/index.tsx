@@ -33,6 +33,7 @@ const api = APIClient;
 
 const Kanban = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const queryClient = useQueryClient();
 
     const activeProjectId = useProjectStore((state) => state.activeProjectId);
@@ -97,30 +98,39 @@ const Kanban = () => {
         }));
     }, []);
 
+    const applyHighlight = (type: string, id: string, storyId?: string) => {
+        if (storyId) {
+            setExpandedStories(prev => ({ ...prev, [storyId]: true }));
+        } else if (type === 'task') {
+            // Need to figure out the story id somehow if we only have task id?
+            // Not always possible immediately, but the DOM element might exist if the sprint is rendered.
+        }
+        
+        setTimeout(() => {
+            const el = document.getElementById(`${type}-${id}`);
+            if (el) {
+                // If it's a task, highlight the row, otherwise highlight the element itself
+                const target = type === 'task' ? (el.closest('.mb-2.border.rounded') as HTMLElement || el) : el;
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.classList.add('highlight-pulse');
+                setTimeout(() => target.classList.remove('highlight-pulse'), 2500);
+            }
+        }, 800); // Increased timeout to wait for React Query fetch and render
+    };
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const highlight = searchParams.get('highlight');
+        if (highlight) {
+            const [type, ...idParts] = highlight.split('-');
+            applyHighlight(type, idParts.join('-'));
+        }
+    }, [location.search, projectDetails]); // Depend on projectDetails so it runs when data is ready
+
     useEffect(() => {
         const handleScrollTo = (e: any) => {
             const { taskId, storyId } = e.detail;
-            
-            // Auto expand the story so the task becomes visible
-            if (storyId) {
-                setExpandedStories(prev => ({ ...prev, [storyId]: true }));
-            }
-            
-            setTimeout(() => {
-                const el = document.getElementById(`task-${taskId}`);
-                if (el) {
-                    const row = el.closest('.mb-2.border.rounded') as HTMLElement;
-                    if (row) {
-                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        const oldBg = row.style.backgroundColor;
-                        row.style.transition = 'background-color 0.5s';
-                        row.style.backgroundColor = 'var(--vz-secondary-bg)';
-                        setTimeout(() => {
-                            row.style.backgroundColor = oldBg;
-                        }, 2000);
-                    }
-                }
-            }, 500); // Give it half a second to render
+            applyHighlight('task', taskId, storyId);
         };
         
         window.addEventListener('open-task-modal', handleScrollTo);

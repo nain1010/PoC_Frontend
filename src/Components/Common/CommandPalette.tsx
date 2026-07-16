@@ -73,6 +73,11 @@ const CommandPalette = () => {
         });
     };
 
+    const isSprintActive = (sprintId: string) => {
+        const sprint = sprints.find((s: any) => s.id === sprintId);
+        return sprint?.estado === 'activo';
+    };
+
     if (!open) return null;
 
     return (
@@ -110,7 +115,10 @@ const CommandPalette = () => {
                                     <Command.Item 
                                         key={`sprint-${sprint.id}`}
                                         value={`sprint ${sprint.nombre}`}
-                                        onSelect={() => navigateAndDispatch('/planning', 'open-sprint-modal', sprint.id)}
+                                        onSelect={() => {
+                                            const path = sprint.estado === 'activo' ? `/kanban?highlight=sprint-${sprint.id}` : `/planning?highlight=sprint-${sprint.id}`;
+                                            navigateAndDispatch(path, 'open-sprint-modal', sprint.id);
+                                        }}
                                     >
                                         <i className="ri-run-line text-primary"></i> {sprint.nombre}
                                     </Command.Item>
@@ -138,7 +146,10 @@ const CommandPalette = () => {
                                     <Command.Item 
                                         key={`story-${story.id}`}
                                         value={`historia story hu ${story.correlativo} ${story.titulo}`}
-                                        onSelect={() => navigateAndDispatch('/planning', 'open-story-modal', story.id)}
+                                        onSelect={() => {
+                                            const path = isSprintActive(story.sprint_id) ? `/kanban?highlight=story-${story.id}` : `/planning?highlight=story-${story.id}`;
+                                            navigateAndDispatch(path, 'open-story-modal', story.id);
+                                        }}
                                     >
                                         <i className="ri-bookmark-line text-secondary"></i> {story.correlativo} - {story.titulo}
                                     </Command.Item>
@@ -152,7 +163,11 @@ const CommandPalette = () => {
                                     <Command.Item 
                                         key={`task-${task.id}`}
                                         value={`tarea task tecnica ${task.correlativo_historia} ${task.titulo}`}
-                                        onSelect={() => navigateAndDispatch('/kanban', 'open-task-modal', { taskId: task.id, storyId: task.historia_id })}
+                                        onSelect={() => {
+                                            const story = stories.find((s: any) => s.id === task.historia_id);
+                                            const path = story && isSprintActive(story.sprint_id) ? `/kanban?highlight=task-${task.id}` : `/planning?highlight=task-${task.id}`;
+                                            navigateAndDispatch(path, 'open-task-modal', { taskId: task.id, storyId: task.historia_id });
+                                        }}
                                     >
                                         <i className="ri-checkbox-circle-line text-success"></i> [{task.correlativo_historia}] {task.titulo}
                                     </Command.Item>
@@ -167,7 +182,9 @@ const CommandPalette = () => {
                                         key={`proj-${project.id}`} 
                                         onSelect={() => runCommand(() => {
                                             useProjectStore.getState().setActiveProjectId(project.id);
-                                            navigate('/planning');
+                                            localStorage.setItem("activeProjectName", project.nombre);
+                                            window.dispatchEvent(new Event("activeProjectUpdated"));
+                                            navigate(`/planning?highlight=project-${project.id}`);
                                         })}
                                     >
                                         <i className="ri-folder-2-line"></i> {project.nombre}

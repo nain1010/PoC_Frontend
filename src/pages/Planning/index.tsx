@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Container, Row, Col, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Button, Spinner, Alert, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -38,6 +38,7 @@ const getProjectPrefix = (name: string) => {
 
 const Planning = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const queryClient = useQueryClient();
 
     const activeProjectId = useProjectStore((state) => state.activeProjectId);
@@ -199,6 +200,26 @@ const Planning = () => {
             window.removeEventListener('open-sprint-modal', handleOpenSprint);
         };
     }, [activeProjectId, queryClient]);
+
+    const applyHighlight = (type: string, id: string) => {
+        setTimeout(() => {
+            const el = document.getElementById(`${type}-${id}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('highlight-pulse');
+                setTimeout(() => el.classList.remove('highlight-pulse'), 2500);
+            }
+        }, 800);
+    };
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const highlight = searchParams.get('highlight');
+        if (highlight) {
+            const [type, ...idParts] = highlight.split('-');
+            applyHighlight(type, idParts.join('-'));
+        }
+    }, [location.search, projectDetails]);
 
     const toggleSprintModal = useCallback(() => {
         if (sprintModal) {
@@ -1421,7 +1442,7 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
     const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
     return (
-        <Card className="border mb-3 shadow-none card-animate">
+        <Card id={`story-${story.id}`} className="border mb-3 shadow-none card-animate">
             <CardBody className="p-3">
                 <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="badge bg-soft-info text-info fs-11">{story.correlativo}</span>
@@ -1495,7 +1516,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
     const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), []);
 
     return (
-        <Card className="border mb-4 shadow-none">
+        <Card id={`sprint-${sprint.id}`} className="border mb-4 shadow-none">
             <CardBody className="p-3">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <div>
@@ -1600,7 +1621,7 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
     const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
     return (
-        <div className="p-2 border rounded mb-2 bg-light">
+        <div id={`story-${story.id}`} className="p-2 border rounded mb-2 bg-light">
             <div className="d-flex justify-content-between align-items-center">
                 <div>
                     <span className="badge bg-soft-muted text-muted me-2">{story.correlativo}</span>
