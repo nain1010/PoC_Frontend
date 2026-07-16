@@ -171,10 +171,10 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                 <Dropdown isOpen={projectDropdownOpen} toggle={toggleProjectDropdown} className="d-none d-md-flex me-3 border-end pe-3 align-items-center">
                                     <DropdownToggle tag="div" className="d-flex align-items-center" role="button" style={{ cursor: 'pointer', userSelect: 'none', minWidth: 0 }}>
                                         <div className="text-end me-2" style={{ minWidth: 0 }}>
-                                            <span className="text-muted fs-10 d-block text-uppercase fw-semibold tracking-wider text-truncate">
+                                            <span className="fs-10 d-block text-uppercase fw-semibold tracking-wider text-truncate" style={{ color: 'var(--vz-header-item-color)', opacity: 0.8 }}>
                                                 Proyecto Activo <i className="ri-arrow-down-s-line align-middle ms-1"></i>
                                             </span>
-                                            <span className="fw-bold fs-13 text-truncate d-block" style={{ maxWidth: "150px" }}>{activeProjectName}</span>
+                                            <span className="fw-bold fs-13 text-truncate d-block" style={{ maxWidth: "150px", color: 'var(--vz-header-item-color)' }}>{activeProjectName}</span>
                                         </div>
                                         <span className={`badge ${activeProjectRole === 'Product Owner' ? 'bg-primary' :
                                                 activeProjectRole === 'Scrum Master' ? 'bg-success' :

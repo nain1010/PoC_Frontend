@@ -49,13 +49,91 @@ const ExportPageModal = ({ isOpen, toggle, editor, pageTitle }: { isOpen: boolea
             // PDF
             const printElement = document.createElement('div');
             printElement.innerHTML = `
-                <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <style>
+                    .pdf-container {
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                        color: #000000;
+                        background-color: #ffffff;
+                        padding: 40px;
+                        line-height: 1.6;
+                    }
+                    .pdf-container h1, .pdf-container h2, .pdf-container h3, .pdf-container h4, .pdf-container h5, .pdf-container h6 {
+                        color: #111827;
+                        margin-top: 1.5em;
+                        margin-bottom: 0.5em;
+                        font-weight: 600;
+                        line-height: 1.2;
+                    }
+                    .pdf-container h1 { font-size: 2.25rem; margin-top: 0; }
+                    .pdf-container p { margin-bottom: 1em; }
+                    .pdf-container img { max-width: 100%; height: auto; border-radius: 8px; margin: 1em 0; }
+                    .pdf-container blockquote { 
+                        border-left: 4px solid #e5e7eb; 
+                        padding-left: 1rem; 
+                        margin-left: 0;
+                        color: #4b5563;
+                        font-style: italic;
+                    }
+                    .pdf-container pre {
+                        background-color: #f3f4f6;
+                        padding: 1rem;
+                        border-radius: 6px;
+                        overflow-x: auto;
+                        font-family: monospace;
+                        font-size: 0.875rem;
+                        color: #1f2937;
+                    }
+                    .pdf-container code {
+                        background-color: #f3f4f6;
+                        padding: 0.2rem 0.4rem;
+                        border-radius: 4px;
+                        font-size: 0.875em;
+                        color: #db2777;
+                    }
+                    .pdf-container pre code {
+                        background-color: transparent;
+                        padding: 0;
+                        color: inherit;
+                    }
+                    .pdf-container table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 1em 0;
+                    }
+                    .pdf-container th, .pdf-container td {
+                        border: 1px solid #e5e7eb;
+                        padding: 0.5rem;
+                        text-align: left;
+                    }
+                    .pdf-container th {
+                        background-color: #f9fafb;
+                        font-weight: 600;
+                    }
+                    .pdf-container ul[data-type="taskList"] {
+                        list-style: none;
+                        padding-left: 0;
+                    }
+                    .pdf-container ul[data-type="taskList"] li {
+                        display: flex;
+                        align-items: flex-start;
+                        margin-bottom: 0.5rem;
+                    }
+                    .pdf-container ul[data-type="taskList"] input[type="checkbox"] {
+                        margin-right: 0.5rem;
+                        margin-top: 0.25rem;
+                    }
+                    /* Forzar colores de texto que vengan con clases de tiptap */
+                    .pdf-container .text-body, .pdf-container .prose {
+                        color: #000000 !important;
+                    }
+                </style>
+                <div class="pdf-container">
                     <h1>${title}</h1>
                     ${htmlContent}
                 </div>
             `;
             
-            const opt = {
+            const opt: any = {
                 margin:       10,
                 filename:     `${title}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },

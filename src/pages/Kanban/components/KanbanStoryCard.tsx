@@ -212,7 +212,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                 </div>
                             ) : (
                                 displayedTasks.map((task: any) => (
-                                    <div key={task.id} className="p-2 mb-2 border rounded bg-white shadow-sm d-flex justify-content-between align-items-center">
+                                    <div key={task.id} className="p-2 mb-2 border rounded bg-body shadow-sm d-flex justify-content-between align-items-center">
                                         <div className="d-flex align-items-start gap-2">
                                             <Input
                                                 type="checkbox"

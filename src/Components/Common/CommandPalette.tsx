@@ -13,9 +13,9 @@ const CommandPalette = () => {
 
     // Get active project data from cache if available
     const activeProject = activeProjectId ? (queryClient.getQueryData(['project', activeProjectId]) as any) : null;
-    const stories = activeProject?.historias || [];
+    const stories = activeProject?.historias_usuario || [];
     const sprints = activeProject?.sprints || [];
-    const tasks = stories.flatMap((s: any) => (s.tareas || []).map((t: any) => ({ ...t, historia_id: s.id })));
+    const tasks = stories.flatMap((s: any) => (s.tareas || []).map((t: any) => ({ ...t, historia_id: s.id, correlativo_historia: s.correlativo })));
 
     // Toggle the menu when ⌘K is pressed
     useEffect(() => {
@@ -41,14 +41,22 @@ const CommandPalette = () => {
         queryKey: ['projects'],
         queryFn: () => api.get("/projects"),
         select: (data: any) => data || [],
-        enabled: open // Only fetch when palette is open
+        enabled: open && !activeProjectId // Only fetch if NO active project
     });
 
     const { data: users = [] } = useQuery({
         queryKey: ['users'],
         queryFn: () => api.get("/idp/users"),
         select: (data: any) => data || [],
-        enabled: open
+        enabled: open && !activeProjectId // Only fetch if NO active project
+    });
+
+    const { data: pages = [] } = useQuery({
+        queryKey: ['pages', activeProjectId],
+        queryFn: () => api.get(`/projects/${activeProjectId}/pages`),
+        select: (data: any) => data || [],
+        enabled: open && !!activeProjectId,
+        staleTime: 60000
     });
 
     const runCommand = (command: () => void) => {
@@ -96,11 +104,40 @@ const CommandPalette = () => {
                             </Command.Group>
                         )}
                         
+                        {sprints.length > 0 && (
+                            <Command.Group heading="Sprints (Proyecto Actual)">
+                                {sprints.map((sprint: any) => (
+                                    <Command.Item 
+                                        key={`sprint-${sprint.id}`}
+                                        value={`sprint ${sprint.nombre}`}
+                                        onSelect={() => navigateAndDispatch('/planning', 'open-sprint-modal', sprint.id)}
+                                    >
+                                        <i className="ri-run-line text-primary"></i> {sprint.nombre}
+                                    </Command.Item>
+                                ))}
+                            </Command.Group>
+                        )}
+
+                        {pages.length > 0 && (
+                            <Command.Group heading="Documentos (Pages)">
+                                {pages.map((page: any) => (
+                                    <Command.Item 
+                                        key={`page-${page.id}`}
+                                        value={`page pagina documento ${page.titulo}`}
+                                        onSelect={() => navigateAndDispatch(`/pages?pageId=${page.id}`)}
+                                    >
+                                        <i className="ri-file-text-line text-warning"></i> {page.icono && page.icono !== "📝" && page.icono !== "📄" ? page.icono + " " : ""}{page.titulo}
+                                    </Command.Item>
+                                ))}
+                            </Command.Group>
+                        )}
+                        
                         {stories.length > 0 && (
                             <Command.Group heading="Historias de Usuario (Proyecto Actual)">
                                 {stories.map((story: any) => (
                                     <Command.Item 
                                         key={`story-${story.id}`}
+                                        value={`historia story hu ${story.correlativo} ${story.titulo}`}
                                         onSelect={() => navigateAndDispatch('/planning', 'open-story-modal', story.id)}
                                     >
                                         <i className="ri-bookmark-line text-secondary"></i> {story.correlativo} - {story.titulo}
@@ -114,22 +151,10 @@ const CommandPalette = () => {
                                 {tasks.map((task: any) => (
                                     <Command.Item 
                                         key={`task-${task.id}`}
+                                        value={`tarea task tecnica ${task.correlativo_historia} ${task.titulo}`}
                                         onSelect={() => navigateAndDispatch('/kanban', 'open-task-modal', { taskId: task.id, storyId: task.historia_id })}
                                     >
-                                        <i className="ri-checkbox-circle-line text-success"></i> {task.titulo}
-                                    </Command.Item>
-                                ))}
-                            </Command.Group>
-                        )}
-
-                        {sprints.length > 0 && (
-                            <Command.Group heading="Sprints (Proyecto Actual)">
-                                {sprints.map((sprint: any) => (
-                                    <Command.Item 
-                                        key={`sprint-${sprint.id}`}
-                                        onSelect={() => navigateAndDispatch('/planning', 'open-sprint-modal', sprint.id)}
-                                    >
-                                        <i className="ri-run-line text-primary"></i> {sprint.nombre}
+                                        <i className="ri-checkbox-circle-line text-success"></i> [{task.correlativo_historia}] {task.titulo}
                                     </Command.Item>
                                 ))}
                             </Command.Group>

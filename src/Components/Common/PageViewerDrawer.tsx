@@ -40,7 +40,8 @@ const PageViewerDrawer = ({ isOpen, toggle, pageId, projectId }: PageViewerDrawe
     const { data: rawPageContent, isLoading } = useQuery({
         queryKey: ['page', pageId],
         queryFn: () => api.get(`/projects/${projectId}/pages/${pageId}`),
-        enabled: isOpen && !!pageId && !!projectId
+        enabled: isOpen && !!pageId && !!projectId,
+        staleTime: 30000, // 30s — reuse cached content
     });
     const pageContent: any = rawPageContent;
 

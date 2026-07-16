@@ -22,7 +22,8 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
     const { data: rawPages, isLoading } = useQuery({
         queryKey: ['pages', projectId],
         queryFn: () => api.get(`/projects/${projectId}/pages`),
-        enabled: isOpen && !!projectId
+        enabled: isOpen && !!projectId,
+        staleTime: 60000, // 1 min — reuse cached sidebar data
     });
     const pages: any[] = (rawPages as any) || [];
 
@@ -30,26 +31,78 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
     const { data: rawLinkedPages, isLoading: isLoadingLinked } = useQuery({
         queryKey: ['entity_pages', entityType, entityId],
         queryFn: () => api.get(`/projects/${projectId}/entities/${entityType}/${entityId}/pages`),
-        enabled: isOpen && !!projectId && !!entityId
+        enabled: isOpen && !!projectId && !!entityId,
+        staleTime: 60000 // 1 minute to prevent immediate refetch after optimistic update
     });
     const linkedPages: any[] = (rawLinkedPages as any) || [];
 
     const linkMutation = useMutation({
         mutationFn: (pageId: string) => api.post(`/projects/${projectId}/entities/${entityType}/${entityId}/pages`, { pagina_id: pageId }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['entity_pages', entityType, entityId] });
+        onMutate: async (pageId: string) => {
+            const previousPages = queryClient.getQueryData(['entity_pages', entityType, entityId]);
+            const pageToLink = pages.find((p: any) => p.id === pageId);
+            
+            if (pageToLink) {
+                queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => {
+                    if (old?.some((p: any) => p.id === pageId)) return old;
+                    return [...(old || []), pageToLink];
+                });
+            }
+            return { previousPages };
+        },
+        onError: (err, newPage, context: any) => {
+            if (context?.previousPages) {
+                queryClient.setQueryData(['entity_pages', entityType, entityId], context.previousPages);
+            }
+            toast.error("Error al vincular página.");
+        },
+        onSuccess: (data, pageId) => {
+            const pageToLink = pages.find((p: any) => p.id === pageId);
+            if (pageToLink) {
+                queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => {
+                    if (old?.some((p: any) => p.id === pageId)) return old;
+                    return [...(old || []), pageToLink];
+                });
+            }
             toast.success("Página vinculada con éxito.");
         },
-        onError: () => toast.error("Error al vincular página.")
+        onSettled: (data, error, pageId) => {
+            if (!error) {
+                const pageToLink = pages.find((p: any) => p.id === pageId);
+                if (pageToLink) {
+                    queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => {
+                        if (old?.some((p: any) => p.id === pageId)) return old;
+                        return [...(old || []), pageToLink];
+                    });
+                }
+            }
+        }
     });
 
     const unlinkMutation = useMutation({
         mutationFn: (pageId: string) => api.delete(`/projects/${projectId}/entities/${entityType}/${entityId}/pages/${pageId}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['entity_pages', entityType, entityId] });
+        onMutate: async (pageId: string) => {
+            const previousPages = queryClient.getQueryData(['entity_pages', entityType, entityId]);
+            
+            queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => (old || []).filter((p: any) => p.id !== pageId));
+            
+            return { previousPages };
+        },
+        onError: (err, variables, context: any) => {
+            if (context?.previousPages) {
+                queryClient.setQueryData(['entity_pages', entityType, entityId], context.previousPages);
+            }
+            toast.error("Error al desvincular página.");
+        },
+        onSuccess: (data, pageId) => {
+            queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => (old || []).filter((p: any) => p.id !== pageId));
             toast.success("Página desvinculada.");
         },
-        onError: () => toast.error("Error al desvincular página.")
+        onSettled: (data, error, pageId) => {
+            if (!error) {
+                queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => (old || []).filter((p: any) => p.id !== pageId));
+            }
+        }
     });
 
     const createAndLinkMutation = useMutation({
@@ -58,9 +111,9 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
             await api.post(`/projects/${projectId}/entities/${entityType}/${entityId}/pages`, { pagina_id: newPage.id });
             return newPage;
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['pages', projectId] });
-            queryClient.invalidateQueries({ queryKey: ['entity_pages', entityType, entityId] });
+        onSuccess: (newPage) => {
+            queryClient.setQueryData(['pages', projectId], (old: any) => [...(old || []), newPage]);
+            queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => [...(old || []), newPage]);
             toast.success("Página creada y vinculada.");
             setSearchTerm("");
         },
@@ -79,8 +132,8 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
                     Documentación Adjunta
                 </div>
             </ModalHeader>
-            <ModalBody className="p-0 bg-light">
-                <div className="p-3 border-bottom bg-white sticky-top">
+            <ModalBody className="p-0">
+                <div className="p-3 border-bottom sticky-top bg-light">
                     <div className="search-box">
                         <input 
                             type="text" 

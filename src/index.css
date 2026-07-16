@@ -1,4 +1,4 @@
-body {
+﻿body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -90,3 +90,42 @@ code {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Mejorar legibilidad global de textos en Modo Oscuro */
+[data-layout-mode="dark"] {
+  --vz-body-color: rgba(255, 255, 255, 0.9) !important;
+  --vz-body-color-rgb: 255, 255, 255 !important;
+  --vz-heading-color: #ffffff !important;
+  --vz-text-muted: rgba(255, 255, 255, 0.6) !important;
+  --vz-link-color: #ffffff !important;
+}
+
+[data-layout-mode="dark"] body {
+  color: var(--vz-body-color) !important;
+}
+
+/* Fix para el menú superior que se mete detrás del contenido principal */
+.app-menu {
+  z-index: 1005 !important;
+}
+.topnav .navbar-nav .dropdown-menu {
+  z-index: 1050 !important;
+}
+
+.menu-dropdown {
+  z-index: 1050 !important;
+}
+.layout-wrapper {
+  position: relative;
+  z-index: 1;
+}
+.main-content {
+  position: relative;
+  z-index: 0;
+}
+
+/* Fix para bordes blancos no deseados en el sidebar y color negro en modo oscuro */
+.app-menu, .navbar-brand-box {
+  border-right: none !important;
+}
+[data-layout-mode="dark"][data-sidebar="dark"] .app-menu, [data-layout-mode="dark"][data-sidebar="dark"] .navbar-brand-box { background-color: #405189 !important; border-right: none !important; }

@@ -31,32 +31,56 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
     const { data: rawData, isLoading } = useQuery({
         queryKey: ['attachments', entityType, entityId],
         queryFn: () => api.get(`/projects/${projectId}/attachments?entity_type=${entityType}&entity_id=${entityId}`),
-        enabled: !!projectId && !!entityId
+        enabled: !!projectId && !!entityId,
+        staleTime: 60000, // 1 min — attachments rarely change
     });
     const attachments: AttachmentFile[] = (rawData as any) || [];
 
     const { data: rawPages, isLoading: isLoadingPages } = useQuery({
         queryKey: ['entity_pages', entityType, entityId],
         queryFn: () => api.get(`/projects/${projectId}/entities/${entityType}/${entityId}/pages`),
-        enabled: !!projectId && !!entityId
+        enabled: !!projectId && !!entityId,
+        staleTime: 60000 // 1 minute to prevent immediate refetch after optimistic update
     });
     const linkedPages: any[] = (rawPages as any) || [];
 
     const deleteMutation = useMutation({
         mutationFn: (attachmentId: string) => api.delete(`/projects/${projectId}/attachments/${attachmentId}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['attachments', entityType, entityId] });
+        onMutate: async (attachmentId: string) => {
+            await queryClient.cancelQueries({ queryKey: ['attachments', entityType, entityId] });
+            const previousAttachments = queryClient.getQueryData(['attachments', entityType, entityId]);
+            queryClient.setQueryData(['attachments', entityType, entityId], (old: any) => (old || []).filter((a: any) => a.id !== attachmentId));
+            return { previousAttachments };
         },
-        onError: () => toast.error("Error al eliminar el archivo.")
+        onSuccess: () => {
+            toast.success("Archivo eliminado.");
+        },
+        onError: (err, variables, context: any) => {
+            if (context?.previousAttachments) queryClient.setQueryData(['attachments', entityType, entityId], context.previousAttachments);
+            toast.error("Error al eliminar el archivo.");
+        }
     });
 
     const unlinkPageMutation = useMutation({
         mutationFn: (pageId: string) => api.delete(`/projects/${projectId}/entities/${entityType}/${entityId}/pages/${pageId}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['entity_pages', entityType, entityId] });
+        onMutate: async (pageId: string) => {
+            const previousPages = queryClient.getQueryData(['entity_pages', entityType, entityId]);
+            queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => (old || []).filter((p: any) => p.id !== pageId));
+            return { previousPages };
+        },
+        onSuccess: (data, pageId) => {
+            queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => (old || []).filter((p: any) => p.id !== pageId));
             toast.success("Página desvinculada.");
         },
-        onError: () => toast.error("Error al desvincular página.")
+        onError: (err, variables, context: any) => {
+            if (context?.previousPages) queryClient.setQueryData(['entity_pages', entityType, entityId], context.previousPages);
+            toast.error("Error al desvincular página.");
+        },
+        onSettled: (data, error, pageId) => {
+            if (!error) {
+                queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => (old || []).filter((p: any) => p.id !== pageId));
+            }
+        }
     });
 
     if ((isLoading || attachments.length === 0) && (isLoadingPages || linkedPages.length === 0)) return null;
@@ -144,14 +168,13 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
             {(docFiles.length > 0 || linkedPages.length > 0) && (
                 <div className="d-flex flex-column gap-1 mt-1">
                     {docFiles.map(file => (
-                        <div key={file.id} className="d-flex align-items-center justify-content-between p-1 px-2" style={{
-                            background: 'var(--vz-light)',
+                        <div key={file.id} className="d-flex align-items-center justify-content-between p-1 px-2 bg-light text-body" style={{
                             borderRadius: '6px',
                             fontSize: '12px'
                         }}>
                             <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ cursor: 'pointer' }} onClick={() => window.open(getFileUrl(file), '_blank')}>
                                 <i className={`${getFileIcon(file.tipo_mime)} fs-14`}></i>
-                                <span className="text-truncate" style={{ maxWidth: '150px' }}>{file.nombre_archivo}</span>
+                                <span className="text-truncate fw-medium" style={{ maxWidth: '150px' }}>{file.nombre_archivo}</span>
                             </div>
                             <div className="d-flex gap-1">
                                 <button onClick={(e) => handleDownload(e, file)} className="btn btn-sm btn-link text-muted p-0" title="Descargar">
@@ -165,8 +188,7 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
                     ))}
                     
                     {linkedPages.map((page: any) => (
-                        <div key={page.id} className="d-flex align-items-center justify-content-between p-1 px-2 border border-info border-opacity-25" style={{
-                            background: 'var(--vz-info-bg-subtle)',
+                        <div key={page.id} className="d-flex align-items-center justify-content-between p-1 px-2 border border-info border-opacity-25 bg-info-subtle" style={{
                             borderRadius: '6px',
                             fontSize: '12px'
                         }}>

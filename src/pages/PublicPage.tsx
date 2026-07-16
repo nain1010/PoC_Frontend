@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -24,6 +24,9 @@ import VideoExtension from './Pages/VideoExtension';
 import { MathExtensions } from './Pages/MathExtension';
 import { APIClient } from '../helpers/api_helper';
 
+import * as Y from 'yjs';
+import Collaboration from '@tiptap/extension-collaboration';
+
 const api = APIClient;
 
 const PublicPage = () => {
@@ -40,6 +43,7 @@ const PublicPage = () => {
                     setError(true);
                 } else {
                     setPage(response);
+                    document.title = `${response.titulo} | Wiki`;
                 }
             } catch (err) {
                 setError(true);
@@ -50,9 +54,14 @@ const PublicPage = () => {
         fetchPage();
     }, [token]);
 
+    const ydoc = useMemo(() => new Y.Doc(), []);
+
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            StarterKit.configure({ history: false }),
+            Collaboration.configure({
+                document: ydoc,
+            }),
             TaskList,
             TaskItem.configure({ nested: true }),
             CustomImage.configure({ inline: false, allowBase64: true }),
@@ -76,14 +85,29 @@ const PublicPage = () => {
         ],
         content: '',
         editable: false,
+        editorProps: {
+            attributes: { class: 'prose prose-lg focus:outline-none w-100 max-w-none text-body' },
+        }
     });
 
     useEffect(() => {
         if (editor && page && page.contenido) {
             try {
                 const jsonContent = JSON.parse(page.contenido);
-                editor.commands.setContent(jsonContent);
+                if (jsonContent.crdt_b64) {
+                    // Handle Yjs CRDT state
+                    const binaryString = atob(jsonContent.crdt_b64);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    Y.applyUpdate(ydoc, bytes);
+                } else {
+                    // Fallback to normal JSON
+                    editor.commands.setContent(jsonContent);
+                }
             } catch (e) {
+                // Fallback to normal HTML/Text
                 editor.commands.setContent(page.contenido);
             }
             
@@ -104,15 +128,19 @@ const PublicPage = () => {
         }
     }, [editor, page]);
 
-    if (loading) return <div className="p-5 text-center"><div className="spinner-border text-primary"></div></div>;
-    if (error || !page) return <div className="p-5 text-center"><h3 className="text-muted">Página no encontrada o no disponible públicamente</h3></div>;
+    if (loading) return <div className="p-5 text-center min-vh-100 d-flex align-items-center justify-content-center" style={{ backgroundColor: 'var(--vz-body-bg)' }}><div className="spinner-border text-primary"></div></div>;
+    if (error || !page) return <div className="p-5 text-center min-vh-100 d-flex align-items-center justify-content-center" style={{ backgroundColor: 'var(--vz-body-bg)' }}><h3 className="text-muted">Página no encontrada o no disponible públicamente</h3></div>;
 
     return (
-        <div className="bg-light min-vh-100 py-5">
-            <div className="container bg-white shadow-sm rounded p-5" style={{ maxWidth: '900px' }}>
-                <h1 className="mb-4">{page.icono && page.icono !== "📝" && page.icono !== "📄" ? `${page.icono} ` : ''}{page.titulo}</h1>
-                <div className="tiptap-editor-container tiptap-readonly tiptap-prose">
-                    <EditorContent editor={editor} />
+        <div className="d-flex flex-column min-vh-100" style={{ backgroundColor: 'var(--vz-body-bg)', color: 'var(--vz-body-color)' }}>
+            <div className="flex-grow-1 d-flex justify-content-center overflow-auto py-5">
+                <div className="px-4" style={{ width: '100%', maxWidth: '850px' }}>
+                    <h1 className="mb-4 fw-bold" style={{ fontSize: '2.8rem', lineHeight: '1.2' }}>
+                        {page.icono && page.icono !== "📝" && page.icono !== "📄" ? `${page.icono} ` : ''}{page.titulo}
+                    </h1>
+                    <div className="tiptap-plane-theme">
+                        <EditorContent editor={editor} />
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,3 +148,4 @@ const PublicPage = () => {
 };
 
 export default PublicPage;
+

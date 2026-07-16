@@ -94,6 +94,7 @@ const Pages = () => {
         queryFn: () => api.get(`/projects/${activeProjectId}/pages`),
         select: (data: any) => data || [],
         enabled: !!activeProjectId,
+        staleTime: 60000, // 1 min — sidebar list rarely changes
     });
 
     const { data: pageContent, isLoading: isLoadingContent } = useQuery({
@@ -101,6 +102,8 @@ const Pages = () => {
         queryFn: () => api.get(`/projects/${activeProjectId}/pages/${selectedPageId}`),
         select: (data: any) => data || {},
         enabled: !!selectedPageId && !!activeProjectId,
+        staleTime: 30000, // 30s — content changes on save
+        placeholderData: (prev: any) => prev, // keep showing previous page while loading next
     });
 
     useEffect(() => {

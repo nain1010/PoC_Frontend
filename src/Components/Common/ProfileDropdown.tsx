@@ -67,7 +67,7 @@ const ProfileDropdown = () => {
                             <span className="d-none d-xl-inline-block ms-1 fw-medium user-name-text">
                                 <span> {userName}</span>
                             </span>
-                            <span className="d-none d-xl-block ms-1 fs-12 text-muted user-name-sub-text">
+                            <span className="d-none d-xl-block ms-1 fs-12 user-name-sub-text" style={{ color: 'var(--vz-header-item-color)', opacity: 0.8 }}>
                                 <span>{userEmail}</span>
                             </span>
                         </span>
