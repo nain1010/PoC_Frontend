@@ -15,7 +15,11 @@ const CommandPalette = () => {
     const activeProject = activeProjectId ? (queryClient.getQueryData(['project', activeProjectId]) as any) : null;
     const stories = activeProject?.historias_usuario || [];
     const sprints = activeProject?.sprints || [];
-    const tasks = stories.flatMap((s: any) => (s.tareas || []).map((t: any) => ({ ...t, historia_id: s.id, correlativo_historia: s.correlativo })));
+    const rawTasks = activeProject?.tareas || [];
+    const tasks = rawTasks.map((t: any) => {
+        const story = stories.find((s: any) => s.id === t.historia_id);
+        return { ...t, correlativo_historia: story?.correlativo || 'US-?' };
+    });
 
     // Toggle the menu when ⌘K is pressed
     useEffect(() => {
@@ -75,7 +79,7 @@ const CommandPalette = () => {
 
     const isSprintActive = (sprintId: string) => {
         const sprint = sprints.find((s: any) => s.id === sprintId);
-        return sprint?.estado === 'activo';
+        return sprint?.estado === 'Activo';
     };
 
     if (!open) return null;
