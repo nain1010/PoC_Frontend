@@ -120,7 +120,7 @@ const CommandPalette = () => {
                                         key={`sprint-${sprint.id}`}
                                         value={`sprint ${sprint.nombre}`}
                                         onSelect={() => {
-                                            const path = sprint.estado === 'activo' ? `/kanban?highlight=sprint-${sprint.id}` : `/planning?highlight=sprint-${sprint.id}`;
+                                            const path = sprint.estado === 'Activo' ? `/kanban?highlight=sprint-${sprint.id}` : `/planning?highlight=sprint-${sprint.id}`;
                                             navigateAndDispatch(path, 'open-sprint-modal', sprint.id);
                                         }}
                                     >
