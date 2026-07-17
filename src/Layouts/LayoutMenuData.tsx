@@ -80,20 +80,7 @@ const Navdata = () => {
                 history("/projects");
             },
         },
-        {
-            id: "chat",
-            label: "Asistente IA",
-            icon: "ri-robot-line",
-            link: "/chat",
-            stateVariables: isChat,
-            click: function (e: any) {
-                e.preventDefault();
-                setIsChat(!isChat);
-                setIscurrentState('Chat');
-                updateIconSidebar(e);
-                history("/chat");
-            },
-        },
+
         {
             id: "planning",
             label: "Planificación / Backlog",
@@ -162,6 +149,20 @@ const Navdata = () => {
                 setIscurrentState('Activity');
                 updateIconSidebar(e);
                 history("/activity");
+            },
+        },
+        {
+            id: "chat",
+            label: "Asistente IA",
+            icon: "ri-robot-line",
+            link: "/chat",
+            stateVariables: isChat,
+            click: function (e: any) {
+                e.preventDefault();
+                setIsChat(!isChat);
+                setIscurrentState('Chat');
+                updateIconSidebar(e);
+                history("/chat");
             },
         },
         ...(isAdmin ? [

@@ -16,7 +16,7 @@ const SkeletonLoader: React.FC<SkeletonProps> = ({
     return (
         <div 
             className={`placeholder-glow ${className}`}
-            style={{ width, height, borderRadius, backgroundColor: '#e9ecef', overflow: 'hidden' }}
+            style={{ width, height, borderRadius, backgroundColor: 'var(--vz-light)', overflow: 'hidden' }}
         >
             <span className="placeholder w-100 h-100 d-inline-block" style={{ borderRadius }}></span>
         </div>

@@ -42,7 +42,7 @@ const Index = () => {
                                 <AuthProtected>
                                     <VerticalLayout>
                                         <PageTransition key={route.path}>
-                                            <Suspense fallback={<div className="page-content"><div className="d-flex justify-content-center mx-2 mt-2"><Spinner color="primary">Cargando...</Spinner></div></div>}>
+                                            <Suspense fallback={<div className="page-content d-flex align-items-center justify-content-center" style={{ minHeight: '80vh' }}><Spinner color="primary" /></div>}>
                                                 {route.component}
                                             </Suspense>
                                         </PageTransition>

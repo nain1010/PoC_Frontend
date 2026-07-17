@@ -891,33 +891,56 @@ const Planning = () => {
             <div className="page-content">
                 <Container fluid>
                     <BreadCrumb title={`Planificación - ${activeProjectName}`} id={`project-${activeProjectId}`} />
-
                     {isLoading ? (
                         <Row>
                             <Col lg={5} className="mb-4">
                                 <Card className="shadow-sm border-0 h-100">
-                                    <div className="card-header bg-light border-0 d-flex p-3">
+                                    <div className="card-header bg-light border-0 d-flex p-3 align-items-center">
                                         <SkeletonLoader width="40%" height="24px" />
                                         <SkeletonLoader width="100px" height="30px" className="ms-auto" />
                                     </div>
                                     <CardBody className="p-3">
                                         <div className="d-flex flex-column gap-3">
-                                            <SkeletonLoader height="120px" borderRadius="8px" />
-                                            <SkeletonLoader height="120px" borderRadius="8px" />
-                                            <SkeletonLoader height="120px" borderRadius="8px" />
+                                            {[1, 2, 3, 4].map((i) => (
+                                                <div key={i} className="p-3 border border-light rounded bg-light bg-opacity-50">
+                                                    <SkeletonLoader width="70%" height="20px" className="mb-2" />
+                                                    <SkeletonLoader width="40%" height="14px" className="mb-3" />
+                                                    <div className="d-flex justify-content-between align-items-center">
+                                                        <SkeletonLoader width="100px" height="24px" borderRadius="12px" />
+                                                        <div className="d-flex gap-2">
+                                                            <SkeletonLoader width="28px" height="28px" borderRadius="4px" />
+                                                            <SkeletonLoader width="28px" height="28px" borderRadius="4px" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </CardBody>
                                 </Card>
                             </Col>
                             <Col lg={7}>
-                                <Card className="shadow-sm border-0 mb-4">
-                                    <div className="card-header bg-soft-primary border-0 p-3">
-                                        <SkeletonLoader width="50%" height="24px" />
-                                    </div>
-                                    <CardBody className="p-3">
-                                        <SkeletonLoader height="150px" borderRadius="8px" />
-                                    </CardBody>
-                                </Card>
+                                {[1, 2].map((i) => (
+                                    <Card key={i} className="shadow-sm border-0 mb-4">
+                                        <div className="card-header bg-soft-primary border-0 p-3 d-flex justify-content-between align-items-center">
+                                            <SkeletonLoader width="30%" height="22px" />
+                                            <SkeletonLoader width="15%" height="22px" />
+                                        </div>
+                                        <CardBody className="p-0">
+                                            <div className="p-3">
+                                                {[1, 2, 3].map((j) => (
+                                                    <div key={j} className="d-flex align-items-center p-2 mb-2 border border-light rounded">
+                                                        <SkeletonLoader width="20px" height="20px" borderRadius="4px" className="me-3" />
+                                                        <div className="flex-grow-1">
+                                                            <SkeletonLoader width="50%" height="18px" />
+                                                        </div>
+                                                        <SkeletonLoader width="60px" height="22px" borderRadius="11px" className="me-2" />
+                                                        <SkeletonLoader width="24px" height="24px" borderRadius="4px" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </CardBody>
+                                    </Card>
+                                ))}
                             </Col>
                         </Row>
                     ) : error ? (
