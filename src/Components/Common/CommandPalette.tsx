@@ -21,6 +21,15 @@ const CommandPalette = () => {
         return { ...t, correlativo_historia: story?.correlativo || 'US-?' };
     });
 
+    const authUserStr = sessionStorage.getItem("authUser") || localStorage.getItem("authUser");
+    let isAdmin = false;
+    if (authUserStr) {
+        try {
+            const authUser = JSON.parse(authUserStr);
+            isAdmin = authUser?.rol_global === 'Administrador';
+        } catch (e) {}
+    }
+
     // Toggle the menu when ⌘K is pressed
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -121,7 +130,7 @@ const CommandPalette = () => {
                                         value={`sprint ${sprint.nombre}`}
                                         onSelect={() => {
                                             const path = sprint.estado === 'Activo' ? `/kanban?highlight=sprint-${sprint.id}` : `/planning?highlight=sprint-${sprint.id}`;
-                                            navigateAndDispatch(path, 'open-sprint-modal', sprint.id);
+                                            runCommand(() => navigate(path));
                                         }}
                                     >
                                         <i className="ri-run-line text-primary"></i> {sprint.nombre}
@@ -149,13 +158,13 @@ const CommandPalette = () => {
                                 {stories.map((story: any) => (
                                     <Command.Item 
                                         key={`story-${story.id}`}
-                                        value={`historia story hu ${story.correlativo} ${story.titulo}`}
+                                        value={`historia story user ${story.correlativo} ${story.titulo}`}
                                         onSelect={() => {
                                             const path = isSprintActive(story.sprint_id) ? `/kanban?highlight=story-${story.id}` : `/planning?highlight=story-${story.id}`;
                                             navigateAndDispatch(path, 'open-story-modal', story.id);
                                         }}
                                     >
-                                        <i className="ri-bookmark-line text-secondary"></i> {story.correlativo} - {story.titulo}
+                                        <i className="ri-bookmark-line text-info"></i> [{story.correlativo}] {story.titulo}
                                     </Command.Item>
                                 ))}
                             </Command.Group>
@@ -166,11 +175,15 @@ const CommandPalette = () => {
                                 {tasks.map((task: any) => (
                                     <Command.Item 
                                         key={`task-${task.id}`}
-                                        value={`tarea task tecnica ${task.correlativo_historia} ${task.titulo}`}
+                                        value={`tarea task technical ${task.correlativo_historia} ${task.titulo}`}
                                         onSelect={() => {
                                             const story = stories.find((s: any) => s.id === task.historia_id);
-                                            const path = story && isSprintActive(story.sprint_id) ? `/kanban?highlight=task-${task.id}` : `/planning?highlight=task-${task.id}`;
-                                            navigateAndDispatch(path, 'open-task-modal', { taskId: task.id, storyId: task.historia_id });
+                                            const active = story && isSprintActive(story.sprint_id);
+                                            if (active) {
+                                                navigateAndDispatch(`/kanban?highlight=task-${task.id}`, 'open-task-modal', { taskId: task.id, storyId: task.historia_id });
+                                            } else {
+                                                navigateAndDispatch(`/planning?highlight=story-${task.historia_id}`, 'open-story-modal', task.historia_id);
+                                            }
                                         }}
                                     >
                                         <i className="ri-checkbox-circle-line text-success"></i> [{task.correlativo_historia}] {task.titulo}
@@ -197,12 +210,12 @@ const CommandPalette = () => {
                             </Command.Group>
                         )}
                         
-                        {users.length > 0 && (
+                        {isAdmin && users.length > 0 && (
                             <Command.Group heading="Usuarios del Sistema">
                                 {users.map((user: any) => (
                                     <Command.Item 
                                         key={`user-${user.id}`}
-                                        onSelect={() => runCommand(() => navigate(`/users`))}
+                                        onSelect={() => runCommand(() => navigate(`/users?highlight=user-${user.id}`))}
                                     >
                                         <i className="ri-user-line"></i> {user.nombre_completo || user.email}
                                     </Command.Item>
@@ -214,9 +227,11 @@ const CommandPalette = () => {
                             <Command.Item onSelect={() => runCommand(() => navigate('/projects'))}>
                                 <i className="ri-apps-2-line"></i> Ver todos los Proyectos
                             </Command.Item>
-                            <Command.Item onSelect={() => runCommand(() => navigate('/users'))}>
-                                <i className="ri-team-line"></i> Gestionar Usuarios
-                            </Command.Item>
+                            {isAdmin && (
+                                <Command.Item onSelect={() => runCommand(() => navigate('/users?highlight=users-list'))}>
+                                    <i className="ri-team-line"></i> Gestionar Usuarios
+                                </Command.Item>
+                            )}
                             <Command.Item onSelect={() => runCommand(() => navigate('/profile'))}>
                                 <i className="ri-account-circle-line"></i> Mi Perfil
                             </Command.Item>

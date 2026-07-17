@@ -201,25 +201,56 @@ const Planning = () => {
         };
     }, [activeProjectId, queryClient]);
 
-    const applyHighlight = (type: string, id: string) => {
-        setTimeout(() => {
-            const el = document.getElementById(`${type}-${id}`);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.classList.add('highlight-pulse');
-                setTimeout(() => el.classList.remove('highlight-pulse'), 2500);
+    const applyHighlight = useCallback((type: string, id: string) => {
+        // For tasks: find the parent story and highlight it instead (tasks aren't individually rendered in Planning)
+        let targetType = type;
+        let targetId = id;
+        if (type === 'task') {
+            const task = projectDetails?.tareas?.find((t: any) => t.id === id);
+            if (task?.historia_id) {
+                targetType = 'story';
+                targetId = task.historia_id;
             }
-        }, 800);
-    };
+        }
+
+        let attempts = 0;
+        const tryHighlight = () => {
+            const el = document.getElementById(`${targetType}-${targetId}`);
+            if (!el) {
+                if (attempts < 3) {
+                    attempts++;
+                    setTimeout(tryHighlight, 500);
+                }
+                return;
+            }
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('highlight-pulse');
+            // Inline styles as bulletproof fallback (Bootstrap !important blocks CSS animation properties)
+            el.style.outline = '3px solid #0ab39c';
+            el.style.outlineOffset = '2px';
+            el.style.zIndex = '5';
+            el.style.position = 'relative';
+            setTimeout(() => {
+                el.classList.remove('highlight-pulse');
+                el.style.outline = '';
+                el.style.outlineOffset = '';
+                el.style.zIndex = '';
+                el.style.position = '';
+            }, 3000);
+        };
+        setTimeout(tryHighlight, 500);
+    }, [projectDetails?.tareas]);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const highlight = searchParams.get('highlight');
-        if (highlight) {
+        if (highlight && projectDetails) {
             const [type, ...idParts] = highlight.split('-');
             applyHighlight(type, idParts.join('-'));
+            // Clean up the URL param after applying highlight
+            window.history.replaceState({}, '', location.pathname);
         }
-    }, [location.search, projectDetails]);
+    }, [location.search, projectDetails, applyHighlight]);
 
     const toggleSprintModal = useCallback(() => {
         if (sprintModal) {
@@ -859,7 +890,7 @@ const Planning = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title={`Planificación - ${activeProjectName}`} />
+                    <BreadCrumb title={`Planificación - ${activeProjectName}`} id={`project-${activeProjectId}`} />
 
                     {isLoading ? (
                         <Row>
@@ -1512,7 +1543,25 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
     const handleEditSprintFn = useCallback(() => onEditSprint(sprint), [sprint, onEditSprint]);
     const handleDeleteSprintFn = useCallback(() => onDeleteSprint(sprint.id), [sprint.id, onDeleteSprint]);
 
+    const location = useLocation();
     const [isCollapsed, setIsCollapsed] = useState<boolean>(sprint.estado === 'Cerrado');
+    
+    useEffect(() => {
+        if (sprint.estado !== 'Cerrado') return;
+        const searchParams = new URLSearchParams(location.search);
+        const highlight = searchParams.get('highlight');
+        if (highlight) {
+            const [type, ...idParts] = highlight.split('-');
+            const id = idParts.join('-');
+            if (type === 'sprint' && id === sprint.id) {
+                setIsCollapsed(false);
+            }
+            if (type === 'story' && sprintStories.some(s => s.id === id)) {
+                setIsCollapsed(false);
+            }
+        }
+    }, [location.search, sprint.estado, sprint.id, sprintStories]);
+
     const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), []);
 
     return (

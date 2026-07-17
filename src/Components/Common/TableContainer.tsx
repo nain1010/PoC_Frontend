@@ -112,6 +112,7 @@ interface TableContainerProps {
   handleCompanyClick?: any;
   handleContactClick?: any;
   handleTicketClick?: any;
+  rowIdPrefix?: string;
 }
 
 const TableContainer = ({
@@ -136,7 +137,7 @@ const TableContainer = ({
   thClass,
   divClass,
   SearchPlaceholder,
-
+  rowIdPrefix
 }: TableContainerProps) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
@@ -276,7 +277,7 @@ const TableContainer = ({
           <tbody>
             {getRowModel().rows.map((row: any) => {
               return (
-                <tr key={row.id}>
+                <tr key={row.id} id={rowIdPrefix && row.original?.id ? `${rowIdPrefix}-${row.original.id}` : undefined}>
                   {row.getVisibleCells().map((cell: any) => {
                     return (
                       <td key={cell.id}>

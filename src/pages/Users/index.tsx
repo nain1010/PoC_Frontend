@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Container, Row, Col, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Button, Spinner, Alert } from 'reactstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +15,7 @@ const api = APIClient;
 const UserCard = React.memo(({ user, onEdit, onDelete }: { user: any, onEdit: (u: any) => void, onDelete: (u: any) => void }) => {
     return (
         <Col xl={3} lg={4} md={6} className="mb-4">
-            <Card className="shadow-sm border-0 ribbon-box ribbon-fill right h-100">
+            <Card id={`user-${user.id}`} className="shadow-sm border-0 ribbon-box ribbon-fill right h-100">
                 {user.rol_global === 'Administrador' ? (
                     <div className="ribbon ribbon-danger"><i className="ri-shield-star-line"></i> Admin</div>
                 ) : (
@@ -102,6 +102,51 @@ const UserManagement = () => {
             u.id?.toLowerCase().includes(q)
         );
     }, [users, searchQuery]);
+
+    const location = useLocation();
+
+    const applyHighlight = useCallback((targetId: string) => {
+        let attempts = 0;
+        const tryHighlight = () => {
+            const el = document.getElementById(targetId);
+            if (!el) {
+                if (attempts < 3) {
+                    attempts++;
+                    setTimeout(tryHighlight, 500);
+                }
+                return;
+            }
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('highlight-pulse');
+            // Inline styles as bulletproof fallback (Bootstrap !important blocks CSS animation properties)
+            el.style.outline = '3px solid #0ab39c';
+            el.style.outlineOffset = '2px';
+            el.style.zIndex = '5';
+            el.style.position = 'relative';
+            setTimeout(() => {
+                el.classList.remove('highlight-pulse');
+                el.style.outline = '';
+                el.style.outlineOffset = '';
+                el.style.zIndex = '';
+                el.style.position = '';
+            }, 3000);
+        };
+        setTimeout(tryHighlight, 500);
+    }, []);
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const highlight = searchParams.get('highlight');
+        if (highlight && users.length > 0) {
+            const [type, ...idParts] = highlight.split('-');
+            if (type === 'user' || type === 'users') {
+                const targetId = type === 'users' ? 'users-list' : `user-${idParts.join('-')}`;
+                applyHighlight(targetId);
+                // Clean up the URL param after applying highlight
+                window.history.replaceState({}, '', location.pathname);
+            }
+        }
+    }, [location.search, users, applyHighlight]);
 
     const invalidateUsers = useCallback(() => queryClient.invalidateQueries({ queryKey: ['users'] }), [queryClient]);
 
@@ -370,7 +415,7 @@ const UserManagement = () => {
                                     <h4>No se encontraron usuarios</h4>
                                 </div>
                             ) : usersViewMode === 'table' ? (
-                                <Card className="shadow-sm border-0">
+                                <Card className="shadow-sm border-0" id="users-list">
                                     <CardBody>
                                         <TableContainer
                                             columns={columns}
@@ -380,11 +425,12 @@ const UserManagement = () => {
                                             tableClass="align-middle table-nowrap table-hover"
                                             theadClass="table-light"
                                             divClass="table-responsive"
+                                            rowIdPrefix="user"
                                         />
                                     </CardBody>
                                 </Card>
                             ) : (
-                                <Row>
+                                <Row id="users-list">
                                     {filteredUsers.map((user: any) => (
                                         <UserCard
                                             key={user.id}

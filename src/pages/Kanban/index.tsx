@@ -98,34 +98,56 @@ const Kanban = () => {
         }));
     }, []);
 
-    const applyHighlight = (type: string, id: string, storyId?: string) => {
-        if (storyId) {
-            setExpandedStories(prev => ({ ...prev, [storyId]: true }));
-        } else if (type === 'task') {
-            // Need to figure out the story id somehow if we only have task id?
-            // Not always possible immediately, but the DOM element might exist if the sprint is rendered.
-        }
-        
-        setTimeout(() => {
-            const el = document.getElementById(`${type}-${id}`);
-            if (el) {
-                // If it's a task, highlight the row, otherwise highlight the element itself
-                const target = type === 'task' ? (el.closest('.mb-2.border.rounded') as HTMLElement || el) : el;
-                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                target.classList.add('highlight-pulse');
-                setTimeout(() => target.classList.remove('highlight-pulse'), 2500);
+    const applyHighlight = useCallback((type: string, id: string, storyId?: string) => {
+        // For tasks: auto-expand the parent story so the task element becomes visible
+        if (type === 'task') {
+            const resolvedStoryId = storyId || projectDetails?.tareas?.find((t: any) => t.id === id)?.historia_id;
+            if (resolvedStoryId) {
+                setExpandedStories(prev => ({ ...prev, [resolvedStoryId]: true }));
             }
-        }, 800); // Increased timeout to wait for React Query fetch and render
-    };
+        }
+
+        let attempts = 0;
+        const tryHighlight = () => {
+            const el = document.getElementById(`${type}-${id}`);
+            if (!el) {
+                // Retry up to 3 times with increasing delay
+                if (attempts < 3) {
+                    attempts++;
+                    setTimeout(tryHighlight, 500);
+                }
+                return;
+            }
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Apply class for the animation
+            el.classList.add('highlight-pulse');
+            // Also apply inline styles as a bulletproof fallback
+            el.style.outline = '3px solid #0ab39c';
+            el.style.outlineOffset = '2px';
+            el.style.zIndex = '5';
+            el.style.position = 'relative';
+            setTimeout(() => {
+                el.classList.remove('highlight-pulse');
+                el.style.outline = '';
+                el.style.outlineOffset = '';
+                el.style.zIndex = '';
+                el.style.position = '';
+            }, 3000);
+        };
+        setTimeout(tryHighlight, 500);
+    }, [projectDetails?.tareas]);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const highlight = searchParams.get('highlight');
-        if (highlight) {
+        if (highlight && projectDetails) {
             const [type, ...idParts] = highlight.split('-');
-            applyHighlight(type, idParts.join('-'));
+            const id = idParts.join('-');
+            applyHighlight(type, id);
+            // Clean up the URL param after applying highlight
+            window.history.replaceState({}, '', location.pathname);
         }
-    }, [location.search, projectDetails]); // Depend on projectDetails so it runs when data is ready
+    }, [location.search, projectDetails, applyHighlight]);
 
     useEffect(() => {
         const handleScrollTo = (e: any) => {
@@ -135,7 +157,7 @@ const Kanban = () => {
         
         window.addEventListener('open-task-modal', handleScrollTo);
         return () => window.removeEventListener('open-task-modal', handleScrollTo);
-    }, []);
+    }, [applyHighlight]);
 
     const invalidateProject = useCallback(() => queryClient.invalidateQueries({ queryKey: ['project', activeProjectId] }), [activeProjectId, queryClient]);
 
@@ -225,7 +247,7 @@ const Kanban = () => {
     });
 
     const assignTaskMutation = useMutation({
-        mutationFn: ({ taskId, usuarioId }: { taskId: string; usuarioId: string }) =>
+        mutationFn: ({ taskId, usuarioId }: { taskId: string; usuarioId: string | null }) =>
             api.put(`/projects/${activeProjectId}/tasks/${taskId}/assign`, { usuario_id: usuarioId }),
         onMutate: async ({ taskId, usuarioId }) => {
             await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
@@ -254,7 +276,7 @@ const Kanban = () => {
     }, [updateTaskStatusMutation]);
 
     const handleTaskAssign = useCallback((taskId: string, usuarioId: string) => {
-        assignTaskMutation.mutate({ taskId, usuarioId });
+        assignTaskMutation.mutate({ taskId, usuarioId: usuarioId || null });
     }, [assignTaskMutation]);
 
     const activeSprint = useMemo(
@@ -439,7 +461,7 @@ const Kanban = () => {
                         </div>
                         {activeSprint && (
                             <div className="d-flex align-items-center gap-2">
-                                <span className="badge bg-soft-success text-success fs-13 py-1.5 px-3 border border-success border-opacity-25 rounded-pill">
+                                <span id={`sprint-${activeSprint.id}`} className="badge bg-soft-success text-success fs-13 py-1.5 px-3 border border-success border-opacity-25 rounded-pill">
                                     <i className="ri-record-circle-line align-middle me-1"></i> <span>{activeSprint.nombre} Activo</span>
                                 </span>
                                 <Link to="/planning" className="btn btn-sm btn-soft-secondary">
@@ -511,6 +533,7 @@ const Kanban = () => {
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="form-control"
                                         />
+                                        <i className="ri-search-line search-icon"></i>
                                     </div>
                                 </Col>
                                 <Col md={3} className="mb-2 mb-md-0">

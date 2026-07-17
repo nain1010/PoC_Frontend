@@ -21,6 +21,7 @@ const PageTreeNode = ({ page, allPages, selectedPageId, onSelect, onCreateSubpag
     return (
         <div className="w-100">
             <div
+                id={`page-${page.id}`}
                 className={`d-flex align-items-center gap-1 border-0 px-1 py-1 mb-1 rounded ${
                     isSelected ? 'bg-soft-primary text-primary fw-semibold' : 'bg-transparent text-body hover-bg-soft-light'
                 }`}
@@ -74,11 +75,43 @@ const Pages = () => {
     const [titleValue, setTitleValue] = useState("");
     const [isFullWidth, setIsFullWidth] = useState(() => localStorage.getItem('pages_full_width') === 'true');
     
+    const applyHighlight = useCallback((id: string) => {
+        let attempts = 0;
+        const tryHighlight = () => {
+            const el = document.getElementById(`page-${id}`);
+            if (!el) {
+                if (attempts < 3) {
+                    attempts++;
+                    setTimeout(tryHighlight, 500);
+                }
+                return;
+            }
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('highlight-pulse');
+            el.style.outline = '3px solid #0ab39c';
+            el.style.outlineOffset = '2px';
+            el.style.zIndex = '5';
+            el.style.position = 'relative';
+            setTimeout(() => {
+                el.classList.remove('highlight-pulse');
+                el.style.outline = '';
+                el.style.outlineOffset = '';
+                el.style.zIndex = '';
+                el.style.position = '';
+            }, 3000);
+        };
+        setTimeout(tryHighlight, 500);
+    }, []);
+
     useEffect(() => {
-        if (urlPageId && urlPageId !== selectedPageId) {
-            setSelectedPageId(urlPageId);
+        if (urlPageId) {
+            if (urlPageId !== selectedPageId) {
+                setSelectedPageId(urlPageId);
+            }
+            applyHighlight(urlPageId);
+            // We can't immediately replace state if the user wants to copy the URL, but here we can keep it
         }
-    }, [urlPageId]);
+    }, [urlPageId, applyHighlight]);
 
     const toggleFullWidth = () => {
         setIsFullWidth(prev => {

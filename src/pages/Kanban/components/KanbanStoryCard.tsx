@@ -213,17 +213,17 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                 </div>
                             ) : (
                                 displayedTasks.map((task: any) => (
-                                    <div key={task.id} className="p-2 mb-2 border rounded bg-body shadow-sm d-flex justify-content-between align-items-center">
+                                    <div key={task.id} id={`task-${task.id}`} className="p-2 mb-2 border rounded bg-body shadow-sm d-flex justify-content-between align-items-center">
                                         <div className="d-flex align-items-start gap-2">
                                             <Input
                                                 type="checkbox"
-                                                id={`task-${task.id}`}
+                                                id={`task-check-${task.id}`}
                                                 className="mt-1 flex-shrink-0 cursor-pointer"
                                                 checked={task.estado === "Terminada"}
                                                 onChange={(e) => onTaskStatusChange(task.id, e.target.checked ? "Terminada" : "Pendiente")}
                                             />
                                             <div>
-                                                <Label htmlFor={`task-${task.id}`} className={`mb-0 fs-13 cursor-pointer ${task.estado === "Terminada" ? "text-decoration-line-through text-muted" : "fw-medium"}`}>
+                                                <Label htmlFor={`task-check-${task.id}`} className={`mb-0 fs-13 cursor-pointer ${task.estado === "Terminada" ? "text-decoration-line-through text-muted" : "fw-medium"}`}>
                                                     {task.titulo}
                                                 </Label>
                                                 <div className="text-muted fs-11 mt-1">{task.descripcion}</div>
@@ -236,7 +236,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                             <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenPageSelector(task.id, 'tarea'); }} title="Documentos Adjuntos">
                                                 <i className="ri-file-text-line fs-14 align-middle"></i>
                                             </Button>
-                                            <UncontrolledDropdown size="sm">
+                                            <UncontrolledDropdown size="sm" strategy="fixed">
                                                 <DropdownToggle tag="button" className="btn btn-sm btn-ghost-primary rounded-circle p-1">
                                                     {task.asignado_a ? (
                                                         <div className="avatar-xs">
@@ -248,7 +248,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                                         <i className="ri-user-add-line fs-14 text-muted"></i>
                                                     )}
                                                 </DropdownToggle>
-                                                <DropdownMenu className="dropdown-menu-end">
+                                                <DropdownMenu className="dropdown-menu-end" container="body">
                                                     <DropdownItem header>Asignar Tarea</DropdownItem>
                                                     <DropdownItem onClick={() => onTaskAssign(task.id, "")} className="fs-12 text-danger">Desasignar</DropdownItem>
                                                     <DropdownItem divider />
