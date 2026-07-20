@@ -22,6 +22,9 @@ import { useEffect } from 'react';
 
 import CommandPalette from './Components/Common/CommandPalette';
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 // Activating fake backend
 if (process.env.REACT_APP_DEFAULTAUTH === "fake") {
   fakeBackend();
@@ -38,6 +41,7 @@ function App() {
     <React.Fragment>
       <CommandPalette />
       <Route />
+      <ToastContainer />
     </React.Fragment>
   );
 }

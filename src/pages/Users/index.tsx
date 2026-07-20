@@ -422,9 +422,9 @@ const UserManagement = () => {
                                             data={filteredUsers}
                                             isGlobalFilter={false}
                                             customPageSize={10}
-                                            tableClass="align-middle table-nowrap table-hover"
-                                            theadClass="table-light"
-                                            divClass="table-responsive"
+                                            tableClass="align-middle table-nowrap table-hover mb-0"
+                                            theadClass="table-light text-muted text-uppercase fw-semibold"
+                                            divClass="table-responsive table-card mt-3 mb-1"
                                             rowIdPrefix="user"
                                         />
                                     </CardBody>
@@ -448,7 +448,7 @@ const UserManagement = () => {
 
             {/* Modal de Registro de Usuario */}
             <Modal isOpen={createModal} toggle={toggleCreateModal} centered>
-                <ModalHeader toggle={toggleCreateModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleCreateModal} className="bg-soft-primary p-3 border-bottom-0">
                     Registrar Nuevo Usuario
                 </ModalHeader>
                 <Form onSubmit={(e) => {
@@ -463,7 +463,7 @@ const UserManagement = () => {
                                 id="nombre_completo-field"
                                 name="nombre_completo"
                                 className="form-control"
-                                placeholder="Ej: Nain Luna Hernandez"
+                                placeholder="Ej: Juan Pérez"
                                 type="text"
                                 onChange={createValidation.handleChange}
                                 onBlur={createValidation.handleBlur}
@@ -483,7 +483,7 @@ const UserManagement = () => {
                                 id="email-field"
                                 name="email"
                                 className="form-control"
-                                placeholder="Ej: nain@gmail.com"
+                                placeholder="Ej: usuario@ejemplo.com"
                                 type="email"
                                 onChange={createValidation.handleChange}
                                 onBlur={createValidation.handleBlur}
@@ -503,7 +503,7 @@ const UserManagement = () => {
                                 id="password-field"
                                 name="password"
                                 className="form-control"
-                                placeholder="Ej: 151090"
+                                placeholder="Ej: ********"
                                 type="password"
                                 onChange={createValidation.handleChange}
                                 onBlur={createValidation.handleBlur}
@@ -534,7 +534,7 @@ const UserManagement = () => {
                             </Input>
                         </div>
                     </ModalBody>
-                    <ModalFooter className="bg-light">
+                    <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleCreateModal} disabled={submitting}>Cancelar</Button>
                         <Button type="submit" color="success" disabled={submitting}>
                             <span className="d-flex align-items-center gap-1">
@@ -548,7 +548,7 @@ const UserManagement = () => {
 
             {/* Modal de Edición de Usuario */}
             <Modal isOpen={editModal} toggle={toggleEditModal} centered>
-                <ModalHeader toggle={toggleEditModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleEditModal} className="bg-soft-primary p-3 border-bottom-0">
                     Editar Detalles de Usuario
                 </ModalHeader>
                 <Form onSubmit={(e) => {
@@ -632,7 +632,7 @@ const UserManagement = () => {
                             </Input>
                         </div>
                     </ModalBody>
-                    <ModalFooter className="bg-light">
+                    <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleEditModal} disabled={submitting}>Cancelar</Button>
                         <Button type="submit" color="primary" disabled={submitting}>
                             <span className="d-flex align-items-center gap-1">
@@ -646,7 +646,7 @@ const UserManagement = () => {
 
             {/* Modal de Confirmación de Eliminación de Usuario */}
             <Modal isOpen={deleteModal} toggle={toggleDeleteModal} centered>
-                <ModalHeader toggle={toggleDeleteModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleDeleteModal} className="bg-soft-danger p-3 border-bottom-0">
                     Confirmar Eliminación de Usuario
                 </ModalHeader>
                 <ModalBody className="p-4 text-center">
@@ -656,7 +656,7 @@ const UserManagement = () => {
                     <h5>¿Estás seguro de que deseas eliminar al usuario "{userToDelete?.nombre_completo}"?</h5>
                     <p className="text-muted mb-0">Esta acción limpiará sus asignaciones de forma definitiva en todos los proyectos.</p>
                 </ModalBody>
-                <ModalFooter className="bg-light">
+                <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                     <Button color="light" onClick={toggleDeleteModal}>Cancelar</Button>
                     <Button color="danger" onClick={confirmDeleteUser}>Eliminar</Button>
                 </ModalFooter>

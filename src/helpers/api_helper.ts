@@ -124,7 +124,7 @@ const setAuthorization = (token : string) => {
 };
 
 const apiClient = {
-  get: (url: string, params?: any): Promise<AxiosResponse> => {
+  get: (url: string, params?: any): Promise<any> => {
     let paramKeys: string[] = [];
     if (params) {
       Object.keys(params).map(key => {
@@ -137,23 +137,23 @@ const apiClient = {
     return axios.get(`${url}`, params);
   },
 
-  create: (url: string, data: any): Promise<AxiosResponse> => {
+  create: (url: string, data: any): Promise<any> => {
     return axios.post(url, data);
   },
 
-  post: (url: string, data: any, config?: AxiosRequestConfig): Promise<AxiosResponse> => {
+  post: (url: string, data: any, config?: AxiosRequestConfig): Promise<any> => {
     return axios.post(url, data, config);
   },
 
-  update: (url: string, data: any): Promise<AxiosResponse> => {
+  update: (url: string, data: any): Promise<any> => {
     return axios.patch(url, data);
   },
 
-  put: (url: string, data: any): Promise<AxiosResponse> => {
+  put: (url: string, data: any): Promise<any> => {
     return axios.put(url, data);
   },
 
-  delete: (url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> => {
+  delete: (url: string, config?: AxiosRequestConfig): Promise<any> => {
     return axios.delete(url, { ...config });
   },
 };

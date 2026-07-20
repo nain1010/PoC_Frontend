@@ -398,9 +398,9 @@ const Projects = () => {
                                     data={filteredProjects || []}
                                     isGlobalFilter={false}
                                     customPageSize={10}
-                                    divClass="table-responsive table-card mb-3"
-                                    tableClass="align-middle table-nowrap mb-0"
-                                    theadClass="table-light text-muted"
+                                    divClass="table-responsive table-card mt-3 mb-1"
+                                    tableClass="align-middle table-nowrap table-hover mb-0"
+                                    theadClass="table-light text-muted text-uppercase fw-semibold"
                                 />
                             </CardBody>
                         </Card>
@@ -422,7 +422,7 @@ const Projects = () => {
 
             {/* Modal de Creación */}
             <Modal isOpen={modal} toggle={toggleModal} centered>
-                <ModalHeader toggle={toggleModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleModal} className="bg-soft-primary p-3 border-bottom-0">
                     Crear Nuevo Proyecto
                 </ModalHeader>
                 <Form onSubmit={(e) => {
@@ -481,7 +481,7 @@ const Projects = () => {
                             ) : null}
                         </div>
                     </ModalBody>
-                    <ModalFooter className="bg-light">
+                    <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleModal} disabled={submitting}>Cancelar</Button>
                         <Button type="submit" color="success" disabled={submitting}>
                             <span className="d-flex align-items-center gap-1">
@@ -495,7 +495,7 @@ const Projects = () => {
 
             {/* Modal de Confirmación de Eliminación */}
             <Modal isOpen={deleteModal} toggle={toggleDeleteModal} centered>
-                <ModalHeader toggle={toggleDeleteModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleDeleteModal} className="bg-soft-danger p-3 border-bottom-0">
                     Confirmar Eliminación
                 </ModalHeader>
                 <ModalBody className="p-4 text-center">
@@ -505,7 +505,7 @@ const Projects = () => {
                     <h5>¿Estás seguro de que deseas eliminar el proyecto "{projectToDelete?.nombre}"?</h5>
                     <p className="text-muted mb-0">Esta acción es irreversible y eliminará todos los sprints, historias y tareas asociadas.</p>
                 </ModalBody>
-                <ModalFooter className="bg-light">
+                <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                     <Button color="light" onClick={toggleDeleteModal}>Cancelar</Button>
                     <Button color="danger" onClick={confirmDeleteProject}>Eliminar</Button>
                 </ModalFooter>

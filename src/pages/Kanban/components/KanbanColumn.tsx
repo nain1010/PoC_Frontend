@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardBody, Col } from 'reactstrap';
+import { Col } from 'reactstrap';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import SortableStoryCard from './SortableStoryCard';
@@ -9,6 +9,7 @@ interface KanbanColumnProps {
     title: string;
     icon: React.ReactNode;
     colorClass: string;
+    accentType?: 'pending' | 'progress' | 'done';
     stories: any[];
     projectDetails: any;
     memberFilter: string | null;
@@ -21,6 +22,7 @@ const KanbanColumn = ({
     title,
     icon,
     colorClass,
+    accentType = 'pending',
     stories,
     projectDetails,
     memberFilter,
@@ -31,21 +33,24 @@ const KanbanColumn = ({
         id,
     });
 
-    const isOverClass = isOver ? 'bg-secondary bg-opacity-10' : '';
-
     return (
         <Col lg={4} className="mb-4">
-            <Card className={`bg-light border-top border-3 ${colorClass} shadow-none h-100 transition-all ${isOverClass}`}>
-                <div className="p-3 bg-light-subtle d-flex justify-content-between align-items-center rounded-top border-bottom">
-                    <h6 className="card-title mb-0 fw-bold text-body flex-grow-1">
-                        {icon}
-                        <span>{title} ({stories.length})</span>
+            <div className={`kanban-column kanban-column--${accentType} ${isOver ? 'is-over' : ''}`}>
+                {/* Column Header with Count Pill */}
+                <div className="kanban-column-header">
+                    <h6 className="kanban-column-header__title">
+                        <span className={`kanban-column-header__dot kanban-column-header__dot--${accentType}`}></span>
+                        <span>{title}</span>
+                        <span className={`kanban-count-pill kanban-count-pill--${accentType}`}>
+                            {stories.length}
+                        </span>
                     </h6>
                 </div>
-                <CardBody 
-                    innerRef={setNodeRef}
-                    className="p-3 overflow-y-auto" 
-                    style={{ maxHeight: "calc(100vh - 300px)", minHeight: "350px" }}
+
+                {/* Column Body */}
+                <div
+                    ref={setNodeRef}
+                    className="kanban-column-body"
                 >
                     <SortableContext 
                         id={id}
@@ -53,7 +58,10 @@ const KanbanColumn = ({
                         strategy={verticalListSortingStrategy}
                     >
                         {stories.length === 0 ? (
-                            <div className="text-center py-5 text-muted fs-13">Ninguna historia.</div>
+                            <div className="kanban-empty-drop">
+                                <i className="ri-drag-drop-line kanban-empty-drop__icon"></i>
+                                <span className="kanban-empty-drop__text">Arrastrar historia aquí</span>
+                            </div>
                         ) : (
                             stories.map((story) => (
                                 <SortableStoryCard 
@@ -67,8 +75,8 @@ const KanbanColumn = ({
                             ))
                         )}
                     </SortableContext>
-                </CardBody>
-            </Card>
+                </div>
+            </div>
         </Col>
     );
 };

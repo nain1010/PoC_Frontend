@@ -9,6 +9,7 @@ import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 import { APIClient } from '../../helpers/api_helper';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './kanban-visual.css';
 import PageSelectorModal from '../../Components/Common/PageSelectorModal';
 import SkeletonLoader from '../../Components/Common/SkeletonLoader';
 import AttachmentModal from '../../Components/Common/AttachmentModal';
@@ -193,7 +194,7 @@ const Kanban = () => {
                     ...current,
                     tareas: [...(current.tareas || []), {
                         id: res.id, historia_id: payload.storyId, titulo: payload.titulo,
-                        descripcion: payload.descripcion, estado: res.estado || "Pendiente", asignado_a: null
+                        descripcion: payload.descripcion, estado: res.estado || "Pendiente", asignado_a_id: null
                     }]
                 });
             }
@@ -256,7 +257,7 @@ const Kanban = () => {
                 queryClient.setQueryData(['project', activeProjectId], {
                     ...current,
                     tareas: (current.tareas || []).map((t: any) =>
-                        t.id === taskId ? { ...t, asignado_a: usuarioId } : t
+                        t.id === taskId ? { ...t, asignado_a_id: usuarioId } : t
                     )
                 });
             }
@@ -298,9 +299,9 @@ const Kanban = () => {
             if (memberFilter !== null) {
                 const storyTasks = projectDetails?.tareas?.filter((t: any) => t.historia_id === story.id) || [];
                 if (memberFilter === "unassigned") {
-                    matchesMember = storyTasks.some((t: any) => !t.asignado_a);
+                    matchesMember = storyTasks.some((t: any) => !t.asignado_a_id);
                 } else {
-                    matchesMember = storyTasks.some((t: any) => t.asignado_a === memberFilter);
+                    matchesMember = storyTasks.some((t: any) => t.asignado_a_id === memberFilter);
                 }
             }
             return matchesSearch && matchesPoints && matchesMember;
@@ -454,23 +455,6 @@ const Kanban = () => {
                 <Container fluid>
                     <BreadCrumb title={`Sprint Activo - ${activeProjectName}`} />
 
-                    <div className="d-flex align-items-center justify-content-between mb-4 mt-3">
-                        <div>
-                            <h5 className="fs-16 mb-0">Tablero Kanban</h5>
-                            <p className="text-muted mb-0">Visualiza y actualiza el estado de las tareas de tu equipo.</p>
-                        </div>
-                        {activeSprint && (
-                            <div className="d-flex align-items-center gap-2">
-                                <span id={`sprint-${activeSprint.id}`} className="badge bg-soft-success text-success fs-13 py-1.5 px-3 border border-success border-opacity-25 rounded-pill">
-                                    <i className="ri-record-circle-line align-middle me-1"></i> <span>{activeSprint.nombre} Activo</span>
-                                </span>
-                                <Link to="/planning" className="btn btn-sm btn-soft-secondary">
-                                    <i className="ri-settings-3-line align-bottom"></i> <span>Gestionar</span>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-
                     {isLoading ? (
                         <Row>
                             {[1, 2, 3].map((col) => (
@@ -510,38 +494,56 @@ const Kanban = () => {
                             </Col>
                         </Row>
                     ) : (
-                        <div>
-                            {/* Goals banner */}
-                            <div className="p-3 bg-soft-primary border border-primary border-opacity-10 rounded-3 mb-4 d-flex justify-content-between align-items-center">
+                        <div className="kanban-board">
+                            {/* Board Header */}
+                            <div className="d-flex align-items-center justify-content-between kanban-board-header">
                                 <div>
-                                    <span className="fw-semibold text-primary d-block mb-0.5">Objetivo del Sprint:</span>
-                                    <span className="text-muted fs-13 italic">{activeSprint.objetivo || "Sin objetivo de sprint definido."}</span>
+                                    <h5>Tablero Kanban</h5>
+                                    <p>Visualiza y actualiza el estado de las tareas de tu equipo.</p>
                                 </div>
-                                <div className="text-end text-muted fs-12">
-                                    <span>Duración: </span>
-                                    <strong className="text-muted">{activeSprint.fecha_inicio} al {activeSprint.fecha_fin}</strong>
+                                <div className="d-flex align-items-center gap-2">
+                                    <span id={`sprint-${activeSprint.id}`} className="kanban-sprint-badge">
+                                        <i className="ri-record-circle-fill"></i>
+                                        <span>{activeSprint.nombre} Activo</span>
+                                    </span>
+                                    <Link to="/planning" className="btn btn-sm btn-soft-secondary">
+                                        <i className="ri-settings-3-line align-bottom"></i> <span>Gestionar</span>
+                                    </Link>
                                 </div>
                             </div>
-                            {/* Search and point filters */}
-                            <Row className="mb-4 align-items-center">
-                                <Col md={4} className="mb-2 mb-md-0">
+
+                            {/* Goals banner */}
+                            <div className="kanban-goals-banner d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div className="kanban-goals-banner__label">Objetivo del Sprint:</div>
+                                    <div className="kanban-goals-banner__text">{activeSprint.objetivo || "Sin objetivo de sprint definido."}</div>
+                                </div>
+                                <div className="kanban-goals-banner__dates">
+                                    <span>Duración: </span>
+                                    <strong>{activeSprint.fecha_inicio} al {activeSprint.fecha_fin}</strong>
+                                </div>
+                            </div>
+
+                            {/* Aligned Filter Bar */}
+                            <div className="kanban-filters">
+                                <div className="kanban-filters__search">
                                     <div className="search-box">
                                         <Input
                                             type="text"
                                             placeholder="Buscar por código o título..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="form-control"
+                                            className="kanban-filter-input"
                                         />
                                         <i className="ri-search-line search-icon"></i>
                                     </div>
-                                </Col>
-                                <Col md={3} className="mb-2 mb-md-0">
+                                </div>
+                                <div className="kanban-filters__select">
                                     <Input
                                         type="select"
                                         value={memberFilter || ''}
                                         onChange={(e) => setMemberFilter(e.target.value || null)}
-                                        className="form-select"
+                                        className="kanban-filter-select"
                                     >
                                         <option value="">Todos los integrantes</option>
                                         <option value="unassigned">Tareas sin asignar</option>
@@ -551,30 +553,26 @@ const Kanban = () => {
                                             </option>
                                         ))}
                                     </Input>
-                                </Col>
-                                <Col md={5} className="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
-                                    <span className="text-muted fs-13">Filtrar Puntos:</span>
-                                    <Button 
-                                        color={pointsFilter === null ? "primary" : "light"} 
-                                        size="sm" 
+                                </div>
+                                <div className="kanban-filters__points">
+                                    <span className="kanban-filters__points-label">Filtrar Puntos:</span>
+                                    <button 
+                                        className={`kanban-filter-btn ${pointsFilter === null ? 'active' : ''}`}
                                         onClick={() => setPointsFilter(null)}
-                                        className="px-3"
                                     >
                                         Todos
-                                    </Button>
+                                    </button>
                                     {[1, 2, 3, 5, 8, 13, 21].map(pts => (
-                                        <Button 
+                                        <button 
                                             key={pts}
-                                            color={pointsFilter === pts ? "primary" : "light"} 
-                                            size="sm" 
+                                            className={`kanban-filter-btn ${pointsFilter === pts ? 'active' : ''}`}
                                             onClick={() => setPointsFilter(pointsFilter === pts ? null : pts)}
-                                            className="px-2.5"
                                         >
                                             {pts} pts
-                                        </Button>
+                                        </button>
                                     ))}
-                                </Col>
-                            </Row>
+                                </div>
+                            </div>
 
                             {/* Board Columns */}
                             <DndContext
@@ -587,8 +585,9 @@ const Kanban = () => {
                                     <KanbanColumn 
                                         id="Comprometida"
                                         title="Pendiente"
-                                        icon={<i className="ri-checkbox-blank-circle-fill text-muted me-2 align-middle fs-10"></i>}
-                                        colorClass="border-secondary border-opacity-50"
+                                        icon={null}
+                                        colorClass=""
+                                        accentType="pending"
                                         stories={pendingStories}
                                         projectDetails={projectDetails}
                                         memberFilter={memberFilter}
@@ -599,8 +598,9 @@ const Kanban = () => {
                                     <KanbanColumn 
                                         id="En Progreso"
                                         title="En Progreso"
-                                        icon={<i className="ri-checkbox-blank-circle-fill text-primary me-2 align-middle fs-10"></i>}
-                                        colorClass="border-primary"
+                                        icon={null}
+                                        colorClass=""
+                                        accentType="progress"
                                         stories={inProgressStories}
                                         projectDetails={projectDetails}
                                         memberFilter={memberFilter}
@@ -611,8 +611,9 @@ const Kanban = () => {
                                     <KanbanColumn 
                                         id="Hecha"
                                         title="Terminada"
-                                        icon={<i className="ri-checkbox-blank-circle-fill text-success me-2 align-middle fs-10"></i>}
-                                        colorClass="border-success"
+                                        icon={null}
+                                        colorClass=""
+                                        accentType="done"
                                         stories={doneStories}
                                         projectDetails={projectDetails}
                                         memberFilter={memberFilter}
@@ -648,7 +649,7 @@ const Kanban = () => {
 
             {/* Modal Crear Tarea Técnica */}
             <Modal isOpen={taskModal} toggle={toggleTaskModal} centered>
-                <ModalHeader toggle={toggleTaskModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleTaskModal} className="bg-soft-primary p-3 border-bottom-0">
                     Agregar Tarea Técnica
                 </ModalHeader>
                 <Form onSubmit={(e) => {
@@ -694,7 +695,7 @@ const Kanban = () => {
                             ) : null}
                         </div>
                     </ModalBody>
-                    <ModalFooter className="bg-light">
+                    <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleTaskModal} disabled={taskSubmitting}>Cancelar</Button>
                         <Button type="submit" color="success" disabled={taskSubmitting}>
                             <span className="d-flex align-items-center gap-1">

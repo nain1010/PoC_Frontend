@@ -155,7 +155,7 @@ const Starter = () => {
     // Derived Task & Sprint Info
     const myPendingTasks = useMemo(() => {
         if (!projectDetails?.tareas || !loggedInUserId) return [];
-        return projectDetails.tareas.filter((t: any) => t.asignado_a === loggedInUserId && t.estado !== 'Terminada');
+        return projectDetails.tareas.filter((t: any) => t.asignado_a_id === loggedInUserId && t.estado !== 'Terminada');
     }, [projectDetails?.tareas, loggedInUserId]);
 
     const activeSprint = useMemo(() => {

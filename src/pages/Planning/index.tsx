@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Container, Row, Col, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Button, Spinner, Alert, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import { Container, Row, Col, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, Form, Label, Input, FormFeedback, Button, Spinner, Alert, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, UncontrolledDropdown } from 'reactstrap';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -947,23 +947,30 @@ const Planning = () => {
                         <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
                     ) : (
                         <Row>
-                            {/* Columna Izquierda: Backlog (Ancho: 5) */}
-                            <Col lg={5} className="mb-4">
+                            {/* Columna Izquierda: Backlog (Ancho: 4 en XL, 5 en LG) */}
+                            <Col xl={4} lg={5} className="mb-4">
                                 <Card className="shadow-sm border-0 h-100">
-                                    <div className="card-header bg-light border-0 d-flex justify-content-between align-items-center p-3">
-                                        <h6 className="card-title mb-0 fw-bold text-muted">
-                                            Product Backlog ({backlogStories.length})
-                                        </h6>
+                                    <div className="card-header border-0 d-flex justify-content-between align-items-center p-3">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <div className="avatar-xs">
+                                                <div className="avatar-title bg-primary text-white rounded-circle fs-16 shadow-sm">
+                                                    <i className="ri-inbox-archive-line"></i>
+                                                </div>
+                                            </div>
+                                            <h5 className="card-title mb-0 fw-bold fs-15 text-body">
+                                                Product Backlog <span className="badge bg-primary ms-1">{backlogStories.length}</span>
+                                            </h5>
+                                        </div>
                                         <div className="d-flex gap-2 align-items-center">
-                                            <div className="search-box me-1 d-none d-xl-block" style={{width: '150px'}}>
-                                                <input type="text" className="form-control form-control-sm" placeholder="Buscar..." value={backlogSearchQuery} onChange={(e) => setBacklogSearchQuery(e.target.value)} />
-                                                <i className="ri-search-line search-icon mt-n1"></i>
+                                            <div className="search-box me-1" style={{width: '160px'}}>
+                                                <input type="text" className="form-control form-control-sm" placeholder="Buscar historia..." value={backlogSearchQuery} onChange={(e) => setBacklogSearchQuery(e.target.value)} />
+                                                <i className="ri-search-line search-icon text-muted"></i>
                                             </div>
-                                            <div className="btn-group" role="group">
-                                                <Button color={backlogViewMode === 'grid' ? "primary" : "light"} size="sm" onClick={() => handleBacklogViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
-                                                <Button color={backlogViewMode === 'table' ? "primary" : "light"} size="sm" onClick={() => handleBacklogViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
+                                            <div className="btn-group shadow-sm" role="group">
+                                                <Button color={backlogViewMode === 'grid' ? "primary" : "soft-primary"} size="sm" onClick={() => handleBacklogViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
+                                                <Button color={backlogViewMode === 'table' ? "primary" : "soft-primary"} size="sm" onClick={() => handleBacklogViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
                                             </div>
-                                            <Button color="success" size="sm" className="btn-sm" onClick={handleOpenCreateStory}>
+                                            <Button color="primary" size="sm" className="btn-sm shadow-sm" onClick={handleOpenCreateStory}>
                                                 <i className="ri-add-line align-middle me-1"></i> Crear
                                             </Button>
                                         </div>
@@ -971,8 +978,8 @@ const Planning = () => {
                                     <CardBody className="p-3" style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
                                         {filteredBacklogStories.length === 0 ? (
                                             <div className="text-center py-5 text-muted">
-                                                <i className="ri-inbox-line display-4 mb-2 d-inline-block"></i>
-                                                <p className="mb-0">El backlog está vacío.</p>
+                                                <i className="ri-inbox-line display-4 mb-2 d-inline-block text-primary opacity-50"></i>
+                                                <p className="mb-0 fw-medium fs-15">El backlog está vacío</p>
                                                 <small>Crea historias de usuario para comenzar.</small>
                                             </div>
                                         ) : backlogViewMode === 'table' ? (
@@ -981,9 +988,9 @@ const Planning = () => {
                                                 data={filteredBacklogStories || []}
                                                 isGlobalFilter={false}
                                                 customPageSize={10}
-                                                divClass="table-responsive table-card mb-0"
-                                                tableClass="align-middle table-nowrap mb-0"
-                                                theadClass="table-light text-muted"
+                                                divClass="table-responsive table-card mt-3 mb-1"
+                                                tableClass="align-middle table-nowrap table-hover bg-white shadow-sm rounded mb-0"
+                                                theadClass="table-light text-muted text-uppercase fw-semibold"
                                             />
                                         ) : (
                                             filteredBacklogStories.map((story: any) => (
@@ -1006,24 +1013,31 @@ const Planning = () => {
                                 </Card>
                             </Col>
 
-                            {/* Columna Derecha: Sprints (Ancho: 7) */}
-                            <Col lg={7} className="mb-4">
+                            {/* Columna Derecha: Sprints (Ancho: 8 en XL, 7 en LG) */}
+                            <Col xl={8} lg={7} className="mb-4">
                                 <Card className="shadow-sm border-0 h-100">
-                                    <div className="card-header bg-light border-0 d-flex justify-content-between align-items-center p-3">
-                                        <h6 className="card-title mb-0 fw-bold text-muted">Planificación de Sprints</h6>
+                                    <div className="card-header border-0 d-flex justify-content-between align-items-center p-3">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <div className="avatar-xs">
+                                                <div className="avatar-title bg-secondary text-white rounded-circle fs-16 shadow-sm">
+                                                    <i className="ri-calendar-todo-fill"></i>
+                                                </div>
+                                            </div>
+                                            <h5 className="card-title mb-0 fw-bold fs-15 text-body">Planificación de Sprints</h5>
+                                        </div>
                                         <div className="d-flex gap-2 align-items-center">
-                                            <div className="search-box me-1 d-none d-md-block" style={{width: '150px'}}>
+                                            <div className="search-box me-1" style={{width: '180px'}}>
                                                 <input type="text" className="form-control form-control-sm" placeholder="Buscar sprint..." value={sprintSearchQuery} onChange={(e) => setSprintSearchQuery(e.target.value)} />
-                                                <i className="ri-search-line search-icon mt-n1"></i>
+                                                <i className="ri-search-line search-icon text-muted"></i>
                                             </div>
-                                            <div className="btn-group" role="group">
-                                                <Button color={sprintViewMode === 'grid' ? "primary" : "light"} size="sm" onClick={() => handleSprintViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
-                                                <Button color={sprintViewMode === 'table' ? "primary" : "light"} size="sm" onClick={() => handleSprintViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
+                                            <div className="btn-group shadow-sm" role="group">
+                                                <Button color={sprintViewMode === 'grid' ? "secondary" : "soft-secondary"} size="sm" onClick={() => handleSprintViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
+                                                <Button color={sprintViewMode === 'table' ? "secondary" : "soft-secondary"} size="sm" onClick={() => handleSprintViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
                                             </div>
-                                            <Button color="soft-primary" size="sm" className="btn-sm" onClick={toggleMemberModal}>
+                                            <Button color="soft-secondary" size="sm" className="btn-sm shadow-sm" onClick={toggleMemberModal}>
                                                 <i className="ri-group-line align-middle me-1"></i> Miembros
                                             </Button>
-                                            <Button color="success" size="sm" className="btn-sm" onClick={handleOpenCreateSprint}>
+                                            <Button color="secondary" size="sm" className="btn-sm shadow-sm" onClick={handleOpenCreateSprint}>
                                                 <i className="ri-add-line align-middle me-1"></i> Crear Sprint
                                             </Button>
                                         </div>
@@ -1041,9 +1055,9 @@ const Planning = () => {
                                                 data={filteredSprints || []}
                                                 isGlobalFilter={false}
                                                 customPageSize={5}
-                                                divClass="table-responsive table-card mb-0"
-                                                tableClass="align-middle table-nowrap mb-0"
-                                                theadClass="table-light text-muted"
+                                                divClass="table-responsive table-card mt-3 mb-1"
+                                                tableClass="align-middle table-nowrap table-hover mb-0"
+                                                theadClass="table-light text-muted text-uppercase fw-semibold"
                                             />
                                         ) : (
                                             filteredSprints.map((sprint: any) => {
@@ -1083,7 +1097,7 @@ const Planning = () => {
 
             {/* Modal Crear Historia */}
             <Modal isOpen={storyModal} toggle={toggleStoryModal} centered>
-                <ModalHeader toggle={toggleStoryModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleStoryModal} className="bg-soft-primary p-3 border-bottom-0">
                     {editStory ? "Editar Historia de Usuario" : "Crear Historia de Usuario"}
                 </ModalHeader>
                 <Form onSubmit={(e) => {
@@ -1168,7 +1182,7 @@ const Planning = () => {
                             ) : null}
                         </div>
                     </ModalBody>
-                    <ModalFooter className="bg-light">
+                    <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleStoryModal} disabled={storySubmitting}>Cancelar</Button>
                         <Button type="submit" color="success" disabled={storySubmitting}>
                             <span className="d-flex align-items-center gap-1">
@@ -1182,7 +1196,7 @@ const Planning = () => {
 
             {/* Modal Crear Sprint */}
             <Modal isOpen={sprintModal} toggle={toggleSprintModal} centered>
-                <ModalHeader toggle={toggleSprintModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleSprintModal} className="bg-soft-primary p-3 border-bottom-0">
                     {editSprint ? "Editar Sprint" : "Planificar Nuevo Sprint"}
                 </ModalHeader>
                 <Form onSubmit={(e) => {
@@ -1281,7 +1295,7 @@ const Planning = () => {
                             />
                         </div>
                     </ModalBody>
-                    <ModalFooter className="bg-light">
+                    <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleSprintModal} disabled={sprintSubmitting}>Cancelar</Button>
                         <Button type="submit" color="success" disabled={sprintSubmitting}>
                             <span className="d-flex align-items-center gap-1">
@@ -1295,7 +1309,7 @@ const Planning = () => {
 
             {/* Modal Miembros */}
             <Modal isOpen={memberModal} toggle={toggleMemberModal} centered>
-                <ModalHeader toggle={toggleMemberModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleMemberModal} className="bg-soft-primary p-3 border-bottom-0">
                     Gestionar Miembros del Equipo
                 </ModalHeader>
                 <ModalBody className="p-4">
@@ -1392,7 +1406,7 @@ const Planning = () => {
 
             {/* Modal de Confirmación de Eliminación de Historia */}
             <Modal isOpen={deleteStoryModal} toggle={toggleDeleteStoryModal} centered>
-                <ModalHeader toggle={toggleDeleteStoryModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleDeleteStoryModal} className="bg-soft-danger p-3 border-bottom-0">
                     Confirmar Eliminación de Historia
                 </ModalHeader>
                 <ModalBody className="p-4 text-center">
@@ -1402,7 +1416,7 @@ const Planning = () => {
                     <h5>¿Estás seguro de que deseas eliminar la historia "{storyToDelete?.titulo}"?</h5>
                     <p className="text-muted mb-0">Esta acción también eliminará todas sus tareas técnicas asociadas de forma definitiva.</p>
                 </ModalBody>
-                <ModalFooter className="bg-light">
+                <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                     <Button color="light" onClick={toggleDeleteStoryModal}>Cancelar</Button>
                     <Button color="danger" onClick={confirmDeleteStory}>Eliminar</Button>
                 </ModalFooter>
@@ -1410,7 +1424,7 @@ const Planning = () => {
 
             {/* Modal de Confirmación de Eliminación de Miembro */}
             <Modal isOpen={deleteMemberModalState} toggle={toggleDeleteMemberModal} centered>
-                <ModalHeader toggle={toggleDeleteMemberModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleDeleteMemberModal} className="bg-soft-danger p-3 border-bottom-0">
                     Confirmar Eliminación de Miembro
                 </ModalHeader>
                 <ModalBody className="p-4 text-center">
@@ -1420,7 +1434,7 @@ const Planning = () => {
                     <h5>¿Estás seguro de que deseas eliminar a {memberToDelete?.nombre_completo}?</h5>
                     <p className="text-muted mb-0">Este usuario perderá acceso al proyecto inmediatamente.</p>
                 </ModalBody>
-                <ModalFooter className="bg-light">
+                <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                     <Button color="light" onClick={toggleDeleteMemberModal}>Cancelar</Button>
                     <Button color="danger" onClick={confirmDeleteMember}>Eliminar</Button>
                 </ModalFooter>
@@ -1428,7 +1442,7 @@ const Planning = () => {
 
             {/* Modal de Confirmación de Eliminación de Sprint */}
             <Modal isOpen={deleteSprintModal} toggle={toggleDeleteSprintModal} centered>
-                <ModalHeader toggle={toggleDeleteSprintModal} className="bg-light p-3">
+                <ModalHeader toggle={toggleDeleteSprintModal} className="bg-soft-danger p-3 border-bottom-0">
                     Confirmar Eliminación de Sprint
                 </ModalHeader>
                 <ModalBody className="p-4 text-center">
@@ -1438,7 +1452,7 @@ const Planning = () => {
                     <h5>¿Estás seguro de que deseas eliminar el sprint "{sprintToDelete?.nombre}"?</h5>
                     <p className="text-muted mb-0">Las historias asociadas volverán automáticamente al backlog del proyecto.</p>
                 </ModalBody>
-                <ModalFooter className="bg-light">
+                <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                     <Button color="light" onClick={toggleDeleteSprintModal}>Cancelar</Button>
                     <Button color="danger" onClick={confirmDeleteSprint}>Eliminar</Button>
                 </ModalFooter>
@@ -1496,22 +1510,25 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
     const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
     return (
-        <Card id={`story-${story.id}`} className="border mb-3 shadow-none card-animate">
-            <CardBody className="p-3">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                    <span className="badge bg-soft-info text-info fs-11">{story.correlativo}</span>
-                    <div className="d-flex gap-1 align-items-center">
+        <Card id={`story-${story.id}`} className="border mb-2 shadow-sm card-animate">
+            <CardBody className="p-2 px-3">
+                <div className="d-flex justify-content-between align-items-center">
+                    <div className="d-flex align-items-center gap-2 overflow-hidden me-3">
+                        <span className="badge bg-soft-info text-info fs-11 flex-shrink-0" style={{minWidth: '60px', textAlign: 'center'}}>{story.correlativo}</span>
+                        <span className="fw-medium text-body fs-14 text-truncate mb-0" title={story.titulo}>{story.titulo}</span>
+                    </div>
+                    <div className="d-flex gap-1 align-items-center flex-shrink-0">
                         <Button 
-                            color="soft-info" 
+                            color="soft-secondary" 
                             size="sm" 
-                            className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1 me-1"
+                            className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1"
                             onClick={() => onOpenAttachmentModal(story.id, 'historia')}
                             title="Archivos adjuntos"
                         >
                             <i className="ri-attachment-2"></i>
                         </Button>
                         <Button 
-                            color="soft-info" 
+                            color="soft-secondary" 
                             size="sm" 
                             className="btn-sm py-0 px-1 fs-14 d-flex align-items-center gap-1 me-1"
                             onClick={() => onOpenPageSelector(story.id, 'historia')}
@@ -1524,19 +1541,6 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
                         <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
                     </div>
                 </div>
-                <h6 className="fw-bold text-body mb-2">{story.titulo}</h6>
-                <p className="text-muted fs-13 mb-0 text-truncate-three-lines">{story.narrativa}</p>
-                {story.criterios_aceptacion?.length > 0 && (
-                    <div className="mt-2 pt-2 border-top">
-                        <small className="fw-semibold text-body d-block mb-1">Criterios de Aceptación:</small>
-                        <ul className="ps-3 mb-0 text-muted fs-12">
-                            {story.criterios_aceptacion.map((crit: string, idx: number) => (
-                                <li key={idx}>{crit}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-                <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} onOpenPageViewer={onOpenPageViewer} />
             </CardBody>
         </Card>
     );
@@ -1588,56 +1592,62 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
     const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), []);
 
     return (
-        <Card id={`sprint-${sprint.id}`} className="border mb-4 shadow-none">
+        <Card id={`sprint-${sprint.id}`} className="border mb-4 shadow-sm">
             <CardBody className="p-3">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h6 className="fw-bold text-muted mb-1 d-flex align-items-center gap-2">
-                            <button 
-                                type="button" 
-                                className="btn btn-link p-0 text-muted fs-16 d-flex align-items-center" 
-                                onClick={toggleCollapse}
-                                style={{ textDecoration: "none" }}
-                            >
-                                <i className={isCollapsed ? "ri-arrow-right-s-line" : "ri-arrow-down-s-line"}></i>
-                            </button>
-                            <span onClick={toggleCollapse} style={{ cursor: "pointer" }}>{sprint.nombre}</span>
-                            {isCollapsed && (
-                                <span className="fs-12 fw-normal text-muted ms-2 italic">
-                                    ({sprintStories.length} {sprintStories.length === 1 ? 'historia' : 'historias'}, {totalPoints} pts)
-                                </span>
-                            )}
-                            <span className="d-flex gap-2 ms-1 align-items-center">
-                                <button className="btn btn-link p-0 text-muted fs-14" onClick={handleEditSprintFn} title="Editar Sprint">
-                                    <i className="ri-pencil-line"></i>
-                                </button>
-                                {sprint.estado !== 'Activo' && (
-                                    <button className="btn btn-link p-0 text-danger fs-14" onClick={handleDeleteSprintFn} title="Eliminar Sprint">
-                                        <i className="ri-delete-bin-line"></i>
-                                    </button>
+                <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div className="d-flex gap-2 w-100">
+                        <button 
+                            type="button" 
+                            className="btn btn-link p-0 text-muted fs-18 d-flex mt-1" 
+                            onClick={toggleCollapse}
+                            style={{ textDecoration: "none", height: "fit-content" }}
+                        >
+                            <i className={isCollapsed ? "ri-arrow-right-s-line" : "ri-arrow-down-s-line"}></i>
+                        </button>
+                        <div className="flex-grow-1">
+                            <div className="d-flex align-items-center justify-content-between w-100 mb-1">
+                                <div className="d-flex align-items-center gap-2">
+                                    <h6 className="fw-bold text-body fs-15 mb-0 cursor-pointer" onClick={toggleCollapse}>
+                                        {sprint.nombre}
+                                    </h6>
+                                    <span className={`badge bg-${sprint.estado === 'Planificacion' ? 'warning' : sprint.estado === 'Activo' ? 'success' : 'secondary'} fs-11`}>
+                                        {sprint.estado}
+                                    </span>
+                                </div>
+                                
+                                <div className="d-flex gap-2 flex-shrink-0 align-items-center">
+                                    {sprint.estado === 'Planificacion' && (
+                                        <Button color="success" outline size="sm" onClick={handleActivate}>Activar Sprint</Button>
+                                    )}
+                                    {sprint.estado === 'Activo' && (
+                                        <Button color="danger" outline size="sm" onClick={handleClose}>Cerrar Sprint</Button>
+                                    )}
+                                    <UncontrolledDropdown>
+                                        <DropdownToggle tag="button" className="btn btn-soft-secondary btn-sm">
+                                            <i className="ri-more-fill"></i>
+                                        </DropdownToggle>
+                                        <DropdownMenu className="dropdown-menu-end">
+                                            <DropdownItem onClick={handleEditSprintFn}><i className="ri-pencil-fill align-bottom me-2 text-muted"></i> Editar</DropdownItem>
+                                            {sprint.estado !== 'Activo' && (
+                                                <DropdownItem onClick={handleDeleteSprintFn} className="text-danger"><i className="ri-delete-bin-fill align-bottom me-2 text-danger"></i> Eliminar</DropdownItem>
+                                            )}
+                                        </DropdownMenu>
+                                    </UncontrolledDropdown>
+                                </div>
+                            </div>
+                            
+                            <div className="d-flex flex-wrap gap-3 fs-13 text-muted align-items-center">
+                                <span><i className="ri-calendar-line align-middle me-1"></i> {sprint.fecha_inicio} al {sprint.fecha_fin}</span>
+                                {sprint.objetivo && (
+                                    <span className="text-truncate" style={{maxWidth: '450px'}} title={sprint.objetivo}><i className="ri-focus-2-line align-middle me-1"></i> {sprint.objetivo}</span>
                                 )}
-                            </span>
-                        </h6>
-                        <small className="text-muted">{sprint.fecha_inicio} al {sprint.fecha_fin}</small>
-                    </div>
-                    <div className="d-flex align-items-center gap-2">
-                        <span className={`badge ${
-                            sprint.estado === 'Planificacion' ? 'bg-soft-warning text-warning' :
-                            sprint.estado === 'Activo' ? 'bg-soft-success text-success' : 'bg-soft-secondary text-secondary'
-                        } fs-12`}>{sprint.estado}</span>
-                        {sprint.estado === 'Planificacion' && (
-                            <Button color="success" size="sm" className="btn-sm px-3" onClick={handleActivate}>Activar</Button>
-                        )}
-                        {sprint.estado === 'Activo' && (
-                            <Button color="danger" size="sm" className="btn-sm px-3" onClick={handleClose}>Cerrar</Button>
-                        )}
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 {!isCollapsed && (
                     <>
-                        <p className="text-muted fs-13 mb-3 fst-italic">
-                            <strong>Objetivo:</strong> {sprint.objetivo || "Sin objetivo definido."}
-                        </p>
                         <div className="border-top pt-3">
                             <div className="d-flex justify-content-between align-items-center mb-3">
                                 <span className="fw-bold text-muted fs-14">Historias en el Sprint ({sprintStories.length})</span>

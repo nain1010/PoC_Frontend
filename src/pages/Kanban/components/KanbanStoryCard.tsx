@@ -1,6 +1,19 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import { Card, CardBody, Badge, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Input, Label, UncontrolledDropdown } from 'reactstrap';
+import { Badge, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Input, Label, UncontrolledDropdown } from 'reactstrap';
 import InlineAttachments from '../../../Components/Common/InlineAttachments';
+
+/** Map story estado to CSS modifier for status pill */
+const getStatusPillClass = (estado: string) => {
+    switch (estado) {
+        case 'Comprometida': return 'kanban-status-pill--comprometida';
+        case 'En Progreso': return 'kanban-status-pill--en-progreso';
+        case 'Lista para Pruebas': return 'kanban-status-pill--lista-pruebas';
+        case 'Hecha': return 'kanban-status-pill--hecha';
+        case 'Nueva': return 'kanban-status-pill--nueva';
+        case 'Refinada': return 'kanban-status-pill--refinada';
+        default: return 'kanban-status-pill--nueva';
+    }
+};
 
 const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onStoryStatusChange, onTaskStatusChange, onTaskAssign, onOpenTaskModal, expanded, onToggleExpand, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer, dragHandleProps, setNodeRef, style, isDragging, statusErrorExt }: {
     story: any;
@@ -29,17 +42,17 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
 
     // Filter tasks by member if active
     const memberTasksCount = useMemo(() => 
-        memberFilter ? storyTasks.filter((t: any) => t.asignado_a === memberFilter).length : storyTasks.length,
+        memberFilter ? storyTasks.filter((t: any) => t.asignado_a_id === memberFilter).length : storyTasks.length,
         [storyTasks, memberFilter]
     );
 
     const doneTasksCount = useMemo(() => 
-        storyTasks.filter((t: any) => t.estado === 'Terminada' && (!memberFilter || t.asignado_a === memberFilter)).length,
+        storyTasks.filter((t: any) => t.estado === 'Terminada' && (!memberFilter || t.asignado_a_id === memberFilter)).length,
         [storyTasks, memberFilter]
     );
 
     const totalTasksCount = useMemo(() => 
-        storyTasks.filter((t: any) => !memberFilter || t.asignado_a === memberFilter).length,
+        storyTasks.filter((t: any) => !memberFilter || t.asignado_a_id === memberFilter).length,
         [storyTasks, memberFilter]
     );
 
@@ -47,8 +60,8 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
     const displayedTasks = useMemo(
         () => storyTasks.filter((t: any) => {
             if (memberFilter === null) return true;
-            if (memberFilter === "unassigned") return !t.asignado_a;
-            return t.asignado_a === memberFilter;
+            if (memberFilter === "unassigned") return !t.asignado_a_id;
+            return t.asignado_a_id === memberFilter;
         }),
         [storyTasks, memberFilter]
     );
@@ -58,6 +71,17 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
         () => totalTasksCount > 0 ? Math.round((doneTasksCount / totalTasksCount) * 100) : 0,
         [doneTasksCount, totalTasksCount]
     );
+
+    // Find primary assignee (first assigned developer across tasks)
+    const primaryAssignee = useMemo(() => {
+        const assignedTask = storyTasks.find((t: any) => t.asignado_a_id);
+        if (!assignedTask) return null;
+        const member = projectDetails?.memberships?.find((m: any) => m.usuario_id === assignedTask.asignado_a_id);
+        return member ? {
+            initials: member.nombre_completo.substring(0, 2).toUpperCase(),
+            name: member.nombre_completo
+        } : null;
+    }, [storyTasks, projectDetails?.memberships]);
 
     // Stable handlers
     const handleToggleExpand = useCallback(() => { onToggleExpand(story.id); }, [story.id, onToggleExpand]);
@@ -86,29 +110,28 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
     ], []);
 
     const currentError = statusError || statusErrorExt;
+    const points = story.esfuerzo_estimado || story.puntos_esfuerzo || 0;
 
     return (
-        <Card 
+        <div 
             id={`story-${story.id}`}
-            innerRef={setNodeRef}
-            style={{ ...style, cursor: isDragging ? 'grabbing' : 'grab' }}
-            className={`border mb-3 shadow-sm ${isDragging ? 'opacity-0' : ''}`}
+            ref={setNodeRef}
+            style={{ ...style }}
+            className={`kanban-story-card ${isDragging ? 'is-dragging' : ''}`}
             {...dragHandleProps}
         >
-            <CardBody className="p-3">
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                    <span className="badge bg-soft-info text-info fs-11">
-                        <i className="ri-drag-move-2-fill me-1"></i>
+            <div className="card-body">
+                {/* Card Header: Correlativo + Status Pill */}
+                <div className="kanban-card-header">
+                    <span className="kanban-card-correlativo">
+                        <i className="ri-drag-move-2-fill"></i>
                         {story.correlativo}
                     </span>
                     
-                    {/* Story status dropdown selector */}
+                    {/* Status pill — top-right corner */}
                     <Dropdown isOpen={storyDropdownOpen} toggle={toggleStoryDropdown} size="sm" strategy="fixed">
-                        <DropdownToggle tag="button" className="btn btn-sm btn-outline-light text-muted border-0 py-0 px-2 fs-12">
-                            <span className="d-flex align-items-center gap-1">
-                                <span>{story.estado}</span>
-                                <i className="ri-arrow-down-s-line align-middle"></i>
-                            </span>
+                        <DropdownToggle tag="button" className={`kanban-status-pill ${getStatusPillClass(story.estado)}`} style={{ cursor: 'pointer' }}>
+                            {story.estado}
                         </DropdownToggle>
                         <DropdownMenu className="dropdown-menu-sm dropdown-menu-end">
                             <DropdownItem header><span>Cambiar Estado de Historia</span></DropdownItem>
@@ -126,42 +149,29 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                     </Dropdown>
                 </div>
 
-                <h6 className="fw-semibold text-body mb-2">{story.titulo}</h6>
+                {/* Title */}
+                <div className="kanban-card-title">{story.titulo}</div>
+
+                {/* Error Alert */}
                 {currentError && (
                     <div className="alert alert-danger py-1 px-2 mb-2 fs-11 animate-fade-in-up" role="alert" style={{ borderRadius: '6px' }}>
                         <i className="ri-error-warning-line me-1 align-middle"></i>
                         {currentError}
                     </div>
                 )}
-                <p className="text-muted fs-13 mb-3 text-truncate-two-lines" title={story.narrativa}>
+
+                {/* Description — 2-line truncation */}
+                <p className="kanban-card-desc" title={story.narrativa}>
                     {story.narrativa}
                 </p>
 
-                {/* Effort points and Actions */}
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <span className="text-muted fs-12 me-2">Esfuerzo:</span>
-                        <Badge color="soft-primary" className="text-primary rounded-pill">
-                            {story.esfuerzo_estimado || story.puntos_esfuerzo || 0} Pts
-                        </Badge>
-                    </div>
-                    <div className="d-flex gap-1">
-                        <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenAttachmentModal(story.id, 'historia'); }} title="Archivos adjuntos">
-                            <i className="ri-attachment-2 fs-16 align-middle"></i>
-                        </Button>
-                        <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenPageSelector(story.id, 'historia'); }} title="Documentos Adjuntos">
-                            <i className="ri-file-text-line fs-16 align-middle"></i>
-                        </Button>
-                    </div>
-                </div>
-
                 {/* Progress bar of tasks */}
-                <div className="mb-3 pt-2 border-top">
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span className="text-muted fs-12">Tareas Técnicas ({doneTasksCount}/{totalTasksCount})</span>
-                        <span className="fw-semibold text-body fs-12">{progressPercent}%</span>
+                <div className="kanban-card-progress">
+                    <div className="kanban-card-progress__header">
+                        <span className="kanban-card-progress__label">Tareas ({doneTasksCount}/{totalTasksCount})</span>
+                        <span className="kanban-card-progress__percent">{progressPercent}%</span>
                     </div>
-                    <div className="progress progress-sm" style={{ height: "6px" }}>
+                    <div className="progress" style={{ height: "4px" }}>
                         <div 
                             className={`progress-bar ${progressPercent === 100 ? 'bg-success' : 'bg-primary'}`} 
                             role="progressbar" 
@@ -175,45 +185,68 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
 
                 <InlineAttachments projectId={projectDetails.id} entityType="historia" entityId={story.id} onOpenPageViewer={onOpenPageViewer} />
 
-                {/* Actions */}
-                <div className="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
-                    <Button 
-                        color="link" 
-                        size="sm" 
-                        className="p-0 text-decoration-none fs-12 text-secondary"
+                {/* Compact Footer: attachments + avatar + points */}
+                <div className="kanban-card-footer">
+                    <div className="kanban-card-footer__actions">
+                        <button 
+                            className="kanban-card-footer__btn" 
+                            onClick={(e) => { e.stopPropagation(); onOpenAttachmentModal(story.id, 'historia'); }} 
+                            title="Archivos adjuntos"
+                        >
+                            <i className="ri-attachment-2"></i>
+                        </button>
+                        <button 
+                            className="kanban-card-footer__btn" 
+                            onClick={(e) => { e.stopPropagation(); onOpenPageSelector(story.id, 'historia'); }} 
+                            title="Documentos Adjuntos"
+                        >
+                            <i className="ri-file-text-line"></i>
+                        </button>
+                    </div>
+                    <div className="kanban-card-footer__right">
+                        {primaryAssignee && (
+                            <span className="kanban-card-footer__avatar" title={primaryAssignee.name}>
+                                {primaryAssignee.initials}
+                            </span>
+                        )}
+                        <span className="kanban-card-footer__points">
+                            <i className="ri-fire-line"></i>
+                            {points} Pts
+                        </span>
+                    </div>
+                </div>
+
+                {/* Actions — Expand toggle + Create Task */}
+                <div className="kanban-card-actions">
+                    <button 
+                        className="kanban-card-actions__toggle"
                         onClick={handleToggleExpand}
                     >
-                        <span className="d-flex align-items-center gap-1">
-                            <i className={`${expanded ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'} align-middle`}></i>
-                            <span>{expanded ? 'Ocultar Tareas' : `Ver Tareas (${displayedTasks.length})`}</span>
-                        </span>
-                    </Button>
+                        <i className={`${expanded ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
+                        <span>{expanded ? 'Ocultar Tareas' : `Ver Tareas (${displayedTasks.length})`}</span>
+                    </button>
                     
-                    <Button 
-                        color="soft-success" 
-                        size="sm" 
-                        className="btn-sm py-0.5 px-2 fs-11"
+                    <button 
+                        className="kanban-card-actions__create"
                         onClick={handleOpenTaskModal}
                     >
-                        <span className="d-flex align-items-center gap-1">
-                            <i className="ri-add-line align-middle"></i>
-                            <span>Crear Tarea</span>
-                        </span>
-                    </Button>
+                        <i className="ri-add-line"></i>
+                        <span>Crear Tarea</span>
+                    </button>
                 </div>
 
                 {/* Expanded Tasks List */}
                 {expanded && (
-                    <div className="mt-3 pt-3 border-top bg-light-subtle rounded p-2 border border-dashed">
-                        <h6 className="fs-12 fw-bold text-body mb-2"><span>Desglose Técnico:</span></h6>
+                    <div className="kanban-tasks-panel">
+                        <div className="kanban-tasks-panel__title">Desglose Técnico</div>
                         <div>
                             {displayedTasks.length === 0 ? (
-                                <div className="text-center py-2 text-muted fs-11">
+                                <div className="kanban-tasks-empty">
                                     <span>{memberFilter ? "No hay tareas que coincidan con el filtro." : "Sin tareas creadas aún. Presiona \"+ Tarea\" para crear una."}</span>
                                 </div>
                             ) : (
                                 displayedTasks.map((task: any) => (
-                                    <div key={task.id} id={`task-${task.id}`} className="p-2 mb-2 border rounded bg-body shadow-sm d-flex justify-content-between align-items-center">
+                                    <div key={task.id} id={`task-${task.id}`} className="kanban-task-row">
                                         <div className="d-flex align-items-start gap-2">
                                             <Input
                                                 type="checkbox"
@@ -223,29 +256,27 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                                 onChange={(e) => onTaskStatusChange(task.id, e.target.checked ? "Terminada" : "Pendiente")}
                                             />
                                             <div>
-                                                <Label htmlFor={`task-check-${task.id}`} className={`mb-0 fs-13 cursor-pointer ${task.estado === "Terminada" ? "text-decoration-line-through text-muted" : "fw-medium"}`}>
+                                                <Label htmlFor={`task-check-${task.id}`} className={`mb-0 fs-13 cursor-pointer ${task.estado === "Terminada" ? "text-decoration-line-through text-muted" : "fw-medium"}`} style={{ color: task.estado === "Terminada" ? 'var(--kanban-text-muted)' : 'var(--kanban-text-title)' }}>
                                                     {task.titulo}
                                                 </Label>
-                                                <div className="text-muted fs-11 mt-1">{task.descripcion}</div>
+                                                <div className="fs-11 mt-1" style={{ color: 'var(--kanban-text-muted)' }}>{task.descripcion}</div>
                                             </div>
                                         </div>
                                         <div className="d-flex align-items-center gap-2">
-                                            <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenAttachmentModal(task.id, 'tarea'); }} title="Archivos adjuntos">
-                                                <i className="ri-attachment-2 fs-14 align-middle"></i>
-                                            </Button>
-                                            <Button size="sm" color="light" className="text-muted p-1 border-0" onClick={(e) => { e.stopPropagation(); onOpenPageSelector(task.id, 'tarea'); }} title="Documentos Adjuntos">
-                                                <i className="ri-file-text-line fs-14 align-middle"></i>
-                                            </Button>
+                                            <button className="kanban-card-footer__btn" onClick={(e) => { e.stopPropagation(); onOpenAttachmentModal(task.id, 'tarea'); }} title="Archivos adjuntos">
+                                                <i className="ri-attachment-2 fs-14"></i>
+                                            </button>
+                                            <button className="kanban-card-footer__btn" onClick={(e) => { e.stopPropagation(); onOpenPageSelector(task.id, 'tarea'); }} title="Documentos Adjuntos">
+                                                <i className="ri-file-text-line fs-14"></i>
+                                            </button>
                                             <UncontrolledDropdown size="sm" strategy="fixed">
-                                                <DropdownToggle tag="button" className="btn btn-sm btn-ghost-primary rounded-circle p-1">
-                                                    {task.asignado_a ? (
-                                                        <div className="avatar-xs">
-                                                            <div className="avatar-title rounded-circle bg-primary text-white fs-10" title="Asignado">
-                                                                {projectDetails.memberships?.find((m:any) => m.usuario_id === task.asignado_a)?.nombre_completo.substring(0, 2).toUpperCase() || "US"}
-                                                            </div>
-                                                        </div>
+                                                <DropdownToggle tag="button" className="kanban-card-footer__btn">
+                                                    {task.asignado_a_id ? (
+                                                        <span className="kanban-card-footer__avatar" style={{ width: 22, height: 22, fontSize: '8px' }}>
+                                                            {projectDetails.memberships?.find((m:any) => m.usuario_id === task.asignado_a_id)?.nombre_completo.substring(0, 2).toUpperCase() || "US"}
+                                                        </span>
                                                     ) : (
-                                                        <i className="ri-user-add-line fs-14 text-muted"></i>
+                                                        <i className="ri-user-add-line fs-14" style={{ color: 'var(--kanban-text-muted)' }}></i>
                                                     )}
                                                 </DropdownToggle>
                                                 <DropdownMenu className="dropdown-menu-end" container="body">
@@ -256,7 +287,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                                                         <DropdownItem 
                                                             key={m.usuario_id} 
                                                             onClick={() => onTaskAssign(task.id, m.usuario_id)}
-                                                            active={task.asignado_a === m.usuario_id}
+                                                            active={task.asignado_a_id === m.usuario_id}
                                                             className="fs-12"
                                                         >
                                                             {m.nombre_completo}
@@ -271,8 +302,8 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                         </div>
                     </div>
                 )}
-            </CardBody>
-        </Card>
+            </div>
+        </div>
     );
 });
 

@@ -72,7 +72,7 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
 
             try {
                 const response = await fetch(
-                    `${config.api.API_URL}/projects/${projectId}/attachments/?entity_type=${entityType}&entity_id=${entityId}`,
+                    `${config.api.API_URL}/api/upload/${projectId}?entity_type=${entityType}&entity_id=${entityId}`,
                     {
                         method: 'POST',
                         headers: {
