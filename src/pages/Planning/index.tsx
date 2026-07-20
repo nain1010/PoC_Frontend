@@ -950,7 +950,7 @@ const Planning = () => {
                             {/* Columna Izquierda: Backlog (Ancho: 4 en XL, 5 en LG) */}
                             <Col xl={4} lg={5} className="mb-4">
                                 <Card className="shadow-sm border-0 h-100">
-                                    <div className="card-header border-0 d-flex justify-content-between align-items-center p-3">
+                                    <div className="card-header border-0 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3">
                                         <div className="d-flex align-items-center gap-2">
                                             <div className="avatar-xs">
                                                 <div className="avatar-title bg-primary text-white rounded-circle fs-16 shadow-sm">
@@ -961,7 +961,7 @@ const Planning = () => {
                                                 Product Backlog <span className="badge bg-primary ms-1">{backlogStories.length}</span>
                                             </h5>
                                         </div>
-                                        <div className="d-flex gap-2 align-items-center">
+                                        <div className="d-flex gap-2 align-items-center flex-wrap">
                                             <div className="search-box me-1" style={{width: '160px'}}>
                                                 <input type="text" className="form-control form-control-sm" placeholder="Buscar historia..." value={backlogSearchQuery} onChange={(e) => setBacklogSearchQuery(e.target.value)} />
                                                 <i className="ri-search-line search-icon text-muted"></i>
@@ -1016,7 +1016,7 @@ const Planning = () => {
                             {/* Columna Derecha: Sprints (Ancho: 8 en XL, 7 en LG) */}
                             <Col xl={8} lg={7} className="mb-4">
                                 <Card className="shadow-sm border-0 h-100">
-                                    <div className="card-header border-0 d-flex justify-content-between align-items-center p-3">
+                                    <div className="card-header border-0 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3">
                                         <div className="d-flex align-items-center gap-2">
                                             <div className="avatar-xs">
                                                 <div className="avatar-title bg-secondary text-white rounded-circle fs-16 shadow-sm">
@@ -1025,7 +1025,7 @@ const Planning = () => {
                                             </div>
                                             <h5 className="card-title mb-0 fw-bold fs-15 text-body">Planificación de Sprints</h5>
                                         </div>
-                                        <div className="d-flex gap-2 align-items-center">
+                                        <div className="d-flex gap-2 align-items-center flex-wrap">
                                             <div className="search-box me-1" style={{width: '180px'}}>
                                                 <input type="text" className="form-control form-control-sm" placeholder="Buscar sprint..." value={sprintSearchQuery} onChange={(e) => setSprintSearchQuery(e.target.value)} />
                                                 <i className="ri-search-line search-icon text-muted"></i>
