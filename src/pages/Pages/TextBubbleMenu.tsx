@@ -30,7 +30,7 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
                     }
                 }).run();
             }
-            toast.success("Historia/Tarea creada exitosamente", { position: "top-center" });
+            // toast.success("Historia/Tarea creada exitosamente", { position: "top-center" });
         },
         onError: () => {
             toast.error("Error al crear la tarea.", { position: "top-center" });
@@ -67,14 +67,14 @@ const TextBubbleMenu = ({ editor }: { editor: any }) => {
 
     const handleConvertToTask = () => {
         if (!activeProjectId) {
-            toast.warning("Debe haber un proyecto activo para crear tareas.");
+            // toast.warning("Debe haber un proyecto activo para crear tareas.");
             return;
         }
         
         const { from, to } = editor.state.selection;
         const text = editor.state.doc.textBetween(from, to, ' ');
         if (!text || text.trim().length === 0) {
-            toast.warning("Selecciona algún texto válido para convertir.");
+            // toast.warning("Selecciona algún texto válido para convertir.");
             return;
         }
 

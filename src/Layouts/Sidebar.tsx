@@ -15,7 +15,10 @@ import HorizontalLayout from "./HorizontalLayout";
 
 const Sidebar = ({ layoutType }: any) => {
   const [userName, setUserName] = useState("Usuario");
-  const [avatarSrc, setAvatarSrc] = useState(avatar1);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+
+  const names = userName.split(" ");
+  const initials = names.map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
 
   useEffect(() => {
     const authUser: any = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
@@ -36,6 +39,8 @@ const Sidebar = ({ layoutType }: any) => {
         const obj = JSON.parse(authUser);
         if (obj.avatar_url) {
           setAvatarSrc(obj.avatar_url);
+        } else {
+          setAvatarSrc(null);
         }
         setUserName(obj.nombre_completo || obj.email || "Usuario");
       }
@@ -98,7 +103,13 @@ const Sidebar = ({ layoutType }: any) => {
         <UncontrolledDropdown className="sidebar-user m-1 rounded">
           <DropdownToggle tag="button" type="button" className="btn d-flex w-100 align-items-center border-0 bg-transparent shadow-none" id="page-header-user-dropdown" style={{ padding: "8px 12px" }}>
             <span className="d-flex align-items-center gap-2">
-              <img className="rounded-circle header-profile-user" src={avatarSrc} alt="Header Avatar" style={{ objectFit: "cover", width: "40px", height: "40px" }} />
+              {avatarSrc ? (
+                  <img className="rounded-circle header-profile-user" src={avatarSrc} alt="Header Avatar" style={{ objectFit: "cover", width: "40px", height: "40px" }} />
+              ) : (
+                  <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold fs-14 border border-2 border-white shadow-sm" style={{ width: "40px", height: "40px", minWidth: "40px" }}>
+                      {initials}
+                  </div>
+              )}
                 <span className="text-start">
                   <span className="d-block fw-medium sidebar-user-name-text">{userName}</span>
                   <span className="d-block fs-14 sidebar-user-name-sub-text"><i className="ri ri-circle-fill fs-10 text-success align-baseline"></i> <span className="align-middle">Online</span></span>

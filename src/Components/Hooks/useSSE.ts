@@ -35,7 +35,7 @@ export function useSSE() {
           queryClient.invalidateQueries({ queryKey: ['activity', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
         if (data.actor_id && data.actor_id !== currentUserId) {
-          toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
+          // toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
         }
         }
       } catch {
@@ -54,7 +54,7 @@ export function useSSE() {
           queryClient.invalidateQueries({ queryKey: ['activity', data.project_id] });
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
           if (data.actor_id && data.actor_id !== currentUserId) {
-            toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
+            // toast.info('Actualización remota en el proyecto detectada.', { position: 'top-right', autoClose: 3000 });
           }
         }
       } catch {

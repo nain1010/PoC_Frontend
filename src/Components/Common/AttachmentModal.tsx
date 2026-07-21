@@ -89,7 +89,7 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
             });
 
             queryClient.invalidateQueries({ queryKey: ['attachments', entityType, entityId] });
-            toast.success(`"${file.name}" subido exitosamente.`);
+            // toast.success(`"${file.name}" subido exitosamente.`);
         } catch (error: any) {
             console.error(error);
             toast.error(error.message || "Error al subir el archivo.");
@@ -183,7 +183,7 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
                     <div className="d-flex align-items-center gap-2">
                         <div style={{ 
                             width: 36, height: 36, borderRadius: 10,
-                            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                            background: 'var(--vz-secondary)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
                             <i className="ri-attachment-2 text-white fs-5"></i>
@@ -202,12 +202,12 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
                         onDragLeave={handleDragLeave}
                         onClick={() => !uploading && fileInputRef.current?.click()}
                         style={{
-                            border: `2px dashed ${dragOver ? '#6366f1' : 'var(--vz-border-color)'}`,
+                            border: `2px dashed ${dragOver ? 'var(--vz-secondary)' : 'var(--vz-border-color)'}`,
                             borderRadius: 12,
                             padding: uploading ? '16px 20px' : '24px 20px',
                             textAlign: 'center',
                             cursor: uploading ? 'default' : 'pointer',
-                            background: dragOver ? 'rgba(99, 102, 241, 0.08)' : 'var(--vz-input-bg)',
+                            background: dragOver ? 'rgba(var(--vz-secondary-rgb), 0.08)' : 'var(--vz-input-bg)',
                             transition: 'all 0.2s ease',
                             marginBottom: 20,
                         }}
@@ -223,25 +223,25 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
                             <div>
                                 <div className="d-flex align-items-center justify-content-between mb-2">
                                     <small className="text-muted fw-medium">Subiendo archivo...</small>
-                                    <small className="fw-semibold" style={{ color: '#6366f1' }}>{uploadProgress}%</small>
+                                    <small className="fw-semibold" style={{ color: 'var(--vz-secondary)' }}>{uploadProgress}%</small>
                                 </div>
                                 <Progress
                                     value={uploadProgress}
                                     style={{ height: 6, borderRadius: 3, background: 'var(--vz-border-color)' }}
-                                    barStyle={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', borderRadius: 3 }}
+                                    barStyle={{ background: 'var(--vz-secondary)', borderRadius: 3 }}
                                 />
                             </div>
                         ) : (
                             <>
                                 <div style={{
                                     width: 48, height: 48, borderRadius: 12, margin: '0 auto 12px',
-                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)',
+                                    background: 'rgba(var(--vz-secondary-rgb), 0.15)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                                 }}>
-                                    <i className="ri-upload-cloud-2-line fs-2" style={{ color: '#6366f1' }}></i>
+                                    <i className="ri-upload-cloud-2-line fs-2" style={{ color: 'var(--vz-secondary)' }}></i>
                                 </div>
                                 <p className="mb-1 fw-medium" style={{ fontSize: '0.9rem' }}>
-                                    Arrastra archivos aquí o <span style={{ color: '#6366f1', fontWeight: 600 }}>haz clic para buscar</span>
+                                    Arrastra archivos aquí o <span style={{ color: 'var(--vz-secondary)', fontWeight: 600 }}>haz clic para buscar</span>
                                 </p>
                                 <small className="text-muted">PDFs, Imágenes, Word, Excel, Diagramas — hasta 50 MB</small>
                             </>
@@ -250,7 +250,7 @@ const AttachmentModal = ({ isOpen, toggle, projectId, entityType, entityId }: At
 
                     {/* Loading state */}
                     {isLoading ? (
-                        <div className="text-center py-4"><Spinner color="primary" /></div>
+                        <div className="text-center py-4"><Spinner color="secondary" /></div>
                     ) : attachments.length === 0 ? (
                         <div className="text-center py-4">
                             <div style={{

@@ -59,7 +59,7 @@ const ProfileDropdown = () => {
                             <img className="rounded-circle header-profile-user" src={avatarSrc}
                                 alt="Header Avatar" style={{ objectFit: "cover", width: "32px", height: "32px" }} />
                         ) : (
-                            <div className="rounded-circle bg-soft-primary text-primary d-flex align-items-center justify-content-center fw-semibold fs-13" style={{ width: "32px", height: "32px", minWidth: "32px" }}>
+                            <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-semibold fs-13 border border-2 border-white shadow-sm" style={{ width: "32px", height: "32px", minWidth: "32px" }}>
                                 {initials}
                             </div>
                         )}

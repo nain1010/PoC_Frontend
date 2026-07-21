@@ -175,7 +175,34 @@ html {
 [data-layout="horizontal"] .page-title-box {
   top: 60px;
 }
+/* Sidebar & Topbar Color Matcher for Dark Mode / Dark Sidebar */
+[data-sidebar="dark"] {
+  --luma-sidebar-bg: #405189 !important;
+  --vz-vertical-menu-item-color: rgba(255, 255, 255, 0.6) !important;
+  --vz-vertical-menu-item-hover-color: #ffffff !important;
+  --vz-vertical-menu-item-active-color: #ffffff !important;
+  --vz-vertical-menu-title-color: rgba(255, 255, 255, 0.5) !important;
+  --vz-vertical-menu-sub-item-color: rgba(255, 255, 255, 0.5) !important;
+  --vz-vertical-menu-sub-item-hover-color: #ffffff !important;
+  --vz-vertical-menu-sub-item-active-color: #ffffff !important;
+}
 
-[data-bs-theme="dark"] .page-title-box {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+[data-layout-mode="dark"],
+[data-bs-theme="dark"] {
+  --luma-sidebar-bg: #405189 !important;
+  --luma-header-bg: #405189 !important;
+  --vz-header-bg: #405189 !important;
+  --vz-vertical-menu-item-color: rgba(255, 255, 255, 0.6) !important;
+  --vz-vertical-menu-item-hover-color: #ffffff !important;
+  --vz-vertical-menu-item-active-color: #ffffff !important;
+  --vz-vertical-menu-title-color: rgba(255, 255, 255, 0.5) !important;
+  --vz-vertical-menu-sub-item-color: rgba(255, 255, 255, 0.5) !important;
+  --vz-vertical-menu-sub-item-hover-color: #ffffff !important;
+  --vz-vertical-menu-sub-item-active-color: #ffffff !important;
+}
+
+[data-sidebar="dark"] .navbar-brand-box,
+[data-layout-mode="dark"] .navbar-brand-box,
+[data-bs-theme="dark"] .navbar-brand-box {
+  background-color: #405189 !important;
 }

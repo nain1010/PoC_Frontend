@@ -64,7 +64,7 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
                     return [...(old || []), pageToLink];
                 });
             }
-            toast.success("Página vinculada con éxito.");
+            // toast.success("Página vinculada con éxito.");
         },
         onSettled: (data, error, pageId) => {
             if (!error) {
@@ -96,7 +96,7 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
         },
         onSuccess: (data, pageId) => {
             queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => (old || []).filter((p: any) => p.id !== pageId));
-            toast.success("Página desvinculada.");
+            // toast.success("Página desvinculada.");
         },
         onSettled: (data, error, pageId) => {
             if (!error) {
@@ -114,7 +114,7 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
         onSuccess: (newPage) => {
             queryClient.setQueryData(['pages', projectId], (old: any) => [...(old || []), newPage]);
             queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => [...(old || []), newPage]);
-            toast.success("Página creada y vinculada.");
+            // toast.success("Página creada y vinculada.");
             setSearchTerm("");
         },
         onError: () => toast.error("Error creando la página.")
@@ -128,7 +128,7 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
         <Modal isOpen={isOpen} toggle={toggle} centered scrollable size="lg">
             <ModalHeader toggle={toggle} className="border-bottom">
                 <div className="d-flex align-items-center gap-2">
-                    <i className="ri-file-list-3-line text-primary fs-4"></i>
+                    <i className="ri-file-list-3-line text-secondary fs-4"></i>
                     Documentación Adjunta
                 </div>
             </ModalHeader>
@@ -148,18 +148,18 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
 
                 <div className="p-3">
                     {isLoading || isLoadingLinked ? (
-                        <div className="text-center py-4"><Spinner color="primary" /></div>
+                        <div className="text-center py-4"><Spinner color="secondary" /></div>
                     ) : (
                         <div className="list-group">
                             {searchTerm && filteredPages.length === 0 && (
                                 <button 
-                                    className="list-group-item list-group-item-action d-flex align-items-center gap-3 text-primary border-primary bg-primary bg-opacity-10"
+                                    className="list-group-item list-group-item-action d-flex align-items-center gap-3 text-secondary border-secondary bg-secondary bg-opacity-10"
                                     onClick={() => createAndLinkMutation.mutate(searchTerm)}
                                     disabled={createAndLinkMutation.isPending}
                                 >
                                     <i className="ri-add-circle-line fs-4"></i>
                                     <div>
-                                        <h6 className="mb-0 text-primary">Crear nueva página: "{searchTerm}"</h6>
+                                        <h6 className="mb-0 text-secondary">Crear nueva página: "{searchTerm}"</h6>
                                         <small>Se creará y adjuntará automáticamente</small>
                                     </div>
                                 </button>
@@ -171,7 +171,7 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
                                         {page.icono && page.icono !== "📝" && page.icono !== "📄" && <span className="fs-3">{page.icono}</span>}
                                         <div>
                                             <h6 
-                                                className={`mb-0 ${isLinked(page.id) && onOpenPageViewer ? 'text-primary cursor-pointer text-decoration-underline' : ''}`}
+                                                className={`mb-0 ${isLinked(page.id) && onOpenPageViewer ? 'text-secondary cursor-pointer text-decoration-underline' : ''}`}
                                                 onClick={() => {
                                                     if (isLinked(page.id) && onOpenPageViewer) {
                                                         onOpenPageViewer(page.id);
@@ -219,7 +219,7 @@ const PageSelectorModal = ({ isOpen, toggle, projectId, entityType, entityId, on
                                         ) : (
                                             <Button 
                                                 size="sm" 
-                                                color="primary" 
+                                                color="secondary" 
                                                 outline 
                                                 onClick={() => linkMutation.mutate(page.id)}
                                                 disabled={linkMutation.isPending}

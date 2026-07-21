@@ -697,7 +697,7 @@ const Kanban = () => {
                     </ModalBody>
                     <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleTaskModal} disabled={taskSubmitting}>Cancelar</Button>
-                        <Button type="submit" color="success" disabled={taskSubmitting}>
+                        <Button type="submit" color="secondary" disabled={taskSubmitting}>
                             <span className="d-flex align-items-center gap-1">
                                 {taskSubmitting && <Spinner size="sm" />}
                                 <span>Guardar Tarea</span>

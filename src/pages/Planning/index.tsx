@@ -16,6 +16,7 @@ import AttachmentModal from '../../Components/Common/AttachmentModal';
 import PageViewerDrawer from '../../Components/Common/PageViewerDrawer';
 import InlineAttachments from '../../Components/Common/InlineAttachments';
 import SkeletonLoader from '../../Components/Common/SkeletonLoader';
+
 const api = APIClient;
 
 const getProjectPrefix = (name: string) => {
@@ -48,24 +49,27 @@ const Planning = () => {
         queryKey: ['project', activeProjectId],
         queryFn: () => api.get(`/projects/${activeProjectId}`) as any,
         enabled: !!activeProjectId,
-        select: (data: any) => {
-            if (data?.memberships) {
-                const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
-                if (authUserStr) {
-                    try {
-                        const authUser = JSON.parse(authUserStr);
-                        const userId = authUser.id || authUser.usuario_id || "";
-                        const myMembership = data.memberships.find((m: any) => m.usuario_id === userId);
-                        if (myMembership) {
+    });
+
+    useEffect(() => {
+        if (projectDetails?.memberships) {
+            const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
+            if (authUserStr) {
+                try {
+                    const authUser = JSON.parse(authUserStr);
+                    const userId = authUser.id || authUser.usuario_id || "";
+                    const myMembership = projectDetails.memberships.find((m: any) => m.usuario_id === userId);
+                    if (myMembership) {
+                        const currentRole = localStorage.getItem("activeProjectRole");
+                        if (currentRole !== myMembership.rol) {
                             localStorage.setItem("activeProjectRole", myMembership.rol);
                             window.dispatchEvent(new Event("activeProjectUpdated"));
                         }
-                    } catch (e) { /* ignore */ }
-                }
+                    }
+                } catch (e) { /* ignore */ }
             }
-            return data;
-        },
-    });
+        }
+    }, [projectDetails]);
 
     // Modals
     const [storyModal, setStoryModal] = useState<boolean>(false);
@@ -537,7 +541,7 @@ const Planning = () => {
     }, [estimateMutation]);
 
     const planStoryMutation = useMutation({
-        mutationFn: ({ storyId, sprintId }: { storyId: string; sprintId: string }) =>
+        mutationFn: ({ storyId, sprintId }: { storyId: string; sprintId: string | null }) =>
             api.create(`/projects/${activeProjectId}/stories/${storyId}/sprint`, { sprint_id: sprintId }),
         onMutate: async ({ storyId, sprintId }) => {
             await queryClient.cancelQueries({ queryKey: ['project', activeProjectId] });
@@ -546,7 +550,11 @@ const Planning = () => {
                 setProjectSnapshot({
                     ...current,
                     historias_usuario: (current.historias_usuario || []).map((h: any) =>
-                        h.id === storyId ? { ...h, sprint_id: sprintId, estado: "Comprometida" } : h
+                        h.id === storyId ? {
+                            ...h,
+                            sprint_id: sprintId,
+                            estado: sprintId ? "Comprometida" : (h.esfuerzo_estimado > 0 ? "Refinada" : "Nueva")
+                        } : h
                     )
                 });
             }
@@ -557,9 +565,11 @@ const Planning = () => {
         },
     });
 
-    const handlePlanStory = useCallback((storyId: string, sprintId: string) => {
+    const handlePlanStory = useCallback((storyId: string, sprintId: string | null) => {
         planStoryMutation.mutate({ storyId, sprintId });
     }, [planStoryMutation]);
+
+
 
     const activateSprintMutation = useMutation({
         mutationFn: (sprintId: string) =>
@@ -586,7 +596,7 @@ const Planning = () => {
                     )
                 });
             }
-            toast.success("Sprint activado correctamente.", { position: "top-right" });
+            // toast.success("Sprint activado correctamente.", { position: "top-right" });
         },
         onError: (err: any) => {
             invalidateProject();
@@ -629,7 +639,7 @@ const Planning = () => {
                     )
                 });
             }
-            toast.success("Sprint cerrado correctamente.", { position: "top-right" });
+            // toast.success("Sprint cerrado correctamente.", { position: "top-right" });
         },
         onError: (err: any) => {
             invalidateProject();
@@ -946,39 +956,40 @@ const Planning = () => {
                     ) : error ? (
                         <Alert color="danger" className="text-center">{error?.message || String(error)}</Alert>
                     ) : (
-                        <Row>
-                            {/* Columna Izquierda: Backlog (Ancho: 4 en XL, 5 en LG) */}
-                            <Col xl={4} lg={5} className="mb-4">
-                                <Card className="shadow-sm border-0 h-100">
-                                    <div className="card-header border-0 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <div className="avatar-xs">
-                                                <div className="avatar-title bg-primary text-white rounded-circle fs-16 shadow-sm">
-                                                    <i className="ri-inbox-archive-line"></i>
+                        <>
+                            <Row>
+                                {/* Columna Izquierda: Backlog (Ancho: 5 en XL, 6 en LG) */}
+                                <Col xl={5} lg={6} className="mb-4">
+                                    <Card className="shadow-sm border-0 h-100">
+                                        <div className="card-header border-0 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3">
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div className="avatar-xs">
+                                                    <div className="avatar-title bg-secondary text-white rounded-circle fs-16 shadow-sm">
+                                                        <i className="ri-inbox-archive-line"></i>
+                                                    </div>
                                                 </div>
+                                                <h5 className="card-title mb-0 fw-bold fs-15 text-body">
+                                                    Product Backlog <span className="badge bg-secondary ms-1">{backlogStories.length}</span>
+                                                </h5>
                                             </div>
-                                            <h5 className="card-title mb-0 fw-bold fs-15 text-body">
-                                                Product Backlog <span className="badge bg-primary ms-1">{backlogStories.length}</span>
-                                            </h5>
+                                            <div className="d-flex gap-2 align-items-center flex-wrap">
+                                                <div className="search-box me-1" style={{width: '130px'}}>
+                                                    <input type="text" className="form-control form-control-sm" placeholder="Buscar historia..." value={backlogSearchQuery} onChange={(e) => setBacklogSearchQuery(e.target.value)} />
+                                                    <i className="ri-search-line search-icon text-muted"></i>
+                                                </div>
+                                                <div className="btn-group shadow-sm" role="group">
+                                                    <Button color={backlogViewMode === 'grid' ? "secondary" : "soft-secondary"} size="sm" onClick={() => handleBacklogViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
+                                                    <Button color={backlogViewMode === 'table' ? "secondary" : "soft-secondary"} size="sm" onClick={() => handleBacklogViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
+                                                </div>
+                                                <Button color="secondary" size="sm" className="btn-sm shadow-sm" onClick={handleOpenCreateStory}>
+                                                    <i className="ri-add-line align-middle me-1"></i> Crear
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="d-flex gap-2 align-items-center flex-wrap">
-                                            <div className="search-box me-1" style={{width: '160px'}}>
-                                                <input type="text" className="form-control form-control-sm" placeholder="Buscar historia..." value={backlogSearchQuery} onChange={(e) => setBacklogSearchQuery(e.target.value)} />
-                                                <i className="ri-search-line search-icon text-muted"></i>
-                                            </div>
-                                            <div className="btn-group shadow-sm" role="group">
-                                                <Button color={backlogViewMode === 'grid' ? "primary" : "soft-primary"} size="sm" onClick={() => handleBacklogViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
-                                                <Button color={backlogViewMode === 'table' ? "primary" : "soft-primary"} size="sm" onClick={() => handleBacklogViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
-                                            </div>
-                                            <Button color="primary" size="sm" className="btn-sm shadow-sm" onClick={handleOpenCreateStory}>
-                                                <i className="ri-add-line align-middle me-1"></i> Crear
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <CardBody className="p-3" style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
+                                        <DroppableBacklogCardBody>
                                         {filteredBacklogStories.length === 0 ? (
                                             <div className="text-center py-5 text-muted">
-                                                <i className="ri-inbox-line display-4 mb-2 d-inline-block text-primary opacity-50"></i>
+                                                <i className="ri-inbox-line display-4 mb-2 d-inline-block text-secondary opacity-50"></i>
                                                 <p className="mb-0 fw-medium fs-15">El backlog está vacío</p>
                                                 <small>Crea historias de usuario para comenzar.</small>
                                             </div>
@@ -1009,12 +1020,12 @@ const Planning = () => {
                                                 />
                                             ))
                                         )}
-                                    </CardBody>
+                                    </DroppableBacklogCardBody>
                                 </Card>
                             </Col>
 
-                            {/* Columna Derecha: Sprints (Ancho: 8 en XL, 7 en LG) */}
-                            <Col xl={8} lg={7} className="mb-4">
+                            {/* Columna Derecha: Sprints (Ancho: 7 en XL, 6 en LG) */}
+                            <Col xl={7} lg={6} className="mb-4">
                                 <Card className="shadow-sm border-0 h-100">
                                     <div className="card-header border-0 d-flex justify-content-between align-items-center flex-wrap gap-3 p-3">
                                         <div className="d-flex align-items-center gap-2">
@@ -1042,7 +1053,7 @@ const Planning = () => {
                                             </Button>
                                         </div>
                                     </div>
-                                    <CardBody className="p-3" style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
+                                    <CardBody className="p-3" style={{ minHeight: "200px" }}>
                                         {filteredSprints.length === 0 ? (
                                             <div className="text-center py-5 text-muted">
                                                 <i className="ri-compass-line display-4 mb-2 d-inline-block"></i>
@@ -1091,6 +1102,8 @@ const Planning = () => {
                                 </Card>
                             </Col>
                         </Row>
+
+                        </>
                     )}
                 </Container>
             </div>
@@ -1184,7 +1197,7 @@ const Planning = () => {
                     </ModalBody>
                     <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleStoryModal} disabled={storySubmitting}>Cancelar</Button>
-                        <Button type="submit" color="success" disabled={storySubmitting}>
+                        <Button type="submit" color="secondary" disabled={storySubmitting}>
                             <span className="d-flex align-items-center gap-1">
                                 {storySubmitting && <Spinner size="sm" />}
                                 <span>{editStory ? "Guardar Cambios" : "Crear Historia"}</span>
@@ -1297,7 +1310,7 @@ const Planning = () => {
                     </ModalBody>
                     <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleSprintModal} disabled={sprintSubmitting}>Cancelar</Button>
-                        <Button type="submit" color="success" disabled={sprintSubmitting}>
+                        <Button type="submit" color="secondary" disabled={sprintSubmitting}>
                             <span className="d-flex align-items-center gap-1">
                                 {sprintSubmitting && <Spinner size="sm" />}
                                 <span>{editSprint ? "Guardar Cambios" : "Planificar Sprint"}</span>
@@ -1491,13 +1504,26 @@ const Planning = () => {
     );
 };
 
+// Wrapper for the backlog list
+const DroppableBacklogCardBody = React.memo(({ children }: { children: React.ReactNode }) => {
+    return (
+        <CardBody
+            className={`p-3 rounded transition-all`}
+            style={{ minHeight: '180px' }}
+        >
+            {children}
+        </CardBody>
+    );
+});
+
+
 // Backlog story card
 const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
     story: any;
     activeProjectId: string;
     planningSprints: any[];
     onEstimate: (storyId: string, points: number) => void;
-    onPlan: (storyId: string, sprintId: string) => void;
+    onPlan: (storyId: string, sprintId: string | null) => void;
     onEdit: (story: any) => void;
     onDelete: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
@@ -1505,17 +1531,21 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
     onOpenPageViewer: (pageId: string) => void;
 }) => {
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
-    const handlePlan = useCallback((sprintId: string) => onPlan(story.id, sprintId), [story.id, onPlan]);
+    const handlePlan = useCallback((sprintId: string | null) => onPlan(story.id, sprintId), [story.id, onPlan]);
     const handleEdit = useCallback(() => onEdit(story), [story, onEdit]);
     const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
     return (
         <Card id={`story-${story.id}`} className="border mb-2 shadow-sm card-animate">
             <CardBody className="p-2 px-3">
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex justify-content-between align-items-start w-100">
                     <div className="d-flex align-items-center gap-2 overflow-hidden me-3">
-                        <span className="badge bg-soft-info text-info fs-11 flex-shrink-0" style={{minWidth: '60px', textAlign: 'center'}}>{story.correlativo}</span>
-                        <span className="fw-medium text-body fs-14 text-truncate mb-0" title={story.titulo}>{story.titulo}</span>
+                        <span className="badge bg-soft-info text-info fs-11" style={{minWidth: '60px', textAlign: 'center'}}>
+                            {story.correlativo}
+                        </span>
+                        <span className="fw-semibold text-body fs-14 text-truncate mb-0" style={{maxWidth: '220px'}} title={story.titulo}>
+                            {story.titulo}
+                        </span>
                     </div>
                     <div className="d-flex gap-1 align-items-center flex-shrink-0">
                         <Button 
@@ -1592,7 +1622,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
     const toggleCollapse = useCallback(() => setIsCollapsed(prev => !prev), []);
 
     return (
-        <Card id={`sprint-${sprint.id}`} className="border mb-4 shadow-sm">
+        <Card id={`sprint-${sprint.id}`} className={`border mb-4 shadow-sm transition-all`}>
             <CardBody className="p-3">
                 <div className="d-flex justify-content-between align-items-start mb-3">
                     <div className="d-flex gap-2 w-100">
@@ -1617,7 +1647,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
                                 
                                 <div className="d-flex gap-2 flex-shrink-0 align-items-center">
                                     {sprint.estado === 'Planificacion' && (
-                                        <Button color="success" outline size="sm" onClick={handleActivate}>Activar Sprint</Button>
+                                        <Button color="secondary" outline size="sm" onClick={handleActivate}>Activar Sprint</Button>
                                     )}
                                     {sprint.estado === 'Activo' && (
                                         <Button color="danger" outline size="sm" onClick={handleClose}>Cerrar Sprint</Button>
@@ -1653,28 +1683,30 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
                                 <span className="fw-bold text-muted fs-14">Historias en el Sprint ({sprintStories.length})</span>
                                 <span className="badge bg-soft-info text-info fs-13">{totalPoints} Puntos Comprometidos</span>
                             </div>
-                            {sprintStories.length === 0 ? (
-                                <div className="text-center py-3 border border-dashed text-muted fs-13 rounded">
-                                    Arrastra o planifica historias del backlog aquí.
-                                </div>
-                            ) : (
-                                sprintStories.map((story: any) => (
-                                    <SprintStoryRow
-                                        key={story.id}
-                                        story={story}
-                                        activeProjectId={activeProjectId}
-                                        sprintId={sprint.id}
-                                        planningSprints={planningSprints}
-                                        onEstimate={onEstimate}
-                                        onPlan={onPlan}
-                                        onEdit={onEditStory}
-                                        onDelete={onDeleteStory}
-                                        onOpenPageSelector={onOpenPageSelector}
-                                        onOpenAttachmentModal={onOpenAttachmentModal}
-                                        onOpenPageViewer={onOpenPageViewer}
-                                    />
-                                ))
-                            )}
+                            <div className="rounded" style={{ minHeight: '60px' }}>
+                                {sprintStories.length === 0 ? (
+                                    <div className="text-center py-3 border border-dashed text-muted fs-13 rounded">
+                                        No hay historias planificadas en este sprint.
+                                    </div>
+                                ) : (
+                                    sprintStories.map((story: any) => (
+                                        <SprintStoryRow
+                                            key={story.id}
+                                            story={story}
+                                            activeProjectId={activeProjectId}
+                                            sprintId={sprint.id}
+                                            planningSprints={planningSprints}
+                                            onEstimate={onEstimate}
+                                            onPlan={onPlan}
+                                            onEdit={onEditStory}
+                                            onDelete={onDeleteStory}
+                                            onOpenPageSelector={onOpenPageSelector}
+                                            onOpenAttachmentModal={onOpenAttachmentModal}
+                                            onOpenPageViewer={onOpenPageViewer}
+                                        />
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </>
                 )}
@@ -1690,7 +1722,7 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
     sprintId: string;
     planningSprints: any[];
     onEstimate: (storyId: string, points: number) => void;
-    onPlan: (storyId: string, sprintId: string) => void;
+    onPlan: (storyId: string, sprintId: string | null) => void;
     onEdit: (story: any) => void;
     onDelete: (storyId: string) => void;
     onOpenPageSelector: (id: string, type: 'historia'|'tarea') => void;
@@ -1698,16 +1730,16 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
     onOpenPageViewer: (pageId: string) => void;
 }) => {
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
-    const handlePlan = useCallback((targetSprintId: string) => onPlan(story.id, targetSprintId), [story.id, onPlan]);
+    const handlePlan = useCallback((targetSprintId: string | null) => onPlan(story.id, targetSprintId), [story.id, onPlan]);
     const handleEdit = useCallback(() => onEdit(story), [story, onEdit]);
     const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
     return (
         <div id={`story-${story.id}`} className="p-2 border rounded mb-2 bg-light">
-            <div className="d-flex justify-content-between align-items-center">
-                <div>
+            <div className="d-flex justify-content-between align-items-start">
+                <div className="d-flex align-items-center gap-1 overflow-hidden me-2">
                     <span className="badge bg-soft-muted text-muted me-2">{story.correlativo}</span>
-                    <span className="text-muted fw-medium fs-13">{story.titulo}</span>
+                    <span className="text-muted fw-medium fs-13 text-truncate">{story.titulo}</span>
                 </div>
                 <div className="d-flex align-items-center gap-2">
                     <Button 
@@ -1764,7 +1796,7 @@ const DropdownEstimate = React.memo(({ onSelect, currentPoints }: { onSelect: (p
 });
 
 // Sub-component plan dropdown
-const DropdownPlan = React.memo(({ sprints, onSelect, currentSprintId }: { sprints: any[], onSelect: (sprintId: string) => void, currentSprintId?: string }) => {
+const DropdownPlan = React.memo(({ sprints, onSelect, currentSprintId }: { sprints: any[], onSelect: (sprintId: string | null) => void, currentSprintId?: string }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const toggle = useCallback(() => setDropdownOpen((prevState) => !prevState), []);
 
@@ -1772,11 +1804,16 @@ const DropdownPlan = React.memo(({ sprints, onSelect, currentSprintId }: { sprin
 
     return (
         <Dropdown isOpen={dropdownOpen} toggle={toggle} size="sm" strategy="fixed">
-            <DropdownToggle tag="button" className="btn btn-sm btn-outline-primary py-0 px-2 fs-12">
+            <DropdownToggle tag="button" className="btn btn-sm btn-outline-secondary py-0 px-2 fs-12">
                 <i className="ri-calendar-event-line"></i>
             </DropdownToggle>
             <DropdownMenu container="body">
                 <DropdownItem header><span>Planificar en Sprint</span></DropdownItem>
+                {currentSprintId && (
+                    <DropdownItem onClick={() => onSelect(null)} className="text-warning">
+                        <i className="ri-inbox-archive-line me-1"></i> <span>Devolver al Backlog</span>
+                    </DropdownItem>
+                )}
                 {activeSprints.length === 0 ? (
                     <DropdownItem disabled><span>Crea un sprint primero</span></DropdownItem>
                 ) : (

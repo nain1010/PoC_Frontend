@@ -53,7 +53,7 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
             return { previousAttachments };
         },
         onSuccess: () => {
-            toast.success("Archivo eliminado.");
+            // toast.success("Archivo eliminado.");
         },
         onError: (err, variables, context: any) => {
             if (context?.previousAttachments) queryClient.setQueryData(['attachments', entityType, entityId], context.previousAttachments);
@@ -70,7 +70,7 @@ const InlineAttachments = ({ projectId, entityType, entityId, onOpenPageViewer }
         },
         onSuccess: (data, pageId) => {
             queryClient.setQueryData(['entity_pages', entityType, entityId], (old: any) => (old || []).filter((p: any) => p.id !== pageId));
-            toast.success("Página desvinculada.");
+            // toast.success("Página desvinculada.");
         },
         onError: (err, variables, context: any) => {
             if (context?.previousPages) queryClient.setQueryData(['entity_pages', entityType, entityId], context.previousPages);

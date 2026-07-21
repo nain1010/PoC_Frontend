@@ -250,7 +250,7 @@ const PageEditorWrapper = ({
         if (hoveredBlockId) {
             const url = `${window.location.origin}${window.location.pathname}#${hoveredBlockId}`;
             navigator.clipboard.writeText(url);
-            toast.success("Enlace del bloque copiado al portapapeles", { position: "top-center" });
+            // toast.success("Enlace del bloque copiado al portapapeles", { position: "top-center" });
         }
     };
 

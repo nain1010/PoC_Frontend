@@ -154,7 +154,7 @@ const Pages = () => {
         onSuccess: (res: any) => {
             queryClient.invalidateQueries({ queryKey: ['pages', activeProjectId] });
             setSelectedPageId(res.id);
-            toast.success("Página creada.", { position: "top-right" });
+            // toast.success("Página creada.", { position: "top-right" });
         },
         onError: (err: any) => toast.error(err || "Error al crear.", { position: "top-right" }),
     });

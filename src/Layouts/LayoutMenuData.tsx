@@ -83,7 +83,7 @@ const Navdata = () => {
 
         {
             id: "planning",
-            label: "Planificación / Backlog",
+            label: "Planificación",
             icon: "ri-calendar-todo-line",
             link: "/planning",
             stateVariables: isPlanning,
@@ -167,12 +167,8 @@ const Navdata = () => {
         },
         ...(isAdmin ? [
             {
-                label: "Administración",
-                isHeader: true,
-            },
-            {
                 id: "users",
-                label: "Usuarios / Admin",
+                label: "Usuarios",
                 icon: "ri-user-settings-line",
                 link: "/users",
                 stateVariables: isUsers,
@@ -185,10 +181,7 @@ const Navdata = () => {
                 },
             }
         ] : []),
-        {
-            label: "Soporte",
-            isHeader: true,
-        },
+
         {
             id: "pages",
             label: "Mi Perfil",
@@ -204,21 +197,15 @@ const Navdata = () => {
             },
         },
         {
-            id: "auth",
-            label: "Autenticación",
-            icon: "ri-account-circle-line",
-            link: "#",
+            id: "logout",
+            label: "Salir",
+            icon: "ri-logout-box-line",
+            link: "/logout",
             click: function (e: any) {
                 e.preventDefault();
-                setIsAuth(!isAuth);
-                setIscurrentState('Auth');
-                updateIconSidebar(e);
+                history("/logout");
             },
-            stateVariables: isAuth,
-            subItems: [
-                { id: "logout", label: "Cerrar Sesión", link: "/logout", parentId: "auth" },
-            ],
-        },
+        }
     ];
 
     return <React.Fragment>{menuItems}</React.Fragment>;

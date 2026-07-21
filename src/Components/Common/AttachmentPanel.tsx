@@ -98,7 +98,7 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
         setUploading(false);
         setUploadProgress(0);
         queryClient.invalidateQueries({ queryKey });
-        toast.success(`${acceptedFiles.length} archivo(s) subido(s) correctamente.`, { position: "top-right" });
+        // toast.success(`${acceptedFiles.length} archivo(s) subido(s) correctamente.`, { position: "top-right" });
     }, [projectId, entityType, entityId, queryClient, queryKey]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -113,26 +113,26 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
                 <div
                     {...getRootProps()}
                     className={`border border-2 border-dashed rounded-3 p-4 text-center mb-3 ${
-                        isDragActive ? 'border-primary bg-soft-primary' : 'border-light'
+                        isDragActive ? 'border-secondary bg-soft-secondary' : 'border-light'
                     }`}
                     style={{ cursor: uploading ? 'wait' : 'pointer', transition: 'all 0.2s ease' }}
                 >
                     <input {...getInputProps()} />
                     {uploading ? (
                         <div>
-                            <Spinner size="sm" color="primary" className="me-2" />
+                            <Spinner size="sm" color="secondary" className="me-2" />
                             <span className="text-muted">Subiendo archivos...</span>
                             <Progress value={uploadProgress} className="mt-2" style={{ height: '6px' }} animated />
                         </div>
                     ) : isDragActive ? (
                         <div>
-                            <i className="ri-download-cloud-line fs-24 text-primary d-block mb-1"></i>
-                            <span className="text-primary fw-semibold">Suelta los archivos aquí</span>
+                            <i className="ri-download-cloud-line fs-24 text-secondary d-block mb-1"></i>
+                            <span className="text-secondary fw-semibold">Suelta los archivos aquí</span>
                         </div>
                     ) : (
                         <div>
                             <i className="ri-upload-cloud-2-line fs-24 text-muted d-block mb-1"></i>
-                            <span className="text-muted">Arrastra archivos aquí o <span className="text-primary fw-semibold">haz clic para buscar</span></span>
+                            <span className="text-muted">Arrastra archivos aquí o <span className="text-secondary fw-semibold">haz clic para buscar</span></span>
                             <p className="text-muted fs-12 mb-0 mt-1">Imágenes, PDFs, videos, documentos...</p>
                         </div>
                     )}
@@ -142,7 +142,7 @@ const AttachmentPanel: React.FC<AttachmentPanelProps> = ({ projectId, entityType
             {/* File List */}
             {isLoading ? (
                 <div className="text-center py-3">
-                    <Spinner size="sm" color="primary" />
+                    <Spinner size="sm" color="secondary" />
                 </div>
             ) : attachments.length === 0 ? (
                 <div className="text-center py-3 text-muted">

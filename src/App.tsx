@@ -37,6 +37,17 @@ function App() {
     applyLumaTheme(getLumaTheme());
   }, []);
 
+  // Prevent Reactstrap Modal from shifting layout by stripping inline padding-right from body
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      if (document.body.style.paddingRight) {
+        document.body.style.paddingRight = '';
+      }
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <React.Fragment>
       <CommandPalette />

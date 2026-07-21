@@ -390,8 +390,8 @@ const UserManagement = () => {
                                     <i className="ri-list-unordered"></i>
                                 </Button>
                             </div>
-                            <Button color="success" className="btn btn-success" onClick={toggleCreateModal}>
-                                <i className="ri-user-add-line align-bottom me-1"></i> <span>Registrar</span>
+                            <Button color="secondary" className="btn btn-secondary shadow-sm" onClick={toggleCreateModal}>
+                                <i className="ri-add-line align-bottom me-1"></i> Crear Usuario
                             </Button>
                         </div>
                     </div>
@@ -536,7 +536,7 @@ const UserManagement = () => {
                     </ModalBody>
                     <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleCreateModal} disabled={submitting}>Cancelar</Button>
-                        <Button type="submit" color="success" disabled={submitting}>
+                        <Button type="submit" color="secondary" disabled={submitting}>
                             <span className="d-flex align-items-center gap-1">
                                 {submitting && <Spinner size="sm" />}
                                 <span>Registrar</span>

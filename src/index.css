@@ -104,6 +104,22 @@ code {
   color: var(--vz-body-color) !important;
 }
 
+/* Igualar barra lateral con la barra superior al color original (azul) en Dark Mode y Sidebar Dark */
+[data-layout-mode="dark"],
+[data-bs-theme="dark"] {
+  --vz-header-bg: #405189 !important;
+}
+
+[data-sidebar="dark"] #layout-wrapper .app-menu,
+[data-sidebar="dark"] #layout-wrapper .navbar-brand-box,
+[data-layout-mode="dark"] #layout-wrapper .app-menu,
+[data-bs-theme="dark"] #layout-wrapper .app-menu,
+[data-layout-mode="dark"] #layout-wrapper .navbar-brand-box,
+[data-bs-theme="dark"] #layout-wrapper .navbar-brand-box {
+  background-color: #405189 !important;
+  border-right: none !important;
+}
+
 /* Fix para el menú superior que se mete detrás del contenido principal */
 .app-menu {
   z-index: 1005 !important;
@@ -128,7 +144,34 @@ code {
 .app-menu, .navbar-brand-box {
   border-right: none !important;
 }
-[data-layout-mode="dark"][data-sidebar="dark"] .app-menu, [data-layout-mode="dark"][data-sidebar="dark"] .navbar-brand-box { background-color: #405189 !important; border-right: none !important; }
+
+/* Fix para evitar que el contenido "salte" o se empuje a la izquierda al abrir un modal.
+   Reactstrap Modal.js sets inline document.body.style.paddingRight and overflow:hidden.
+   We force the scrollbar to ALWAYS be visible so the viewport width never changes. */
+html {
+  overflow-y: scroll !important;
+}
+
+body {
+  padding-right: 0 !important;
+}
+
+body.modal-open {
+  overflow: visible !important;
+  padding-right: 0 !important;
+}
+
+.modal-open .fixed-top,
+.modal-open .fixed-bottom,
+.modal-open #page-topbar,
+.modal-open .app-menu,
+.modal-open .navbar,
+.modal-open .main-content,
+.modal-open #layout-wrapper {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+
 
 @keyframes highlightPulse {
   0%        { outline-color: transparent; outline-offset: 6px; }
@@ -143,4 +186,12 @@ code {
   outline-offset: 2px;
   position: relative;
   z-index: 5;
+}
+
+.cursor-grab {
+  cursor: grab !important;
+}
+
+.cursor-grab:active {
+  cursor: grabbing !important;
 }

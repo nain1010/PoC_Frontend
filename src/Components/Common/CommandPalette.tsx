@@ -59,7 +59,7 @@ const CommandPalette = () => {
 
     const { data: users = [] } = useQuery({
         queryKey: ['users'],
-        queryFn: () => api.get("/idp/users"),
+        queryFn: () => api.get("/users/autocomplete"),
         select: (data: any) => data || [],
         enabled: open && !activeProjectId // Only fetch if NO active project
     });

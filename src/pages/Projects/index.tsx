@@ -329,8 +329,8 @@ const Projects = () => {
             <p className="text-muted col-lg-6 mx-auto">
                 Comienza creando tu primer proyecto ágil para planificar sprints, gestionar tareas y hacer seguimiento de tu equipo de desarrollo.
             </p>
-            <Button color="success" className="btn btn-success mt-3" onClick={toggleModal}>
-                <i className="ri-add-line align-bottom me-1"></i> Crear Primer Proyecto
+            <Button color="secondary" className="btn btn-secondary mt-3 shadow-sm" onClick={toggleModal}>
+                <i className="ri-add-line align-bottom me-1"></i> Crear Proyecto
             </Button>
         </div>
     ), [toggleModal]);
@@ -361,21 +361,21 @@ const Projects = () => {
                             </div>
                             <div className="btn-group" role="group">
                                 <Button 
-                                    color={viewMode === 'grid' ? "primary" : "light"}
+                                    color={viewMode === 'grid' ? "secondary" : "soft-secondary"}
                                     onClick={() => handleViewModeChange('grid')}
                                     title="Vista de Tarjetas"
                                 >
                                     <i className="ri-grid-fill"></i>
                                 </Button>
                                 <Button 
-                                    color={viewMode === 'table' ? "primary" : "light"}
+                                    color={viewMode === 'table' ? "secondary" : "soft-secondary"}
                                     onClick={() => handleViewModeChange('table')}
                                     title="Vista de Tabla"
                                 >
                                     <i className="ri-list-unordered"></i>
                                 </Button>
                             </div>
-                            <Button color="success" className="btn btn-success" onClick={toggleModal}>
+                            <Button color="secondary" className="btn btn-secondary shadow-sm" onClick={toggleModal}>
                                 <i className="ri-add-line align-bottom me-1"></i> Crear Proyecto
                             </Button>
                         </div>
@@ -483,7 +483,7 @@ const Projects = () => {
                     </ModalBody>
                     <ModalFooter className="bg-light p-3 border-top-0 d-flex justify-content-end gap-2">
                         <Button type="button" color="light" onClick={toggleModal} disabled={submitting}>Cancelar</Button>
-                        <Button type="submit" color="success" disabled={submitting}>
+                        <Button type="submit" color="secondary" disabled={submitting}>
                             <span className="d-flex align-items-center gap-1">
                                 {submitting && <Spinner size="sm" />}
                                 <span>Crear Proyecto</span>

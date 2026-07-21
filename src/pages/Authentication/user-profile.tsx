@@ -113,7 +113,7 @@ const UserProfile = () => {
       
       toggleNameModal();
       fetchProfile();
-      toast.success("Nombre actualizado exitosamente.", { position: "top-right" });
+      // toast.success("Nombre actualizado exitosamente.", { position: "top-right" });
     } catch (err: any) {
       toast.error(err || "Error al actualizar el nombre.", { position: "top-right" });
     } finally {
@@ -247,12 +247,12 @@ const UserProfile = () => {
                           <img
                             src={userData.avatar_url}
                             alt="Perfil"
-                            className="rounded-circle border border-4 border-white shadow"
+                            className="rounded-circle img-thumbnail shadow"
                             style={{ width: "90px", height: "90px", objectFit: "cover" }}
                           />
                         ) : (
                           <div
-                            className="rounded-circle border border-4 border-white shadow bg-soft-primary text-primary d-flex align-items-center justify-content-center fw-bold fs-24"
+                            className="rounded-circle img-thumbnail shadow bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-24 p-0"
                             style={{ width: "90px", height: "90px" }}
                           >
                             {initials}
@@ -289,7 +289,7 @@ const UserProfile = () => {
                           <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded">
                             <div className="d-flex align-items-center">
                               <div className="avatar-xs me-3">
-                                <span className="avatar-title bg-soft-primary text-primary rounded-circle fs-16">
+                                <span className="avatar-title bg-primary text-white rounded-circle fs-16">
                                   <i className="ri-user-3-line"></i>
                                 </span>
                               </div>
@@ -313,7 +313,7 @@ const UserProfile = () => {
                         <Col xs={12}>
                           <div className="d-flex align-items-center p-3 bg-light rounded">
                             <div className="avatar-xs me-3">
-                              <span className="avatar-title bg-soft-info text-info rounded-circle fs-16">
+                              <span className="avatar-title bg-info text-white rounded-circle fs-16">
                                 <i className="ri-mail-line"></i>
                               </span>
                             </div>
@@ -329,7 +329,7 @@ const UserProfile = () => {
                           <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded">
                             <div className="d-flex align-items-center">
                               <div className="avatar-xs me-3">
-                                <span className="avatar-title bg-soft-danger text-danger rounded-circle fs-16">
+                                <span className="avatar-title bg-danger text-white rounded-circle fs-16">
                                   <i className="ri-lock-line"></i>
                                 </span>
                               </div>
@@ -367,7 +367,7 @@ const UserProfile = () => {
                         <Col xs={12}>
                           <div className="d-flex align-items-center p-3 bg-light rounded">
                             <div className="avatar-xs me-3">
-                              <span className="avatar-title bg-soft-warning text-warning rounded-circle fs-16">
+                              <span className="avatar-title bg-warning text-white rounded-circle fs-16">
                                 <i className="ri-fingerprint-line"></i>
                               </span>
                             </div>

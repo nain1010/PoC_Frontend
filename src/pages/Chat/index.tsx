@@ -152,7 +152,7 @@ const Chat = () => {
     if (theme.primary_color) {
       document.documentElement.style.setProperty('--vz-primary', theme.primary_color);
     }
-    toast.success('Tema aplicado correctamente');
+    // toast.success('Tema aplicado correctamente');
   }, [dispatch]);
 
   const sendMessage = useCallback(async (text?: string) => {

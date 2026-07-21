@@ -13,23 +13,11 @@ const HorizontalLayout = (props : any) => {
     const [isMoreMenu, setIsMoreMenu] = useState<boolean>(false);
     const navData = navdata().props.children;
     let menuItems = [];
-    let splitMenuItems : Array<any> = [];
-    let menuSplitContainer = 6;
     navData.forEach(function (value : any, key : number) {
-        if (value['isHeader']) {
-            menuSplitContainer++;
-        }
-        if (key >= menuSplitContainer) {
-            let val = value;
-            val.childItems = value.subItems;
-            val.isChildItem = (value.subItems) ? true : false;
-            delete val.subItems;
-            splitMenuItems.push(val);
-        } else {
+        if (!value['isHeader']) {
             menuItems.push(value);
         }
     });
-    menuItems.push({ id: 'more', label: 'More', icon: 'ri-briefcase-2-line', link: "/#", stateVariables: isMoreMenu, subItems: splitMenuItems, click: function (e : any) { e.preventDefault(); setIsMoreMenu(!isMoreMenu); }, });
 
     const path = props.router.location.pathname;
 
@@ -102,6 +90,34 @@ const HorizontalLayout = (props : any) => {
 
     return (
         <React.Fragment>
+            <style>
+                {`
+                    @media (min-width: 1025px) {
+                        .navbar-nav .nav-link {
+                            white-space: nowrap !important;
+                            color: #e9ecef !important;
+                        }
+                        .navbar-nav .nav-link:hover {
+                            color: #fff !important;
+                        }
+                        .navbar-menu {
+                            z-index: 1040 !important;
+                        }
+                        .navbar-menu .menu-dropdown {
+                            z-index: 1050 !important;
+                        }
+                        [data-bs-theme="dark"] .navbar-menu .menu-dropdown .nav-link {
+                            color: #ced4da !important;
+                        }
+                        [data-bs-theme="dark"] .navbar-menu .menu-dropdown .nav-link:hover {
+                            color: #fff !important;
+                        }
+                        .navbar-menu .nav-item {
+                            position: relative;
+                        }
+                    }
+                `}
+            </style>
             {(menuItems || []).map((item  :any, key : number) => {
                 return (
                     <React.Fragment key={key}>
