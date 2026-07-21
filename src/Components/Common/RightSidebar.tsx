@@ -1148,7 +1148,7 @@ const RightSidebar = (props: any) => {
                                                         dispatch(changeLayoutThemeColor(e.target.value));
                                                     }
                                                 }} />
-                                            <label className="form-check-label avatar-xs p-0 rounded-circle" htmlFor="themeColor-01" title="Azul Predeterminado"></label>
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#405189' }} htmlFor="themeColor-01" title="Azul Predeterminado"></label>
                                         </div>
                                         {/* Green */}
                                         <div className="form-check sidebar-setting card-radio">
@@ -1160,7 +1160,7 @@ const RightSidebar = (props: any) => {
                                                         dispatch(changeLayoutThemeColor(e.target.value));
                                                     }
                                                 }} />
-                                            <label className="form-check-label avatar-xs p-0 rounded-circle" htmlFor="themeColor-02" title="Verde Esmeralda"></label>
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#0ab39c' }} htmlFor="themeColor-02" title="Verde Esmeralda"></label>
                                         </div>
                                         {/* Purple */}
                                         <div className="form-check sidebar-setting card-radio">
@@ -1172,7 +1172,7 @@ const RightSidebar = (props: any) => {
                                                         dispatch(changeLayoutThemeColor(e.target.value));
                                                     }
                                                 }} />
-                                            <label className="form-check-label avatar-xs p-0 rounded-circle" htmlFor="themeColor-03" title="Morado"></label>
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#6559cc' }} htmlFor="themeColor-03" title="Morado"></label>
                                         </div>
                                         {/* Blue */}
                                         <div className="form-check sidebar-setting card-radio">
@@ -1184,7 +1184,7 @@ const RightSidebar = (props: any) => {
                                                         dispatch(changeLayoutThemeColor(e.target.value));
                                                     }
                                                 }} />
-                                            <label className="form-check-label avatar-xs p-0 rounded-circle" htmlFor="themeColor-04" title="Azul"></label>
+                                            <label className="form-check-label avatar-xs p-0 rounded-circle" style={{ backgroundColor: '#3577f1' }} htmlFor="themeColor-04" title="Azul"></label>
                                         </div>
                                         {/* Red */}
                                         <div className="form-check sidebar-setting card-radio">

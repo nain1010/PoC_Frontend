@@ -177,7 +177,7 @@ html {
 }
 /* Sidebar & Topbar Color Matcher for Dark Mode / Dark Sidebar */
 [data-sidebar="dark"] {
-  --luma-sidebar-bg: #405189 !important;
+  --luma-sidebar-bg: var(--vz-primary) !important;
   --vz-vertical-menu-item-color: rgba(255, 255, 255, 0.6) !important;
   --vz-vertical-menu-item-hover-color: #ffffff !important;
   --vz-vertical-menu-item-active-color: #ffffff !important;
@@ -189,9 +189,9 @@ html {
 
 [data-layout-mode="dark"],
 [data-bs-theme="dark"] {
-  --luma-sidebar-bg: #405189 !important;
-  --luma-header-bg: #405189 !important;
-  --vz-header-bg: #405189 !important;
+  --luma-sidebar-bg: var(--vz-primary) !important;
+  --luma-header-bg: var(--vz-primary) !important;
+  --vz-header-bg: var(--vz-primary) !important;
   --vz-vertical-menu-item-color: rgba(255, 255, 255, 0.6) !important;
   --vz-vertical-menu-item-hover-color: #ffffff !important;
   --vz-vertical-menu-item-active-color: #ffffff !important;
@@ -204,5 +204,5 @@ html {
 [data-sidebar="dark"] .navbar-brand-box,
 [data-layout-mode="dark"] .navbar-brand-box,
 [data-bs-theme="dark"] .navbar-brand-box {
-  background-color: #405189 !important;
+  background-color: var(--vz-primary) !important;
 }
