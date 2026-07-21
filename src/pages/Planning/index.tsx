@@ -972,12 +972,12 @@ const Planning = () => {
                                                     Product Backlog <span className="badge bg-secondary ms-1">{backlogStories.length}</span>
                                                 </h5>
                                             </div>
-                                            <div className="d-flex gap-2 align-items-center flex-wrap">
-                                                <div className="search-box me-1" style={{width: '130px'}}>
-                                                    <input type="text" className="form-control form-control-sm" placeholder="Buscar historia..." value={backlogSearchQuery} onChange={(e) => setBacklogSearchQuery(e.target.value)} />
+                                            <div className="d-flex gap-2 align-items-center flex-wrap flex-grow-1 justify-content-sm-end mt-2 mt-sm-0">
+                                                <div className="search-box flex-grow-1 flex-sm-grow-0" style={{minWidth: '130px', flexBasis: 'auto'}}>
+                                                    <input type="text" className="form-control form-control-sm w-100" placeholder="Buscar historia..." value={backlogSearchQuery} onChange={(e) => setBacklogSearchQuery(e.target.value)} />
                                                     <i className="ri-search-line search-icon text-muted"></i>
                                                 </div>
-                                                <div className="btn-group shadow-sm" role="group">
+                                                <div className="btn-group shadow-sm ms-sm-auto ms-0" role="group">
                                                     <Button color={backlogViewMode === 'grid' ? "secondary" : "soft-secondary"} size="sm" onClick={() => handleBacklogViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
                                                     <Button color={backlogViewMode === 'table' ? "secondary" : "soft-secondary"} size="sm" onClick={() => handleBacklogViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
                                                 </div>
@@ -1036,12 +1036,12 @@ const Planning = () => {
                                             </div>
                                             <h5 className="card-title mb-0 fw-bold fs-15 text-body">Planificación de Sprints</h5>
                                         </div>
-                                        <div className="d-flex gap-2 align-items-center flex-wrap">
-                                            <div className="search-box me-1" style={{width: '180px'}}>
-                                                <input type="text" className="form-control form-control-sm" placeholder="Buscar sprint..." value={sprintSearchQuery} onChange={(e) => setSprintSearchQuery(e.target.value)} />
+                                        <div className="d-flex gap-2 align-items-center flex-wrap flex-grow-1 justify-content-sm-end mt-2 mt-sm-0">
+                                            <div className="search-box flex-grow-1 flex-sm-grow-0" style={{minWidth: '130px', flexBasis: 'auto'}}>
+                                                <input type="text" className="form-control form-control-sm w-100" placeholder="Buscar sprint..." value={sprintSearchQuery} onChange={(e) => setSprintSearchQuery(e.target.value)} />
                                                 <i className="ri-search-line search-icon text-muted"></i>
                                             </div>
-                                            <div className="btn-group shadow-sm" role="group">
+                                            <div className="btn-group shadow-sm ms-sm-auto ms-0" role="group">
                                                 <Button color={sprintViewMode === 'grid' ? "secondary" : "soft-secondary"} size="sm" onClick={() => handleSprintViewModeChange('grid')}><i className="ri-grid-fill"></i></Button>
                                                 <Button color={sprintViewMode === 'table' ? "secondary" : "soft-secondary"} size="sm" onClick={() => handleSprintViewModeChange('table')}><i className="ri-list-unordered"></i></Button>
                                             </div>

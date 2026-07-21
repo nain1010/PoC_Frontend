@@ -556,21 +556,17 @@ const Kanban = () => {
                                 </div>
                                 <div className="kanban-filters__points">
                                     <span className="kanban-filters__points-label">Filtrar Puntos:</span>
-                                    <button 
-                                        className={`kanban-filter-btn ${pointsFilter === null ? 'active' : ''}`}
-                                        onClick={() => setPointsFilter(null)}
+                                    <Input 
+                                        type="select" 
+                                        className="form-select"
+                                        value={pointsFilter === null ? '' : pointsFilter}
+                                        onChange={(e) => setPointsFilter(e.target.value === '' ? null : parseInt(e.target.value))}
                                     >
-                                        Todos
-                                    </button>
-                                    {[1, 2, 3, 5, 8, 13, 21].map(pts => (
-                                        <button 
-                                            key={pts}
-                                            className={`kanban-filter-btn ${pointsFilter === pts ? 'active' : ''}`}
-                                            onClick={() => setPointsFilter(pointsFilter === pts ? null : pts)}
-                                        >
-                                            {pts} pts
-                                        </button>
-                                    ))}
+                                        <option value="">Todos los puntos</option>
+                                        {[1, 2, 3, 5, 8, 13, 21].map(pts => (
+                                            <option key={pts} value={pts}>{pts} pts</option>
+                                        ))}
+                                    </Input>
                                 </div>
                             </div>
 

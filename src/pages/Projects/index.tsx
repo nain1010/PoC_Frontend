@@ -343,13 +343,13 @@ const Projects = () => {
                 <Container fluid>
                     <BreadCrumb title="Proyectos" />
 
-                    <div className="d-flex align-items-center justify-content-between mb-4 mt-3">
+                    <div className="d-flex align-items-sm-center justify-content-between mb-4 mt-3 flex-column flex-sm-row gap-3">
                         <div>
                             <h5 className="fs-16 mb-0">Tus Proyectos</h5>
                             <p className="text-muted mb-0">Listado de proyectos y equipos activos.</p>
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <div className="search-box me-2 d-none d-md-block">
+                        <div className="d-flex align-items-center gap-2 flex-wrap">
+                            <div className="search-box flex-grow-1" style={{minWidth: '200px'}}>
                                 <input 
                                     type="text" 
                                     className="form-control" 
@@ -359,7 +359,7 @@ const Projects = () => {
                                 />
                                 <i className="ri-search-line search-icon"></i>
                             </div>
-                            <div className="btn-group" role="group">
+                            <div className="btn-group ms-auto" role="group">
                                 <Button 
                                     color={viewMode === 'grid' ? "secondary" : "soft-secondary"}
                                     onClick={() => handleViewModeChange('grid')}
