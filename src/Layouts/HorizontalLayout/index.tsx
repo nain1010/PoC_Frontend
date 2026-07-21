@@ -116,6 +116,34 @@ const HorizontalLayout = (props : any) => {
                             position: relative;
                         }
                     }
+                    @media (max-width: 1024px) {
+                        /* Mobile Responsive Menu Fixes */
+                        [data-layout="horizontal"] .navbar-menu {
+                            background-color: var(--vz-primary) !important;
+                            box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+                            border-radius: 0 0 12px 12px;
+                            padding: 10px 0 !important;
+                            margin-top: 60px !important;
+                        }
+                        [data-layout="horizontal"] .navbar-nav .nav-link {
+                            color: rgba(255, 255, 255, 0.8) !important;
+                            padding: 12px 24px !important;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                            font-weight: 500;
+                        }
+                        [data-layout="horizontal"] .navbar-nav .nav-link:hover,
+                        [data-layout="horizontal"] .navbar-nav .nav-link.active {
+                            color: #ffffff !important;
+                            background-color: rgba(255, 255, 255, 0.1) !important;
+                        }
+                        [data-layout="horizontal"] .navbar-menu .nav-item:last-child .nav-link {
+                            border-bottom: none;
+                        }
+                        [data-layout="horizontal"] .navbar-menu .menu-dropdown .nav-link {
+                            padding-left: 45px !important;
+                            background-color: rgba(0, 0, 0, 0.05) !important;
+                        }
+                    }
                 `}
             </style>
             {(menuItems || []).map((item  :any, key : number) => {
