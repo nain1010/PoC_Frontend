@@ -1326,72 +1326,74 @@ const Planning = () => {
                     Gestionar Miembros del Equipo
                 </ModalHeader>
                 <ModalBody className="p-4">
-                    <div className="mb-4">
-                        <h6 className="fw-bold text-body mb-3">Asignar Miembro o Cambiar Rol</h6>
-                        <Form onSubmit={(e) => {
-                            e.preventDefault();
-                            memberValidation.handleSubmit();
-                            return false;
-                        }}>
-                            <div className="mb-3">
-                                <Label htmlFor="memberEmail" className="form-label">Miembro del Equipo <span className="text-danger">*</span></Label>
-                                <Select
-                                    id="memberEmail"
-                                    name="email"
-                                    placeholder="Buscar por nombre o correo..."
-                                    options={memberOptions}
-                                    onChange={(option: any) => {
-                                        memberValidation.setFieldValue("email", option ? option.value : "");
-                                    }}
-                                    onBlur={() => memberValidation.setFieldTouched("email", true)}
-                                    value={memberOptions.find((opt: any) => opt.value === memberValidation.values.email) || null}
-                                    isClearable
-                                    menuPortalTarget={document.body}
-                                    styles={{
-                                        menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
-                                        control: (provided: any) => ({
-                                            ...provided,
-                                            borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : provided.borderColor,
-                                            "&:hover": {
+                    {(getLoggedUser()?.rol_global === "Administrador" || projectDetails?.memberships?.some((m: any) => m.usuario_id === getLoggedUserId() && m.rol === "Product Owner")) && (
+                        <div className="mb-4">
+                            <h6 className="fw-bold text-body mb-3">Asignar Miembro o Cambiar Rol</h6>
+                            <Form onSubmit={(e) => {
+                                e.preventDefault();
+                                memberValidation.handleSubmit();
+                                return false;
+                            }}>
+                                <div className="mb-3">
+                                    <Label htmlFor="memberEmail" className="form-label">Miembro del Equipo <span className="text-danger">*</span></Label>
+                                    <Select
+                                        id="memberEmail"
+                                        name="email"
+                                        placeholder="Buscar por nombre o correo..."
+                                        options={memberOptions}
+                                        onChange={(option: any) => {
+                                            memberValidation.setFieldValue("email", option ? option.value : "");
+                                        }}
+                                        onBlur={() => memberValidation.setFieldTouched("email", true)}
+                                        value={memberOptions.find((opt: any) => opt.value === memberValidation.values.email) || null}
+                                        isClearable
+                                        menuPortalTarget={document.body}
+                                        styles={{
+                                            menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+                                            control: (provided: any) => ({
+                                                ...provided,
                                                 borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : provided.borderColor,
-                                            }
-                                        })
-                                    }}
-                                    classNamePrefix="react-select"
-                                />
-                                {memberValidation.touched.email && memberValidation.errors.email ? (
-                                    <div className="text-danger fs-12 mt-1">{memberValidation.errors.email?.toString()}</div>
-                                ) : null}
-                            </div>
+                                                "&:hover": {
+                                                    borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : provided.borderColor,
+                                                }
+                                            })
+                                        }}
+                                        classNamePrefix="react-select"
+                                    />
+                                    {memberValidation.touched.email && memberValidation.errors.email ? (
+                                        <div className="text-danger fs-12 mt-1">{memberValidation.errors.email?.toString()}</div>
+                                    ) : null}
+                                </div>
 
-                            <div className="mb-3">
-                                <Label htmlFor="memberRole" className="form-label">Rol Scrum <span className="text-danger">*</span></Label>
-                                <Input
-                                    id="memberRole"
-                                    name="rol"
-                                    className="form-select"
-                                    type="select"
-                                    onChange={memberValidation.handleChange}
-                                    onBlur={memberValidation.handleBlur}
-                                    value={memberValidation.values.rol}
-                                >
-                                    <option value="Product Owner">Product Owner</option>
-                                    <option value="Scrum Master">Scrum Master</option>
-                                    <option value="Developer">Developer</option>
-                                </Input>
-                            </div>
+                                <div className="mb-3">
+                                    <Label htmlFor="memberRole" className="form-label">Rol Scrum <span className="text-danger">*</span></Label>
+                                    <Input
+                                        id="memberRole"
+                                        name="rol"
+                                        className="form-select"
+                                        type="select"
+                                        onChange={memberValidation.handleChange}
+                                        onBlur={memberValidation.handleBlur}
+                                        value={memberValidation.values.rol}
+                                    >
+                                        <option value="Product Owner">Product Owner</option>
+                                        <option value="Scrum Master">Scrum Master</option>
+                                        <option value="Developer">Developer</option>
+                                    </Input>
+                                </div>
 
-                            <div className="d-flex justify-content-end gap-2">
-                                <Button type="button" color="light" onClick={toggleMemberModal} disabled={memberSubmitting}>Cerrar</Button>
-                                <Button type="submit" color="primary" disabled={memberSubmitting}>
-                                    <span className="d-flex align-items-center gap-1">
-                                        {memberSubmitting && <Spinner size="sm" />}
-                                        <span>Asignar Miembro</span>
-                                    </span>
-                                </Button>
-                            </div>
-                        </Form>
-                    </div>
+                                <div className="d-flex justify-content-end gap-2">
+                                    <Button type="button" color="light" onClick={toggleMemberModal} disabled={memberSubmitting}>Cerrar</Button>
+                                    <Button type="submit" color="primary" disabled={memberSubmitting}>
+                                        <span className="d-flex align-items-center gap-1">
+                                            {memberSubmitting && <Spinner size="sm" />}
+                                            <span>Asignar Miembro</span>
+                                        </span>
+                                    </Button>
+                                </div>
+                            </Form>
+                        </div>
+                    )}
 
                     <div className="border-top pt-3">
                         <h6 className="fw-bold text-body mb-3">Integrantes del Proyecto ({projectDetails?.memberships?.length || 0})</h6>
