@@ -284,7 +284,7 @@ const Chat = () => {
                         )}
                         {msg.role === 'user' && (
                           <div className="d-flex align-items-center justify-content-end mb-2">
-                            <h6 className="mb-0 me-2">{authUser?.nombre_completo || 'Tú'}</h6>
+                            <h6 className="mb-0 me-2 text-white">{authUser?.nombre_completo || 'Tú'}</h6>
                             <div className="flex-shrink-0">
                               <div className="avatar-xs">
                                 <span className="avatar-title rounded-circle bg-primary">
