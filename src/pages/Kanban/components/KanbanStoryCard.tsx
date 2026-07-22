@@ -117,7 +117,7 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
             id={`story-${story.id}`}
             ref={setNodeRef}
             style={{ ...style }}
-            className={`kanban-story-card ${isDragging ? 'is-dragging' : ''}`}
+            className={`kanban-story-card mb-3 ${isDragging ? 'is-dragging' : ''}`}
             {...dragHandleProps}
         >
             <div className="card-body">
