@@ -1365,21 +1365,10 @@ const Planning = () => {
                                             menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
                                             control: (provided: any) => ({
                                                 ...provided,
-                                                backgroundColor: 'var(--vz-input-bg)',
-                                                borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : 'var(--vz-input-border, #333a41)',
-                                                color: 'var(--vz-body-color)',
+                                                borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : provided.borderColor,
                                                 "&:hover": {
-                                                    borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : 'var(--vz-input-border, #333a41)',
+                                                    borderColor: memberValidation.touched.email && memberValidation.errors.email ? "#f06548" : provided.borderColor,
                                                 }
-                                            }),
-                                            singleValue: (provided: any) => ({ ...provided, color: 'var(--vz-body-color)' }),
-                                            input: (provided: any) => ({ ...provided, color: 'var(--vz-body-color)' }),
-                                            placeholder: (provided: any) => ({ ...provided, color: 'var(--vz-body-color)' }),
-                                            menu: (provided: any) => ({ ...provided, backgroundColor: 'var(--vz-choices-bg, #212529)' }),
-                                            option: (provided: any, state: any) => ({
-                                                ...provided,
-                                                backgroundColor: state.isSelected ? 'var(--vz-primary)' : state.isFocused ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-                                                color: state.isSelected ? '#fff' : 'var(--vz-body-color)'
                                             })
                                         }}
                                         classNamePrefix="react-select"
