@@ -300,7 +300,20 @@ const Planning = () => {
             correlativo: editStory?.correlativo || nextCorrelativo,
             titulo: editStory?.titulo || '',
             narrativa: editStory?.narrativa || '',
-            criterios_aceptacion_raw: editStory?.criterios_aceptacion?.join('\n') || ''
+            criterios_aceptacion_raw: (() => {
+                if (!editStory?.criterios_aceptacion) return '';
+                if (Array.isArray(editStory.criterios_aceptacion)) {
+                    return editStory.criterios_aceptacion.join('\n');
+                }
+                if (typeof editStory.criterios_aceptacion === 'string') {
+                    try {
+                        const parsed = JSON.parse(editStory.criterios_aceptacion);
+                        if (Array.isArray(parsed)) return parsed.join('\n');
+                    } catch (e) {}
+                    return editStory.criterios_aceptacion;
+                }
+                return '';
+            })()
         },
         validationSchema: Yup.object({
             correlativo: Yup.string().required("Requerido (ej. US-01)"),

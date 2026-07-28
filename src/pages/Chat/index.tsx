@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Container, Row, Col, Card, CardBody, Input, Button, Spinner, Badge } from 'reactstrap';
 import BreadCrumb from '../../Components/Common/BreadCrumb';
 import { useDispatch } from 'react-redux';
@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useProjectStore } from '../../Components/Hooks/useProjectStore';
 
 const TypewriterMarkdown = ({ text, isNew }: { text: string; isNew?: boolean }) => {
   const [displayedText, setDisplayedText] = useState(isNew ? '' : text);
@@ -78,12 +79,125 @@ interface ThemeConfig {
   topbar_color?: string;
 }
 
-interface Command {
-  cmd: string;
-  desc: string;
-  rol: string;
+interface Capability {
+  category: string;
+  action: string;
+  description: string;
+  required_role: string;
+  allowed: boolean;
+  icon: string;
+  example_prompt: string;
 }
 
+// ─── Role badge color mapping ──────────────────────────────────────────────
+const ROLE_COLORS: Record<string, string> = {
+  'Cualquiera': 'info',
+  'Product Owner': 'warning',
+  'Scrum Master': 'success',
+  'Developer': 'primary',
+  'Administrador': 'danger',
+};
+
+const CATEGORY_ICONS: Record<string, string> = {
+  'Proyecto': 'ri-folder-line',
+  'Sprint': 'ri-calendar-todo-line',
+  'Historias': 'ri-file-list-3-line',
+  'Tareas': 'ri-task-line',
+  'Métricas': 'ri-bar-chart-grouped-line',
+  'Perfil': 'ri-user-line',
+  'Tema': 'ri-palette-line',
+  'Admin': 'ri-shield-user-line',
+};
+
+// ─── Capability Card ───────────────────────────────────────────────────────
+const CapabilityCard = React.memo(({ cap, onUse }: { cap: Capability; onUse: (prompt: string) => void }) => (
+  <div
+    className={`d-flex align-items-start gap-2 p-2 rounded-3 ${cap.allowed ? 'capability-card' : 'capability-card-disabled'}`}
+    style={{
+      cursor: cap.allowed ? 'pointer' : 'not-allowed',
+      opacity: cap.allowed ? 1 : 0.5,
+      transition: 'all 0.2s ease',
+      border: '1px solid transparent',
+    }}
+    onClick={() => cap.allowed && onUse(cap.example_prompt)}
+    title={cap.allowed ? `Haz clic para usar: "${cap.example_prompt}"` : `Requiere rol: ${cap.required_role}`}
+  >
+    <div className="flex-shrink-0 mt-1">
+      <i className={`${cap.icon} fs-5 text-primary`}></i>
+    </div>
+    <div className="flex-grow-1 overflow-hidden">
+      <div className="d-flex align-items-center gap-1 mb-0">
+        <span className="fw-medium text-truncate" style={{ fontSize: '0.85rem' }}>{cap.action}</span>
+        <Badge color={ROLE_COLORS[cap.required_role] || 'secondary'} pill className="ms-auto flex-shrink-0" style={{ fontSize: '0.65rem' }}>
+          {cap.required_role}
+        </Badge>
+      </div>
+      <small className="text-muted d-block text-truncate" style={{ fontSize: '0.75rem' }}>{cap.description}</small>
+    </div>
+  </div>
+));
+CapabilityCard.displayName = 'CapabilityCard';
+
+// ─── Capabilities Panel ────────────────────────────────────────────────────
+const CapabilitiesPanel = React.memo(({ capabilities, onUse, onClose }: {
+  capabilities: Capability[];
+  onUse: (prompt: string) => void;
+  onClose: () => void;
+}) => {
+  const grouped = useMemo(() => {
+    const map: Record<string, Capability[]> = {};
+    for (const cap of capabilities) {
+      if (!map[cap.category]) map[cap.category] = [];
+      map[cap.category].push(cap);
+    }
+    return map;
+  }, [capabilities]);
+
+  const categories = useMemo(() => Object.keys(grouped), [grouped]);
+
+  return (
+    <div className="capabilities-panel p-3 rounded-3 mb-3" style={{
+      background: 'var(--vz-card-bg, #fff)',
+      border: '1px solid var(--vz-border-color, #e9ebec)',
+      maxHeight: '60vh',
+      overflowY: 'auto',
+    }}>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <h6 className="mb-0 d-flex align-items-center gap-2">
+          <i className="ri-magic-line text-primary"></i>
+          ¿Qué puedo hacer?
+        </h6>
+        <Button close onClick={onClose} />
+      </div>
+      <div className="row g-3">
+        {categories.map(cat => (
+          <div key={cat} className="col-12 col-md-6 col-lg-4">
+            <div className="mb-2 d-flex align-items-center gap-1">
+              <i className={`${CATEGORY_ICONS[cat] || 'ri-list-check'} text-muted`}></i>
+              <span className="fw-semibold text-uppercase" style={{ fontSize: '0.7rem', letterSpacing: '0.05em', color: 'var(--vz-body-color)' }}>
+                {cat}
+              </span>
+            </div>
+            <div className="d-flex flex-column gap-1">
+              {grouped[cat].map((cap, i) => (
+                <CapabilityCard key={i} cap={cap} onUse={onUse} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 pt-2 border-top">
+        <small className="text-muted">
+          <i className="ri-information-line me-1"></i>
+          Las acciones disponibles dependen de tu rol en el proyecto activo. Los badges indican el rol requerido.
+        </small>
+      </div>
+    </div>
+  );
+});
+CapabilitiesPanel.displayName = 'CapabilitiesPanel';
+
+// ─── Main Chat Component ───────────────────────────────────────────────────
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = sessionStorage.getItem("chatHistory");
@@ -93,19 +207,17 @@ const Chat = () => {
       } catch (e) {}
     }
     return [
-      { role: 'assistant', content: '¡Hola! Soy tu asistente Scrum. Puedo ayudarte a gestionar tus proyectos, crear historias, sprints, tareas y más. Escribe **/** para ver los comandos disponibles o simplemente pregúntame lo que necesites.' }
+      { role: 'assistant', content: '¡Hola! Soy tu asistente Scrum. Puedo ayudarte a gestionar proyectos, crear sprints, historias, tareas, asignar miembros y mucho más.\n\nHaz clic en **"¿Qué puedo hacer?"** para ver todas mis capacidades según tu rol, o simplemente pregúntame lo que necesites.' }
     ];
   });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [commands, setCommands] = useState<Command[]>([]);
-  const [showCommands, setShowCommands] = useState(false);
-  const [commandFilter, setCommandFilter] = useState('');
+  const [capabilities, setCapabilities] = useState<Capability[]>([]);
+  const [showCapabilities, setShowCapabilities] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(localStorage.getItem('activeProjectId'));
+  const activeProjectId = useProjectStore((state) => state.activeProjectId);
 
   const dispatch = useDispatch<any>();
   const authUserStr = (sessionStorage.getItem("authUser") || localStorage.getItem("authUser"));
@@ -123,20 +235,17 @@ const Chat = () => {
     sessionStorage.setItem("chatHistory", JSON.stringify(messages));
   }, [messages]);
 
+  // Load capabilities
   useEffect(() => {
-    const loadCommands = async () => {
+    const loadCapabilities = async () => {
       try {
         const params = activeProjectId ? { active_project_id: activeProjectId } : {};
-        const res: any = await api.get('/api/chat/commands', params);
-        if (res?.commands) setCommands(res.commands);
+        const res: any = await api.get('/api/chat/capabilities', params);
+        if (res?.capabilities) setCapabilities(res.capabilities);
       } catch { }
     };
-    loadCommands();
+    loadCapabilities();
   }, [activeProjectId]);
-
-  useEffect(() => {
-    // Removed local command filtering logic as requested by user
-  }, [input]);
 
   const applyTheme = useCallback((theme: ThemeConfig | null) => {
     if (!theme) return;
@@ -152,14 +261,19 @@ const Chat = () => {
     if (theme.primary_color) {
       document.documentElement.style.setProperty('--vz-primary', theme.primary_color);
     }
-    // toast.success('Tema aplicado correctamente');
   }, [dispatch]);
+
+  const handleCapabilityUse = useCallback((prompt: string) => {
+    setInput(prompt);
+    setShowCapabilities(false);
+    inputRef.current?.focus();
+  }, []);
 
   const sendMessage = useCallback(async (text?: string) => {
     const msg = text || input;
     if (!msg.trim() || loading) return;
 
-    setShowCommands(false);
+    setShowCapabilities(false);
     setShowSuggestions(false);
 
     const userMessage: Message = { role: 'user', content: msg.trim() };
@@ -232,32 +346,31 @@ const Chat = () => {
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (showCommands) {
-        const filtered = commands.filter(c =>
-          c.cmd.toLowerCase().includes(commandFilter.toLowerCase())
-        );
-        if (filtered.length === 1) {
-          setInput(filtered[0].cmd + ' ');
-          setShowCommands(false);
-          inputRef.current?.focus();
-          return;
-        }
-      }
       sendMessage();
     }
-  }, [sendMessage, showCommands, commands, commandFilter]);
+  }, [sendMessage]);
 
-  const filteredCommands = commandFilter
-    ? commands.filter(c => c.cmd.toLowerCase().includes(commandFilter.toLowerCase()))
-    : commands;
-
-  const handleSuggestionClick = useCallback((suggestion: string) => {
-    setInput(suggestion);
-    inputRef.current?.focus();
-  }, []);
+  const allowedCount = useMemo(() => capabilities.filter(c => c.allowed).length, [capabilities]);
 
   return (
     <div className="page-content">
+      <style>{`
+        .capability-card:hover {
+          background: var(--vz-light, #f3f6f9) !important;
+          border-color: var(--vz-primary, #556ee6) !important;
+          transform: translateY(-1px);
+        }
+        .capability-card-disabled {
+          filter: grayscale(0.5);
+        }
+        .capabilities-panel::-webkit-scrollbar {
+          width: 4px;
+        }
+        .capabilities-panel::-webkit-scrollbar-thumb {
+          background: var(--vz-border-color);
+          border-radius: 4px;
+        }
+      `}</style>
       <Container fluid>
         <BreadCrumb title="Chat · Asistente IA" />
 
@@ -347,8 +460,34 @@ const Chat = () => {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {/* Capabilities Panel */}
+                {showCapabilities && capabilities.length > 0 && (
+                  <CapabilitiesPanel
+                    capabilities={capabilities}
+                    onUse={handleCapabilityUse}
+                    onClose={() => setShowCapabilities(false)}
+                  />
+                )}
+
                 <div className="mt-2 pt-2 border-top position-relative">
                   <div className="d-flex gap-2">
+                    <Button
+                      color="soft-primary"
+                      className="flex-shrink-0 d-flex align-items-center gap-1"
+                      onClick={() => setShowCapabilities(!showCapabilities)}
+                      title="Ver qué puedo hacer"
+                      style={{ borderRadius: '8px', padding: '0.375rem 0.75rem' }}
+                    >
+                      <i className="ri-magic-line"></i>
+                      <span className="d-none d-md-inline" style={{ fontSize: '0.8rem' }}>
+                        ¿Qué puedo hacer?
+                      </span>
+                      {allowedCount > 0 && (
+                        <Badge color="primary" pill className="ms-1" style={{ fontSize: '0.65rem' }}>
+                          {allowedCount}
+                        </Badge>
+                      )}
+                    </Button>
                     <Input
                       innerRef={inputRef}
                       type="text"
