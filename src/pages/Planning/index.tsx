@@ -1625,14 +1625,14 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
 
                 {/* Seccion desplegable con la información completa */}
                 {isExpanded && (
-                    <div className="border-top pt-3 mt-2 bg-soft-light rounded p-3 text-start animate-fade-in">
+                    <div className="border-top pt-3 mt-2 story-details-panel rounded p-3 text-start animate-fade-in">
                         <div className="row g-3">
                             <div className="col-12">
                                 <div className="fs-11 fw-bold text-uppercase text-muted mb-1 d-flex align-items-center gap-1">
                                     <i className="ri-user-voice-line text-primary fs-14"></i>
                                     <span>Narrativa de Usuario</span>
                                 </div>
-                                <div className="fs-13 text-body p-2.5 rounded border-start border-3 border-primary bg-white shadow-xs" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                                <div className="fs-13 text-body p-2.5 rounded border-start border-3 border-primary story-details-box shadow-xs" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
                                     {story.narrativa ? story.narrativa : <span className="text-muted italic fs-12">Sin narrativa registrada.</span>}
                                 </div>
                             </div>
@@ -1645,7 +1645,7 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
                                 {criteriosList.length > 0 ? (
                                     <div className="d-flex flex-column gap-1.5">
                                         {criteriosList.map((crit: string, idx: number) => (
-                                            <div key={idx} className="d-flex align-items-start gap-2 p-2 rounded bg-white border border-light shadow-xs">
+                                            <div key={idx} className="d-flex align-items-start gap-2 p-2 rounded story-details-box shadow-xs">
                                                 <span className="badge bg-soft-success text-success mt-0.5 p-1 rounded-circle flex-shrink-0">
                                                     <i className="ri-check-line fs-11"></i>
                                                 </span>
@@ -1654,7 +1654,7 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="fs-12 text-muted italic p-2 rounded bg-white border border-dashed text-center">
+                                    <div className="fs-12 text-muted italic p-2 rounded story-details-box border-dashed text-center">
                                         Sin criterios de aceptación especificados.
                                     </div>
                                 )}
@@ -1879,14 +1879,14 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
 
             {/* Seccion desplegable dentro de la historia del Sprint */}
             {isExpanded && (
-                <div className="border-top pt-3 mt-2 bg-white rounded p-3 text-start shadow-xs">
+                <div className="border-top pt-3 mt-2 story-details-panel rounded p-3 text-start shadow-xs">
                     <div className="row g-3">
                         <div className="col-12">
                             <div className="fs-11 fw-bold text-uppercase text-muted mb-1 d-flex align-items-center gap-1">
                                 <i className="ri-user-voice-line text-primary fs-14"></i>
                                 <span>Narrativa de Usuario</span>
                             </div>
-                            <div className="fs-13 text-body p-2.5 rounded border-start border-3 border-primary bg-light" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                            <div className="fs-13 text-body p-2.5 rounded border-start border-3 border-primary story-details-box" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
                                 {story.narrativa ? story.narrativa : <span className="text-muted italic fs-12">Sin narrativa registrada.</span>}
                             </div>
                         </div>
@@ -1899,7 +1899,7 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
                             {criteriosList.length > 0 ? (
                                 <div className="d-flex flex-column gap-1.5">
                                     {criteriosList.map((crit: string, idx: number) => (
-                                        <div key={idx} className="d-flex align-items-start gap-2 p-2 rounded bg-light border border-light">
+                                        <div key={idx} className="d-flex align-items-start gap-2 p-2 rounded story-details-box">
                                             <span className="badge bg-soft-success text-success mt-0.5 p-1 rounded-circle flex-shrink-0">
                                                 <i className="ri-check-line fs-11"></i>
                                             </span>
@@ -1908,7 +1908,7 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
                                     ))}
                                 </div>
                             ) : (
-                                <div className="fs-12 text-muted italic p-2 rounded bg-light border border-dashed text-center">
+                                <div className="fs-12 text-muted italic p-2 rounded story-details-box border-dashed text-center">
                                     Sin criterios de aceptación especificados.
                                 </div>
                             )}

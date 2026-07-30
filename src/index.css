@@ -245,3 +245,36 @@ body[data-bs-theme='dark'] .react-select__option--is-selected,
   background-color: var(--vz-primary, #405189) !important;
   color: #fff !important;
 }
+
+
+/* --- Paneles Desplegables de Detalles (Narrativa y Criterios de Aceptación) --- */
+.story-details-panel {
+  background-color: var(--vz-light, #f3f6f9) !important;
+  border: 1px solid var(--vz-border-color, #e9ebec) !important;
+  color: var(--vz-body-color, #212529) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.story-details-box {
+  background-color: var(--vz-card-bg-custom, #ffffff) !important;
+  border: 1px solid var(--vz-border-color, #e9ebec) !important;
+  color: var(--vz-body-color, #212529) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Soporte explícito Modo Oscuro (Dark Mode) */
+[data-bs-theme='dark'] .story-details-panel,
+html[data-bs-theme='dark'] .story-details-panel,
+body[data-bs-theme='dark'] .story-details-panel {
+  background-color: var(--vz-secondary-bg, #212529) !important;
+  border-color: var(--vz-border-color, #32383e) !important;
+  color: var(--vz-body-color, #adb5bd) !important;
+}
+
+[data-bs-theme='dark'] .story-details-box,
+html[data-bs-theme='dark'] .story-details-box,
+body[data-bs-theme='dark'] .story-details-box {
+  background-color: var(--vz-body-bg, #1a1d21) !important;
+  border-color: var(--vz-border-color, #32383e) !important;
+  color: var(--vz-body-color, #adb5bd) !important;
+}

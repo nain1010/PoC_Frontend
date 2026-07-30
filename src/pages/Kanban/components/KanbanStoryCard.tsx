@@ -275,12 +275,12 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
 
                 {/* Expanded Details Panel (Narrativa + Criterios) */}
                 {showDetails && (
-                    <div className="kanban-tasks-panel mt-2 animate-fade-in" style={{ backgroundColor: 'var(--kanban-bg-layer1, rgba(0,0,0,0.02))' }}>
+                    <div className="story-details-panel rounded p-2.5 mt-2 animate-fade-in">
                         <div className="kanban-tasks-panel__title d-flex align-items-center gap-1 mb-1">
                             <i className="ri-user-voice-line text-primary"></i>
                             <span>Narrativa de Usuario</span>
                         </div>
-                        <div className="fs-12 p-2 rounded mb-2.5 border-start border-3 border-primary" style={{ backgroundColor: 'var(--kanban-bg-layer2)', color: 'var(--kanban-text-title)', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
+                        <div className="fs-12 p-2 rounded mb-2.5 border-start border-3 border-primary story-details-box" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
                             {story.narrativa ? story.narrativa : <span className="text-muted italic fs-11">Sin narrativa registrada.</span>}
                         </div>
 
@@ -291,16 +291,16 @@ const KanbanStoryCard = React.memo(({ story, projectDetails, memberFilter, onSto
                         {criteriosList.length > 0 ? (
                             <div className="d-flex flex-column gap-1">
                                 {criteriosList.map((crit: string, idx: number) => (
-                                    <div key={idx} className="d-flex align-items-start gap-1.5 p-1.5 rounded border" style={{ backgroundColor: 'var(--kanban-bg-layer2)', borderColor: 'var(--kanban-border-color)' }}>
+                                    <div key={idx} className="d-flex align-items-start gap-1.5 p-1.5 rounded story-details-box">
                                         <span className="badge bg-soft-success text-success p-1 rounded-circle flex-shrink-0 mt-0.5">
                                             <i className="ri-check-line fs-10"></i>
                                         </span>
-                                        <span className="fs-11 fw-medium" style={{ color: 'var(--kanban-text-title)', lineHeight: '1.4' }}>{crit}</span>
+                                        <span className="fs-11 fw-medium lh-base">{crit}</span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="fs-11 text-muted italic p-2 rounded border border-dashed text-center" style={{ backgroundColor: 'var(--kanban-bg-layer2)' }}>
+                            <div className="fs-11 text-muted italic p-2 rounded story-details-box border-dashed text-center">
                                 Sin criterios de aceptación especificados.
                             </div>
                         )}
