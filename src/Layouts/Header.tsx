@@ -153,26 +153,28 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                             </button>
 
                             {/* Botón Regresar a la página anterior */}
-                            <button
-                                onClick={() => navigate(-1)}
-                                type="button"
-                                className="btn btn-sm px-2.5 fs-16 header-item d-flex align-items-center justify-content-center ms-1 rounded-circle"
-                                title="Regresar a la página anterior"
-                                style={{ width: "38px", height: "38px" }}
-                            >
-                                <i className="ri-arrow-left-line fs-20"></i>
-                            </button>
+                            <div className="ms-1 header-item d-flex align-items-center">
+                                <button
+                                    onClick={() => navigate(-1)}
+                                    type="button"
+                                    className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                                    title="Regresar a la página anterior"
+                                >
+                                    <i className="bx bx-arrow-back fs-22"></i>
+                                </button>
+                            </div>
 
                             {/* Botón Inicio / Home (Casa) */}
-                            <button
-                                onClick={() => navigate("/")}
-                                type="button"
-                                className="btn btn-sm px-2.5 fs-16 header-item d-flex align-items-center justify-content-center ms-1 rounded-circle"
-                                title="Ir a Inicio"
-                                style={{ width: "38px", height: "38px" }}
-                            >
-                                <i className="ri-home-4-line fs-20"></i>
-                            </button>
+                            <div className="ms-1 header-item d-flex align-items-center">
+                                <button
+                                    onClick={() => navigate("/")}
+                                    type="button"
+                                    className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                                    title="Ir a Inicio"
+                                >
+                                    <i className="bx bx-home-alt fs-22"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div className="d-flex align-items-center">
