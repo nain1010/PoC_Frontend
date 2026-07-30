@@ -147,29 +147,29 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                             <button
                                 onClick={toogleMenuBtn}
                                 type="button"
-                                className="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger"
+                                className="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger text-white"
                                 id="topnav-hamburger-icon">
-                                <i className="ri-menu-2-line fs-22"></i>
+                                <i className="ri-menu-2-line fs-22 text-white"></i>
                             </button>
 
                             {/* Botón Regresar a la página anterior */}
                             <button
                                 onClick={() => navigate(-1)}
                                 type="button"
-                                className="btn btn-sm px-2.5 fs-16 header-item vertical-menu-btn"
+                                className="btn btn-sm px-2.5 fs-16 header-item vertical-menu-btn text-white"
                                 title="Regresar a la página anterior"
                             >
-                                <i className="ri-arrow-left-line fs-22"></i>
+                                <i className="ri-arrow-left-line fs-22 text-white"></i>
                             </button>
 
                             {/* Botón Inicio / Home (Casa) */}
                             <button
                                 onClick={() => navigate("/")}
                                 type="button"
-                                className="btn btn-sm px-2.5 fs-16 header-item vertical-menu-btn"
+                                className="btn btn-sm px-2.5 fs-16 header-item vertical-menu-btn text-white"
                                 title="Ir a Inicio"
                             >
-                                <i className="ri-home-4-line fs-22"></i>
+                                <i className="ri-home-4-line fs-22 text-white"></i>
                             </button>
                         </div>
 

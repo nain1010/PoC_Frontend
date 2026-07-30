@@ -285,3 +285,16 @@ body[data-bs-theme='dark'] .story-details-box {
   border-right: none !important;
   border-left: none !important;
 }
+
+
+/* Fix forzar color blanco constante en iconos del topbar */
+#page-topbar .header-item,
+#page-topbar .header-item i,
+#page-topbar .topnav-hamburger,
+#page-topbar .topnav-hamburger i,
+#page-topbar .vertical-menu-btn,
+#page-topbar .vertical-menu-btn i,
+#page-topbar .btn-topbar,
+#page-topbar .btn-topbar i {
+  color: #ffffff !important;
+}
