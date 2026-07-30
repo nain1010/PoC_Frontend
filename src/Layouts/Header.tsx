@@ -144,33 +144,42 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                 </Link>
                             </div>
 
-                            <button
-                                onClick={toogleMenuBtn}
-                                type="button"
-                                className="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger text-white"
-                                id="topnav-hamburger-icon">
-                                <i className="ri-menu-2-line fs-22 text-white"></i>
-                            </button>
+                            {/* Botón Menú Hamburguesa (Tres barras) */}
+                            <div className="ms-1 header-item d-flex align-items-center">
+                                <button
+                                    onClick={toogleMenuBtn}
+                                    type="button"
+                                    className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                                    id="topnav-hamburger-icon"
+                                    title="Menú"
+                                >
+                                    <i className="ri-menu-2-line fs-22"></i>
+                                </button>
+                            </div>
 
                             {/* Botón Regresar a la página anterior */}
-                            <button
-                                onClick={() => navigate(-1)}
-                                type="button"
-                                className="btn btn-sm px-2.5 fs-16 header-item vertical-menu-btn text-white"
-                                title="Regresar a la página anterior"
-                            >
-                                <i className="ri-arrow-left-line fs-22 text-white"></i>
-                            </button>
+                            <div className="ms-1 header-item d-flex align-items-center">
+                                <button
+                                    onClick={() => navigate(-1)}
+                                    type="button"
+                                    className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                                    title="Regresar a la página anterior"
+                                >
+                                    <i className="ri-arrow-left-line fs-22"></i>
+                                </button>
+                            </div>
 
                             {/* Botón Inicio / Home (Casa) */}
-                            <button
-                                onClick={() => navigate("/")}
-                                type="button"
-                                className="btn btn-sm px-2.5 fs-16 header-item vertical-menu-btn text-white"
-                                title="Ir a Inicio"
-                            >
-                                <i className="ri-home-4-line fs-22 text-white"></i>
-                            </button>
+                            <div className="ms-1 header-item d-flex align-items-center">
+                                <button
+                                    onClick={() => navigate("/")}
+                                    type="button"
+                                    className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+                                    title="Ir a Inicio"
+                                >
+                                    <i className="ri-home-4-line fs-22"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div className="d-flex align-items-center">

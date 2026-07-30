@@ -280,21 +280,18 @@ body[data-bs-theme='dark'] .story-details-box {
 }
 
 
-/* Fix eliminar linea vertical entre logo y menu */
-.navbar-brand-box, .horizontal-logo {
+/* Fix eliminar cualquier linea o borde vertical en la barra lateral y logo colapsado */
+.navbar-brand-box,
+.horizontal-logo,
+.app-menu,
+.navbar-menu,
+.vertical-sidebar-enable .navbar-brand-box,
+[data-sidebar-size="sm"] .navbar-brand-box,
+[data-sidebar-size="sm"] .app-menu,
+[data-sidebar-size="sm"] .navbar-menu,
+#page-topbar .navbar-brand-box,
+#page-topbar .navbar-header {
   border-right: none !important;
   border-left: none !important;
-}
-
-
-/* Fix forzar color blanco constante en iconos del topbar */
-#page-topbar .header-item,
-#page-topbar .header-item i,
-#page-topbar .topnav-hamburger,
-#page-topbar .topnav-hamburger i,
-#page-topbar .vertical-menu-btn,
-#page-topbar .vertical-menu-btn i,
-#page-topbar .btn-topbar,
-#page-topbar .btn-topbar i {
-  color: #ffffff !important;
+  box-shadow: none !important;
 }
