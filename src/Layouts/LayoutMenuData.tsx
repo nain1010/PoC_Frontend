@@ -67,6 +67,18 @@ const Navdata = () => {
             isHeader: true,
         },
         {
+            id: "home",
+            label: "Inicio",
+            icon: "ri-home-4-line",
+            link: "/projects",
+            click: function (e: any) {
+                e.preventDefault();
+                setIscurrentState('Home');
+                updateIconSidebar(e);
+                history("/projects");
+            },
+        },
+        {
             id: "projects",
             label: "Proyectos",
             icon: "ri-folders-line",

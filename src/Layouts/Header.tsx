@@ -151,6 +151,28 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                                 id="topnav-hamburger-icon">
                                 <i className="ri-menu-2-line fs-22"></i>
                             </button>
+
+                            {/* Botón Regresar a la página anterior */}
+                            <button
+                                onClick={() => navigate(-1)}
+                                type="button"
+                                className="btn btn-sm px-2.5 fs-16 header-item d-flex align-items-center justify-content-center ms-1 rounded-circle"
+                                title="Regresar a la página anterior"
+                                style={{ width: "38px", height: "38px" }}
+                            >
+                                <i className="ri-arrow-left-line fs-20"></i>
+                            </button>
+
+                            {/* Botón Inicio / Home (Casa) */}
+                            <button
+                                onClick={() => navigate("/")}
+                                type="button"
+                                className="btn btn-sm px-2.5 fs-16 header-item d-flex align-items-center justify-content-center ms-1 rounded-circle"
+                                title="Ir a Inicio"
+                                style={{ width: "38px", height: "38px" }}
+                            >
+                                <i className="ri-home-4-line fs-20"></i>
+                            </button>
                         </div>
 
                         <div className="d-flex align-items-center">
