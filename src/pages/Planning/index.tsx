@@ -1532,6 +1532,27 @@ const DroppableBacklogCardBody = React.memo(({ children }: { children: React.Rea
 });
 
 
+const parseCriterios = (criterios: any): string[] => {
+    if (!criterios) return [];
+    if (Array.isArray(criterios)) {
+        return criterios.map(c => typeof c === 'string' ? c.trim() : String(c)).filter(Boolean);
+    }
+    if (typeof criterios === 'string') {
+        const trimmed = criterios.trim();
+        if (!trimmed) return [];
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (Array.isArray(parsed)) {
+                    return parsed.map(c => typeof c === 'string' ? c.trim() : String(c)).filter(Boolean);
+                }
+            } catch (e) { /* ignore JSON parse error */ }
+        }
+        return trimmed.split(/\r?\n/).map(s => s.trim().replace(/^[-*•]\s*/, '')).filter(Boolean);
+    }
+    return [];
+};
+
 // Backlog story card
 const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, onEstimate, onPlan, onEdit, onDelete, onOpenPageSelector, onOpenAttachmentModal, onOpenPageViewer }: {
     story: any;
@@ -1545,16 +1566,21 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
     onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => void;
     onOpenPageViewer: (pageId: string) => void;
 }) => {
+    const [isExpanded, setIsExpanded] = useState<boolean>(false);
+    const toggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
+
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
     const handlePlan = useCallback((sprintId: string | null) => onPlan(story.id, sprintId), [story.id, onPlan]);
     const handleEdit = useCallback(() => onEdit(story), [story, onEdit]);
     const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
+    const criteriosList = useMemo(() => parseCriterios(story.criterios_aceptacion), [story.criterios_aceptacion]);
+
     return (
         <Card id={`story-${story.id}`} className="border mb-2 shadow-sm card-animate">
             <CardBody className="p-2 px-3">
                 <div className="d-flex justify-content-between align-items-start w-100">
-                    <div className="d-flex align-items-center gap-2 overflow-hidden me-3">
+                    <div className="d-flex align-items-center gap-2 overflow-hidden me-3 cursor-pointer" onClick={toggleExpand}>
                         <span className="badge bg-soft-info text-info fs-11" style={{minWidth: '60px', textAlign: 'center'}}>
                             {story.correlativo}
                         </span>
@@ -1563,6 +1589,16 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
                         </span>
                     </div>
                     <div className="d-flex gap-1 align-items-center flex-shrink-0">
+                        <Button 
+                            color={isExpanded ? "primary" : "soft-primary"} 
+                            size="sm" 
+                            className="btn-sm py-0 px-2 fs-12 d-flex align-items-center gap-1 me-1"
+                            onClick={toggleExpand}
+                            title={isExpanded ? "Ocultar detalles" : "Ver narrativa y criterios de aceptación"}
+                        >
+                            <i className={isExpanded ? "ri-arrow-up-s-line" : "ri-arrow-down-s-line"}></i>
+                            <span className="fs-11">{isExpanded ? "Ocultar" : "Detalles"}</span>
+                        </Button>
                         <Button 
                             color="soft-secondary" 
                             size="sm" 
@@ -1586,6 +1622,50 @@ const BacklogStoryCard = React.memo(({ story, activeProjectId, planningSprints, 
                         <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
                     </div>
                 </div>
+
+                {/* Seccion desplegable con la información completa */}
+                {isExpanded && (
+                    <div className="border-top pt-3 mt-2 bg-soft-light rounded p-3 text-start animate-fade-in">
+                        <div className="row g-3">
+                            <div className="col-12">
+                                <div className="fs-11 fw-bold text-uppercase text-muted mb-1 d-flex align-items-center gap-1">
+                                    <i className="ri-user-voice-line text-primary fs-14"></i>
+                                    <span>Narrativa de Usuario</span>
+                                </div>
+                                <div className="fs-13 text-body p-2.5 rounded border-start border-3 border-primary bg-white shadow-xs" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                                    {story.narrativa ? story.narrativa : <span className="text-muted italic fs-12">Sin narrativa registrada.</span>}
+                                </div>
+                            </div>
+
+                            <div className="col-12">
+                                <div className="fs-11 fw-bold text-uppercase text-muted mb-1 d-flex align-items-center gap-1">
+                                    <i className="ri-checkbox-circle-line text-success fs-14"></i>
+                                    <span>Criterios de Aceptación ({criteriosList.length})</span>
+                                </div>
+                                {criteriosList.length > 0 ? (
+                                    <div className="d-flex flex-column gap-1.5">
+                                        {criteriosList.map((crit: string, idx: number) => (
+                                            <div key={idx} className="d-flex align-items-start gap-2 p-2 rounded bg-white border border-light shadow-xs">
+                                                <span className="badge bg-soft-success text-success mt-0.5 p-1 rounded-circle flex-shrink-0">
+                                                    <i className="ri-check-line fs-11"></i>
+                                                </span>
+                                                <span className="fs-12 text-body fw-medium lh-base">{crit}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="fs-12 text-muted italic p-2 rounded bg-white border border-dashed text-center">
+                                        Sin criterios de aceptación especificados.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="mt-3 pt-2 border-top border-light">
+                            <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} onOpenPageViewer={onOpenPageViewer} />
+                        </div>
+                    </div>
+                )}
             </CardBody>
         </Card>
     );
@@ -1599,7 +1679,7 @@ const SprintCard = React.memo(({ sprint, sprintStories, totalPoints, activeProje
     activeProjectId: string;
     planningSprints: any[];
     onEstimate: (storyId: string, points: number) => void;
-    onPlan: (storyId: string, sprintId: string) => void;
+    onPlan: (storyId: string, sprintId: string | null) => void;
     onActivate: (sprintId: string) => void;
     onClose: (sprintId: string) => void;
     onEditSprint: (sprint: any) => void;
@@ -1744,19 +1824,34 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
     onOpenAttachmentModal: (id: string, type: 'historia'|'tarea') => void;
     onOpenPageViewer: (pageId: string) => void;
 }) => {
+    const [isExpanded, setIsExpanded] = useState<boolean>(false);
+    const toggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
+
     const handleEstimate = useCallback((puntos: number) => onEstimate(story.id, puntos), [story.id, onEstimate]);
     const handlePlan = useCallback((targetSprintId: string | null) => onPlan(story.id, targetSprintId), [story.id, onPlan]);
     const handleEdit = useCallback(() => onEdit(story), [story, onEdit]);
     const handleDelete = useCallback(() => onDelete(story.id), [story.id, onDelete]);
 
+    const criteriosList = useMemo(() => parseCriterios(story.criterios_aceptacion), [story.criterios_aceptacion]);
+
     return (
         <div id={`story-${story.id}`} className="p-2 border rounded mb-2 bg-light">
             <div className="d-flex justify-content-between align-items-start">
-                <div className="d-flex align-items-center gap-1 overflow-hidden me-2">
+                <div className="d-flex align-items-center gap-1 overflow-hidden me-2 cursor-pointer" onClick={toggleExpand}>
                     <span className="badge bg-soft-muted text-muted me-2">{story.correlativo}</span>
                     <span className="text-muted fw-medium fs-13 text-truncate">{story.titulo}</span>
                 </div>
                 <div className="d-flex align-items-center gap-2">
+                    <Button 
+                        color={isExpanded ? "primary" : "soft-primary"} 
+                        size="sm" 
+                        className="btn-sm py-0 px-2 fs-12 d-flex align-items-center gap-1 me-1"
+                        onClick={toggleExpand}
+                        title={isExpanded ? "Ocultar detalles" : "Ver narrativa y criterios de aceptación"}
+                    >
+                        <i className={isExpanded ? "ri-arrow-up-s-line" : "ri-arrow-down-s-line"}></i>
+                        <span className="fs-11">{isExpanded ? "Ocultar" : "Detalles"}</span>
+                    </Button>
                     <Button 
                         color="soft-info" 
                         size="sm" 
@@ -1781,6 +1876,47 @@ const SprintStoryRow = React.memo(({ story, activeProjectId, sprintId, planningS
                     <StoryActionsDropdown onEdit={handleEdit} onDelete={handleDelete} />
                 </div>
             </div>
+
+            {/* Seccion desplegable dentro de la historia del Sprint */}
+            {isExpanded && (
+                <div className="border-top pt-3 mt-2 bg-white rounded p-3 text-start shadow-xs">
+                    <div className="row g-3">
+                        <div className="col-12">
+                            <div className="fs-11 fw-bold text-uppercase text-muted mb-1 d-flex align-items-center gap-1">
+                                <i className="ri-user-voice-line text-primary fs-14"></i>
+                                <span>Narrativa de Usuario</span>
+                            </div>
+                            <div className="fs-13 text-body p-2.5 rounded border-start border-3 border-primary bg-light" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                                {story.narrativa ? story.narrativa : <span className="text-muted italic fs-12">Sin narrativa registrada.</span>}
+                            </div>
+                        </div>
+
+                        <div className="col-12">
+                            <div className="fs-11 fw-bold text-uppercase text-muted mb-1 d-flex align-items-center gap-1">
+                                <i className="ri-checkbox-circle-line text-success fs-14"></i>
+                                <span>Criterios de Aceptación ({criteriosList.length})</span>
+                            </div>
+                            {criteriosList.length > 0 ? (
+                                <div className="d-flex flex-column gap-1.5">
+                                    {criteriosList.map((crit: string, idx: number) => (
+                                        <div key={idx} className="d-flex align-items-start gap-2 p-2 rounded bg-light border border-light">
+                                            <span className="badge bg-soft-success text-success mt-0.5 p-1 rounded-circle flex-shrink-0">
+                                                <i className="ri-check-line fs-11"></i>
+                                            </span>
+                                            <span className="fs-12 text-body fw-medium lh-base">{crit}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="fs-12 text-muted italic p-2 rounded bg-light border border-dashed text-center">
+                                    Sin criterios de aceptación especificados.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <InlineAttachments projectId={activeProjectId} entityType="historia" entityId={story.id} onOpenPageViewer={onOpenPageViewer} />
         </div>
     );

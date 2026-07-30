@@ -12,7 +12,7 @@ import { withTranslation } from "react-i18next";
 const HorizontalLayout = (props : any) => {
     const [isMoreMenu, setIsMoreMenu] = useState<boolean>(false);
     const navData = navdata().props.children;
-    let menuItems = [];
+    let menuItems: any[] = [];
     navData.forEach(function (value : any, key : number) {
         if (!value['isHeader']) {
             menuItems.push(value);

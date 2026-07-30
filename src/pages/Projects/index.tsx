@@ -61,6 +61,12 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = React.memo<ProjectCardProps>(({ project, selectedProjectId, onSelect, onDelete }) => {
+  const [isDescExpanded, setIsDescExpanded] = useState<boolean>(false);
+  const toggleDesc = useCallback(() => setIsDescExpanded(prev => !prev), []);
+
+  const descText = project.descripcion || "Sin descripción proporcionada.";
+  const hasLongDesc = descText.length > 90;
+
   const roleBadgeClass = project.mi_rol === 'Product Owner' ? 'bg-primary' :
     project.mi_rol === 'Scrum Master' ? 'bg-success' :
     project.mi_rol === 'Developer' ? 'bg-info' :
@@ -91,9 +97,21 @@ const ProjectCard = React.memo<ProjectCardProps>(({ project, selectedProjectId, 
               </div>
             </div>
             <h5 className="fs-16 text-body fw-bold mb-2">{project.nombre}</h5>
-            <p className="text-muted text-truncate-two-lines fs-14 mb-3" style={{ minHeight: "42px" }}>
-              {project.descripcion || "Sin descripción proporcionada."}
-            </p>
+            <div className="mb-3">
+              <p className={`text-muted fs-14 mb-1 ${!isDescExpanded && hasLongDesc ? 'text-truncate-two-lines' : ''}`} style={{ minHeight: !hasLongDesc ? "42px" : "auto", lineHeight: "1.5" }}>
+                {descText}
+              </p>
+              {hasLongDesc && (
+                <button 
+                  type="button" 
+                  className="btn btn-link p-0 fs-12 text-primary text-decoration-none fw-semibold d-flex align-items-center gap-1"
+                  onClick={toggleDesc}
+                >
+                  <span>{isDescExpanded ? 'Ver menos' : 'Ver más descripción'}</span>
+                  <i className={isDescExpanded ? "ri-arrow-up-s-line" : "ri-arrow-down-s-line"}></i>
+                </button>
+              )}
+            </div>
             <div className="mb-3">
               <span className="text-muted fs-13 fw-semibold d-block mb-2">Equipo del Proyecto</span>
               <IntegrantesAvatars integrantes={project.integrantes} />
