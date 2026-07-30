@@ -172,7 +172,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                             {/* Botón Inicio / Home (Casa) */}
                             <div className="ms-1 header-item d-flex align-items-center">
                                 <button
-                                    onClick={() => navigate("/")}
+                                    onClick={() => navigate("/home")}
                                     type="button"
                                     className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
                                     title="Ir a Inicio"
