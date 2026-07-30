@@ -278,3 +278,10 @@ body[data-bs-theme='dark'] .story-details-box {
   border-color: var(--vz-border-color, #32383e) !important;
   color: var(--vz-body-color, #adb5bd) !important;
 }
+
+
+/* Fix eliminar linea vertical entre logo y menu */
+.navbar-brand-box, .horizontal-logo {
+  border-right: none !important;
+  border-left: none !important;
+}

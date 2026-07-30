@@ -124,7 +124,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                     <div className="navbar-header">
                         <div className="d-flex">
 
-                            <div className="navbar-brand-box horizontal-logo">
+                            <div className="navbar-brand-box horizontal-logo border-0 border-end-0" style={{ borderRight: "none" }}>
                                 <Link to="/" className="logo logo-dark">
                                     <span className="logo-sm">
                                         <img src={logoSm} alt="Luma" height="22" />
@@ -153,28 +153,24 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass, toggleRightSi
                             </button>
 
                             {/* Botón Regresar a la página anterior */}
-                            <div className="ms-1 header-item d-flex align-items-center">
-                                <button
-                                    onClick={() => navigate(-1)}
-                                    type="button"
-                                    className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
-                                    title="Regresar a la página anterior"
-                                >
-                                    <i className="bx bx-arrow-back fs-22"></i>
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => navigate(-1)}
+                                type="button"
+                                className="btn btn-sm px-2.5 fs-16 header-item vertical-menu-btn"
+                                title="Regresar a la página anterior"
+                            >
+                                <i className="ri-arrow-left-line fs-22"></i>
+                            </button>
 
                             {/* Botón Inicio / Home (Casa) */}
-                            <div className="ms-1 header-item d-flex align-items-center">
-                                <button
-                                    onClick={() => navigate("/")}
-                                    type="button"
-                                    className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
-                                    title="Ir a Inicio"
-                                >
-                                    <i className="bx bx-home-alt fs-22"></i>
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => navigate("/")}
+                                type="button"
+                                className="btn btn-sm px-2.5 fs-16 header-item vertical-menu-btn"
+                                title="Ir a Inicio"
+                            >
+                                <i className="ri-home-4-line fs-22"></i>
+                            </button>
                         </div>
 
                         <div className="d-flex align-items-center">
